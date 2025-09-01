@@ -1,0 +1,356 @@
+// Класс для работы с JSON файлами в качестве базы данных
+
+const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+
+class Database {
+    constructor() {
+        this.dataPath = path.join(process.env.APPDATA || process.env.HOME, '.processcraft');
+        this.dbPath = path.join(this.dataPath, 'database');
+        this.init();
+    }
+
+    init() {
+        // Создаем директории если их нет
+        if (!fs.existsSync(this.dataPath)) {
+            fs.mkdirSync(this.dataPath, { recursive: true });
+        }
+        if (!fs.existsSync(this.dbPath)) {
+            fs.mkdirSync(this.dbPath, { recursive: true });
+        }
+
+        // Инициализируем файлы базы данных
+        this.initCollection('orders');
+        this.initCollection('customers');
+        this.initCollection('materials');
+        this.initCollection('tasks');
+        this.initCollection('notifications');
+        this.initCollection('documents');
+        this.initCollection('warehouse');
+        this.initCollection('production');
+        this.initCollection('maintenance');
+        this.initCollection('analytics');
+    }
+
+    initCollection(collectionName) {
+        const filePath = path.join(this.dbPath, `${collectionName}.json`);
+        if (!fs.existsSync(filePath)) {
+            fs.writeFileSync(filePath, JSON.stringify([], null, 2));
+        }
+    }
+
+    getCollectionPath(collectionName) {
+        return path.join(this.dbPath, `${collectionName}.json`);
+    }
+
+    readCollection(collectionName) {
+        try {
+            const filePath = this.getCollectionPath(collectionName);
+            const data = fs.readFileSync(filePath, 'utf8');
+            return JSON.parse(data);
+        } catch (error) {
+            console.error(`Ошибка чтения коллекции ${collectionName}:`, error);
+            return [];
+        }
+    }
+
+    writeCollection(collectionName, data) {
+        try {
+            const filePath = this.getCollectionPath(collectionName);
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            return true;
+        } catch (error) {
+            console.error(`Ошибка записи коллекции ${collectionName}:`, error);
+            return false;
+        }
+    }
+
+    // Методы для работы с заказами
+    async getOrders(filter = {}) {
+        const orders = this.readCollection('orders');
+        return this.filterData(orders, filter);
+    }
+
+    async createOrder(orderData) {
+        const orders = this.readCollection('orders');
+        const newOrder = {
+            id: uuidv4(),
+            ...orderData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: orderData.status || 'new'
+        };
+        orders.push(newOrder);
+        this.writeCollection('orders', orders);
+        return newOrder;
+    }
+
+    async updateOrder(orderId, updateData) {
+        const orders = this.readCollection('orders');
+        const orderIndex = orders.findIndex(order => order.id === orderId);
+        if (orderIndex !== -1) {
+            orders[orderIndex] = {
+                ...orders[orderIndex],
+                ...updateData,
+                updatedAt: new Date().toISOString()
+            };
+            this.writeCollection('orders', orders);
+            return orders[orderIndex];
+        }
+        return null;
+    }
+
+    async deleteOrder(orderId) {
+        const orders = this.readCollection('orders');
+        const filteredOrders = orders.filter(order => order.id !== orderId);
+        this.writeCollection('orders', filteredOrders);
+        return true;
+    }
+
+    // Методы для работы с клиентами
+    async getCustomers(filter = {}) {
+        const customers = this.readCollection('customers');
+        return this.filterData(customers, filter);
+    }
+
+    async createCustomer(customerData) {
+        const customers = this.readCollection('customers');
+        const newCustomer = {
+            id: uuidv4(),
+            ...customerData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        customers.push(newCustomer);
+        this.writeCollection('customers', customers);
+        return newCustomer;
+    }
+
+    // Методы для работы с материалами
+    async getMaterials(filter = {}) {
+        const materials = this.readCollection('materials');
+        return this.filterData(materials, filter);
+    }
+
+    async createMaterial(materialData) {
+        const materials = this.readCollection('materials');
+        const newMaterial = {
+            id: uuidv4(),
+            ...materialData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        materials.push(newMaterial);
+        this.writeCollection('materials', materials);
+        return newMaterial;
+    }
+
+    // Методы для работы с задачами
+    async getTasks(filter = {}) {
+        const tasks = this.readCollection('tasks');
+        return this.filterData(tasks, filter);
+    }
+
+    async createTask(taskData) {
+        const tasks = this.readCollection('tasks');
+        const newTask = {
+            id: uuidv4(),
+            ...taskData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: taskData.status || 'pending'
+        };
+        tasks.push(newTask);
+        this.writeCollection('tasks', tasks);
+        return newTask;
+    }
+
+    // Методы для работы с уведомлениями
+    async getNotifications(filter = {}) {
+        const notifications = this.readCollection('notifications');
+        return this.filterData(notifications, filter);
+    }
+
+    async createNotification(notificationData) {
+        const notifications = this.readCollection('notifications');
+        const newNotification = {
+            id: uuidv4(),
+            ...notificationData,
+            createdAt: new Date().toISOString(),
+            read: false
+        };
+        notifications.unshift(newNotification);
+        this.writeCollection('notifications', notifications);
+        return newNotification;
+    }
+
+    async updateNotification(notificationId, updateData) {
+        const notifications = this.readCollection('notifications');
+        const notificationIndex = notifications.findIndex(n => n.id === notificationId);
+        if (notificationIndex !== -1) {
+            notifications[notificationIndex] = {
+                ...notifications[notificationIndex],
+                ...updateData
+            };
+            this.writeCollection('notifications', notifications);
+            return notifications[notificationIndex];
+        }
+        return null;
+    }
+
+    // Методы для работы с документами
+    async getDocuments(filter = {}) {
+        const documents = this.readCollection('documents');
+        return this.filterData(documents, filter);
+    }
+
+    async createDocument(documentData) {
+        const documents = this.readCollection('documents');
+        const newDocument = {
+            id: uuidv4(),
+            ...documentData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            version: documentData.version || 1
+        };
+        documents.push(newDocument);
+        this.writeCollection('documents', documents);
+        return newDocument;
+    }
+
+    // Методы для работы со складом
+    async getWarehouseItems(filter = {}) {
+        const warehouse = this.readCollection('warehouse');
+        return this.filterData(warehouse, filter);
+    }
+
+    async updateWarehouseItem(itemId, updateData) {
+        const warehouse = this.readCollection('warehouse');
+        const itemIndex = warehouse.findIndex(item => item.id === itemId);
+        if (itemIndex !== -1) {
+            warehouse[itemIndex] = {
+                ...warehouse[itemIndex],
+                ...updateData,
+                updatedAt: new Date().toISOString()
+            };
+            this.writeCollection('warehouse', warehouse);
+            return warehouse[itemIndex];
+        }
+        return null;
+    }
+
+    // Методы для работы с производством
+    async getProductionData(filter = {}) {
+        const production = this.readCollection('production');
+        return this.filterData(production, filter);
+    }
+
+    async createProductionRecord(recordData) {
+        const production = this.readCollection('production');
+        const newRecord = {
+            id: uuidv4(),
+            ...recordData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        production.push(newRecord);
+        this.writeCollection('production', production);
+        return newRecord;
+    }
+
+    // Методы для работы с РММ
+    async getMaintenanceRecords(filter = {}) {
+        const maintenance = this.readCollection('maintenance');
+        return this.filterData(maintenance, filter);
+    }
+
+    async createMaintenanceRecord(recordData) {
+        const maintenance = this.readCollection('maintenance');
+        const newRecord = {
+            id: uuidv4(),
+            ...recordData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        maintenance.push(newRecord);
+        this.writeCollection('maintenance', maintenance);
+        return newRecord;
+    }
+
+    // Методы для аналитики
+    async getAnalyticsData(filter = {}) {
+        const analytics = this.readCollection('analytics');
+        return this.filterData(analytics, filter);
+    }
+
+    async saveAnalyticsData(data) {
+        const analytics = this.readCollection('analytics');
+        const newData = {
+            id: uuidv4(),
+            ...data,
+            createdAt: new Date().toISOString()
+        };
+        analytics.push(newData);
+        this.writeCollection('analytics', analytics);
+        return newData;
+    }
+
+    // Утилиты
+    filterData(data, filter) {
+        return data.filter(item => {
+            for (const [key, value] of Object.entries(filter)) {
+                if (item[key] !== value) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    // Резервное копирование
+    async backup() {
+        const backupPath = path.join(this.dataPath, `backup_${Date.now()}.zip`);
+        // Здесь будет логика создания резервной копии
+        console.log('Создание резервной копии:', backupPath);
+        return backupPath;
+    }
+
+    // Восстановление из резервной копии
+    async restore(backupPath) {
+        // Здесь будет логика восстановления из резервной копии
+        console.log('Восстановление из резервной копии:', backupPath);
+        return true;
+    }
+
+    // Экспорт данных
+    async exportData(collectionName, format = 'json') {
+        const data = this.readCollection(collectionName);
+        const exportPath = path.join(this.dataPath, `${collectionName}_export_${Date.now()}.${format}`);
+        
+        if (format === 'json') {
+            fs.writeFileSync(exportPath, JSON.stringify(data, null, 2));
+        } else if (format === 'csv') {
+            // Здесь будет логика экспорта в CSV
+        }
+        
+        return exportPath;
+    }
+
+    // Импорт данных
+    async importData(collectionName, filePath) {
+        try {
+            const data = fs.readFileSync(filePath, 'utf8');
+            const importedData = JSON.parse(data);
+            this.writeCollection(collectionName, importedData);
+            return true;
+        } catch (error) {
+            console.error('Ошибка импорта данных:', error);
+            return false;
+        }
+    }
+}
+
+module.exports = Database;
+
+

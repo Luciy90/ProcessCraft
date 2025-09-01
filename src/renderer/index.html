@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;">
+  <title>ProcessCraft — Производственная платформа</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tailwind.css">
+  <style>
+    :root { color-scheme: dark; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes fadeIn { from { opacity: 0; filter: blur(6px) } to { opacity: 1; filter: blur(0) } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.98) } to { opacity: 1; transform: scale(1) } }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">
+  <div class="sticky top-0 z-50">
+    <div class="w-full border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+      <div class="mx-auto max-w-[1600px] px-4">
+        <div class="flex items-center justify-between h-11">
+          <div class="flex items-center gap-2">
+            <div id="logo-badge" class="h-5 px-1.5 rounded-sm bg-white/90 text-neutral-900 font-semibold inline-flex items-center justify-center tracking-tight">PC</div>
+            <div id="logo-text" class="text-sm text-white/80"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="settings-btn" class="h-7 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200">Настройки</button>
+            <button id="notifications-btn" class="relative h-7 w-7 grid place-items-center rounded border border-white/10 hover:border-white/20 hover:bg-white/5">
+              <svg data-lucide="bell" class="h-4 w-4"></svg>
+              <span id="notification-count" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-rose-500 text-[10px] grid place-items-center">0</span>
+            </button>
+            <button id="user-btn" class="h-9 w-9 rounded-lg overflow-hidden border border-white/10 hover:border-white/20 hover:bg-white/5 grid place-items-center">
+              <img id="user-avatar" alt="User" class="h-9 w-9 object-cover hidden" />
+              <div id="user-avatar-fallback" class="h-9 w-9 grid place-items-center text-sm text-white/80">👤</div>
+            </button>
+            <button id="login-btn" class="h-7 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200 hidden">Войти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl"></div>
+    <div class="absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-72 w-[42rem] rounded-full bg-sky-500/10 blur-3xl"></div>
+  </div>
+
+  <div class="mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8">
+    <div class="grid grid-cols-12 gap-4 lg:gap-6 pt-4 lg:pt-6">
+      <aside class="col-span-12 lg:col-span-3 xl:col-span-2">
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4" style="animation: fadeIn .6s ease .05s both">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-base font-semibold text-white/90 tracking-tight">Навигация</div>
+            <button id="sidebar-settings" class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200">Настройки</button>
+          </div>
+
+          <nav class="space-y-1.5">
+            <a href="#" class="nav-item active group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="dashboard">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="layout-dashboard" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Панель управления</div><div class="text-[11px] text-white/50">Сводка и KPI</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="orders">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="clipboard-list" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Управление заказами</div><div class="text-[11px] text-white/50">Клиенты, этапы, история</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="design">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="layers" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Конструкторский модуль</div><div class="text-[11px] text-white/50">Версии КД, 3D, упаковка</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="technology">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="flask-conical" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Модуль технологов</div><div class="text-[11px] text-white/50">Материалы, ТУ, параметры</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="warehouse">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="package" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Складской модуль</div><div class="text-[11px] text-white/50">Остатки, накладные</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="molds">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="cube" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Производство форм</div><div class="text:[11px] text-white/50">3D, фрезер., токарка</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="maintenance">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="wrench" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">РММ / Главный инженер</div><div class="text-[11px] text-white/50">Задачи, ремонты</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="production">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="building-2" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Производственный цех</div><div class="text-[11px] text-white/50">Карты, график</div></div>
+            </a>
+            <a href="#" class="nav-item group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors" data-module="analytics">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]"><svg data-lucide="line-chart" class="h-4 w-4"></svg></div>
+              <div class="flex-1"><div class="text-[13px] font-medium text-white/90">Аналитика и отчёты</div><div class="text-[11px] text-white/50">KPI, себестоимость</div></div>
+            </a>
+          </nav>
+        </div>
+      </aside>
+
+      <main class="col-span-12 lg:col-span-9 xl:col-span-10 space-y-4 lg:space-y-6">
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 px-3 lg:px-4 py-2.5" style="animation: fadeIn .5s ease .05s both">
+          <div class="flex items-center gap-2">
+            <div id="current-module" class="text-xl md:text-2xl font-semibold text-white tracking-tight">Панель управления</div>
+            <span class="px-2 py-1 text-[11px] rounded-md border border-white/10 text-white/70">v1.0.0</span>
+          </div>
+        </div>
+
+        <div id="content-area" class="space-y-4 lg:space-y-6">
+          <div id="dashboard-module" class="module-content active">
+            <section class="space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
+                <div class="rounded-xl border border-white/10 ring-1 ring-indigo-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4"><div class="text-sm text-white/60">Активные заказы</div><div class="mt-2 text-3xl font-semibold tracking-tight" id="active-orders-count">0</div></div>
+                <div class="rounded-xl border border-white/10 ring-1 ring-rose-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4"><div class="text-sm text-white/60">В производстве</div><div class="mt-2 text-3xl font-semibold tracking-tight" id="in-production-count">0</div></div>
+                <div class="rounded-xl border border-white/10 ring-1 ring-sky-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4"><div class="text-sm text-white/60">Готово к отгрузке</div><div class="mt-2 text-3xl font-semibold tracking-tight" id="ready-to-ship-count">0</div></div>
+                <div class="rounded-xl border border-white/10 ring-1 ring-amber-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4"><div class="text-sm text-white/60">Критические задачи</div><div class="mt-2 text-3xl font-semibold tracking-tight" id="critical-tasks-count">0</div></div>
+              </div>
+            </section>
+          </div>
+          <div id="orders-module" class="module-content"></div>
+          <div id="design-module" class="module-content"></div>
+          <div id="technology-module" class="module-content"></div>
+          <div id="warehouse-module" class="module-content"></div>
+          <div id="molds-module" class="module-content"></div>
+          <div id="maintenance-module" class="module-content"></div>
+          <div id="production-module" class="module-content"></div>
+          <div id="analytics-module" class="module-content"></div>
+          <div id="profile-module" class="module-content"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="notifications-panel" class="fixed top-14 right-4 w-80 rounded-xl border border-white/10 bg-neutral-900/90 backdrop-blur p-3 hidden">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold text-white/80">Уведомления</h3>
+      <button id="close-notifications" class="h-7 w-7 grid place-items-center rounded hover:bg-white/10">✕</button>
+    </div>
+    <div id="notifications-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+  </div>
+
+  <div id="modal-overlay" class="fixed inset-0 bg-black/50 hidden">
+    <div id="modal-content" class="mx-auto mt-20 max-w-xl rounded-xl border border-white/10 bg-neutral-900 p-4"></div>
+  </div>
+
+  <script src="js/vendor/lucide.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { 
+      if (window.lucide) {
+        try {
+          lucide.createIcons({ attrs: { 'stroke-width': 1.5 } }); 
+          console.log('Иконки Lucide успешно созданы');
+        } catch (error) {
+          console.warn('Ошибка при создании иконок Lucide:', error);
+        }
+      } else {
+        console.error('Lucide не загружен');
+      }
+    });
+  </script>
+  <script src="js/ui_config.js"></script>
+
+  <script src="js/app.js"></script>
+  <script src="js/modules/dashboard.js"></script>
+  <script src="js/modules/orders.js"></script>
+  <script src="js/modules/design.js"></script>
+  <script src="js/modules/technology.js"></script>
+  <script src="js/modules/warehouse.js"></script>
+  <script src="js/modules/molds.js"></script>
+  <script src="js/modules/maintenance.js"></script>
+  <script src="js/modules/production.js"></script>
+  <script src="js/modules/analytics.js"></script>
+  <script src="js/modules/profile.js"></script>
+  <script src="js/utils/database.js"></script>
+  <script src="js/utils/notifications.js"></script>
+  <script src="js/utils/userStore.js"></script>
+  <script src="js/utils/avatarUtils.js"></script>
+  <script src="js/utils/ui.js"></script>
+</body>
+</html>
+

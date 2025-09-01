@@ -1,0 +1,795 @@
+<html lang="ru"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MFG OS — Производственная платформа</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes fadeIn { from { opacity: 0; filter: blur(6px) } to { opacity: 1; filter: blur(0) } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.98) } to { opacity: 1; transform: scale(1) } }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">
+  <!-- App Window Bar -->
+  <div class="sticky top-0 z-50">
+    <div class="w-full border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+      <div class="mx-auto max-w-[1600px] px-4">
+        <div class="flex items-center justify-between h-11">
+          <div class="flex items-center gap-2">
+            <div class="h-5 w-5 rounded-sm bg-white/90 text-neutral-900 font-semibold flex items-center justify-center tracking-tight">M</div>
+            <div class="text-sm text-white/80">MFG OS • Производственная платформа</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-white/10 transition-colors" aria-label="Свернуть">
+              <svg data-lucide="minus" class="h-4 w-4 text-white/70"></svg>
+            </button>
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-white/10 transition-colors" aria-label="Развернуть">
+              <svg data-lucide="square" class="h-4 w-4 text-white/70"></svg>
+            </button>
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-rose-500/10 hover:text-rose-400 transition-colors" aria-label="Закрыть">
+              <svg data-lucide="x" class="h-4 w-4"></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ambient glass gradients -->
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl"></div>
+    <div class="absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-72 w-[42rem] rounded-full bg-sky-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Layout -->
+  <div class="mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8">
+    <div class="grid grid-cols-12 gap-4 lg:gap-6 pt-4 lg:pt-6">
+      <!-- Sidebar -->
+      <aside class="col-span-12 lg:col-span-3 xl:col-span-2">
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4" style="animation: fadeIn .6s ease .05s both">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-base font-semibold text-white/90 tracking-tight">Навигация</div>
+            <button class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+              <div class="flex items-center gap-1.5">
+                <svg data-lucide="settings" class="h-4 w-4"></svg>
+                Настройки
+              </div>
+            </button>
+          </div>
+
+          <nav class="space-y-1.5">
+            <!-- 1. Заказы -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="clipboard-list" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Управление заказами</div>
+                <div class="text-[11px] text-white/50">Клиенты, проекты, этапы, история</div>
+              </div>
+              <span class="text-[11px] text-white/50">1</span>
+            </a>
+            <!-- 2. КД -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="layers" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Конструкторский модуль</div>
+                <div class="text-[11px] text-white/50">Версии КД, 3D, упаковка</div>
+              </div>
+              <span class="text-[11px] text-white/50">2</span>
+            </a>
+            <!-- 3. Технологи -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="flask-conical" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Модуль технологов</div>
+                <div class="text-[11px] text-white/50">Материалы, ТУ, параметры</div>
+              </div>
+              <span class="text-[11px] text-white/50">3</span>
+            </a>
+            <!-- 4. Склад -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="package" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Складской модуль</div>
+                <div class="text-[11px] text-white/50">Остатки, накладные, отгрузка</div>
+              </div>
+              <span class="text-[11px] text-white/50">4</span>
+            </a>
+            <!-- 5. Формы -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="cube" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Производство форм</div>
+                <div class="text-[11px] text-white/50">3D, фрезер., токарка, резка</div>
+              </div>
+              <span class="text-[11px] text-white/50">5</span>
+            </a>
+            <!-- 6. РММ -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="wrench" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">РММ / Главный инженер</div>
+                <div class="text-[11px] text-white/50">Задачи, ремонты, журнал</div>
+              </div>
+              <span class="text-[11px] text-white/50">6</span>
+            </a>
+            <!-- 7. Цех -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="building-2" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Производственный цех</div>
+                <div class="text-[11px] text-white/50">Карты, график, отчёты</div>
+              </div>
+              <span class="text-[11px] text-white/50">7</span>
+            </a>
+            <!-- 8. Уведомления -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="bell" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Уведомления и контроль</div>
+                <div class="text-[11px] text-white/50">Push/e‑mail, задержки</div>
+              </div>
+              <span class="text-[11px] text-white/50">8</span>
+            </a>
+            <!-- 9. Аналитика -->
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="line-chart" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Аналитика и отчёты</div>
+                <div class="text-[11px] text-white/50">KPI, себестоимость</div>
+              </div>
+              <span class="text-[11px] text-white/50">9</span>
+            </a>
+          </nav>
+
+          <div class="my-3 border-t border-white/10"></div>
+
+          <div class="space-y-2">
+            <div class="text-[12px] text-white/50 mb-1">Быстрые действия</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .6s ease .1s both">
+                <svg data-lucide="plus" class="h-4 w-4"></svg>
+                Новый заказ
+              </button>
+              <button class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .6s ease .15s both">
+                <svg data-lucide="file-plus-2" class="h-4 w-4"></svg>
+                Новая КД
+              </button>
+              <button class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .6s ease .2s both">
+                <svg data-lucide="flask-conical" class="h-4 w-4"></svg>
+                Новое ТУ
+              </button>
+              <button class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .6s ease .25s both">
+                <svg data-lucide="package-plus" class="h-4 w-4"></svg>
+                Приход
+              </button>
+            </div>
+          </div>
+
+          <div class="my-3 border-t border-white/10"></div>
+
+          <div class="p-3 rounded-lg border border-white/10 bg-white/[0.03]">
+            <div class="flex items-center justify-between">
+              <div class="text-[12px] text-white/70">Хранилище</div>
+              <div class="text-[12px] text-white/50">64% использовано</div>
+            </div>
+            <div class="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div class="h-full w-[64%] bg-white/40"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="col-span-12 lg:col-span-9 xl:col-span-10 space-y-4 lg:space-y-6">
+        <!-- Topbar -->
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 px-3 lg:px-4 py-2.5" style="animation: fadeIn .5s ease .05s both">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="text-xl md:text-2xl font-semibold text-white tracking-tight">Панель управления производством</div>
+              <span class="px-2 py-1 text-[11px] rounded-md border border-white/10 text-white/70">v0.1</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="hidden lg:flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
+                <svg data-lucide="search" class="h-4 w-4 text-white/60"></svg>
+                <input placeholder="Поиск: заказы, КД, материалы…" class="bg-transparent text-sm placeholder:text-white/40 focus:outline-none w-64">
+                <span class="ml-2 text-[10px] text-white/40 border border-white/10 rounded px-1.5 py-0.5">Ctrl K</span>
+              </div>
+              <button class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 text-sm flex items-center gap-1.5">
+                <svg data-lucide="calendar-clock" class="h-4 w-4"></svg>
+                Период
+              </button>
+              <button class="relative h-9 w-9 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors grid place-items-center">
+                <svg data-lucide="bell" class="h-4 w-4"></svg>
+                <span class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-rose-500 text-[10px] grid place-items-center">4</span>
+              </button>
+              <div class="h-9 w-9 rounded-lg overflow-hidden border border-white/10">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&amp;w=200&amp;auto=format&amp;fit=crop" class="h-full w-full object-cover" alt="User">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters + KPIs -->
+        <section class="space-y-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.06] text-sm text-white hover:border-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .5s ease .08s both">Все</button>
+            <button class="px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-sm text-white/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20" style="animation: fadeUp .5s ease .1s both">В работе</button>
+            <button class="px-3 py-1.5 rounded-lg border border-rose-500/30 hover:border-rose-500/50 hover:bg-rose-500/10 text-sm text-rose-200/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-900/30" style="animation: fadeUp .5s ease .12s both">
+              <div class="flex items-center gap-1.5">
+                <svg data-lucide="alert-triangle" class="h-4 w-4"></svg>
+                Просрочки
+              </div>
+            </button>
+            <button class="px-3 py-1.5 rounded-lg border border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-500/10 text-sm text-amber-100/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-amber-900/30" style="animation: fadeUp .5s ease .14s both">
+              <div class="flex items-center gap-1.5">
+                <svg data-lucide="shield-alert" class="h-4 w-4"></svg>
+                Дефицит материалов
+              </div>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
+            <div class="rounded-xl border border-white/10 ring-1 ring-indigo-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: scaleIn .5s ease .1s both">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-white/60">Заказы в обработке</div>
+                <div class="h-8 w-8 rounded-md bg-indigo-500/15 grid place-items-center border border-indigo-400/20">
+                  <svg data-lucide="clipboard-list" class="h-4 w-4 text-indigo-200/80"></svg>
+                </div>
+              </div>
+              <div class="mt-2 text-3xl font-semibold tracking-tight">128</div>
+              <div class="mt-1 text-xs text-emerald-300/80">+12 за неделю</div>
+            </div>
+            <div class="rounded-xl border border-white/10 ring-1 ring-rose-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: scaleIn .5s ease .12s both">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-white/60">Просрочено этапов</div>
+                <div class="h-8 w-8 rounded-md bg-rose-500/15 grid place-items-center border border-rose-400/20">
+                  <svg data-lucide="alarm-clock" class="h-4 w-4 text-rose-200/80"></svg>
+                </div>
+              </div>
+              <div class="mt-2 text-3xl font-semibold tracking-tight">9</div>
+              <div class="mt-1 text-xs text-rose-300/80">-3 за 24 ч</div>
+            </div>
+            <div class="rounded-xl border border-white/10 ring-1 ring-amber-400/25 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: scaleIn .5s ease .14s both">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-white/60">Дефицит материалов</div>
+                <div class="h-8 w-8 rounded-md bg-amber-500/15 grid place-items-center border border-amber-400/25">
+                  <svg data-lucide="package" class="h-4 w-4 text-amber-100/80"></svg>
+                </div>
+              </div>
+              <div class="mt-2 text-3xl font-semibold tracking-tight">14</div>
+              <div class="mt-1 text-xs text-amber-200/80">Критично: 5</div>
+            </div>
+            <div class="rounded-xl border border-white/10 ring-1 ring-sky-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: scaleIn .5s ease .16s both">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-white/60">Загруженность оборудования</div>
+                <div class="h-8 w-8 rounded-md bg-sky-500/15 grid place-items-center border border-sky-400/20">
+                  <svg data-lucide="bar-chart-3" class="h-4 w-4 text-sky-200/80"></svg>
+                </div>
+              </div>
+              <div class="mt-2 text-3xl font-semibold tracking-tight">76%</div>
+              <div class="mt-1 text-xs text-white/60">Цех №2: 89%</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Two Column: Orders + Analytics -->
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
+          <!-- Orders pipeline / table -->
+          <div class="xl:col-span-2 rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .15s both">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-semibold tracking-tight">Заказы и этапы</h2>
+                <p class="text-sm text-white/60">От заявки до отгрузки, обновляется в реальном времени</p>
+              </div>
+              <button class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 text-sm flex items-center gap-1.5">
+                <svg data-lucide="plus" class="h-4 w-4"></svg>
+                Добавить
+              </button>
+            </div>
+            <div class="mt-4 rounded-lg border border-white/10 overflow-hidden">
+              <div class="grid grid-cols-12 bg-white/[0.03] text-xs text-white/60">
+                <div class="col-span-4 px-3 py-2">Клиент / Проект</div>
+                <div class="col-span-3 px-3 py-2">Этап</div>
+                <div class="col-span-2 px-3 py-2">Срок</div>
+                <div class="col-span-2 px-3 py-2">Ответственный</div>
+                <div class="col-span-1 px-3 py-2 text-right">Статус</div>
+              </div>
+              <div class="divide-y divide-white/10">
+                <!-- Row -->
+                <div class="grid grid-cols-12 text-sm hover:bg-white/[0.03] transition-colors">
+                  <div class="col-span-4 px-3 py-2">
+                    <div class="font-medium">ООО «ТехПром» • Литьё сталь AISI</div>
+                    <div class="text-xs text-white/50">Заказ ZK-2024-118</div>
+                  </div>
+                  <div class="col-span-3 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Производство формы</span>
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">КД v3</span>
+                    </div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div>12.09.2025</div>
+                    <div class="text-xs text-rose-300/80">Просрочка: 1 д.</div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <img class="h-6 w-6 rounded-md border border-white/10" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&amp;w=200&amp;auto=format&amp;fit=crop" alt="user">
+                      <span class="text-xs text-white/70">И. Петров</span>
+                    </div>
+                  </div>
+                  <div class="col-span-1 px-3 py-2 text-right">
+                    <span class="text-xs px-2 py-1 rounded border border-rose-400/40 text-rose-200/90">Риск</span>
+                  </div>
+                </div>
+                <!-- Row -->
+                <div class="grid grid-cols-12 text-sm hover:bg-white/[0.03] transition-colors">
+                  <div class="col-span-4 px-3 py-2">
+                    <div class="font-medium">АО «Импульс» • Партия алюминий</div>
+                    <div class="text-xs text-white/50">Заказ AL-305-77</div>
+                  </div>
+                  <div class="col-span-3 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Заливка</span>
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Сушка</span>
+                    </div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div>20.09.2025</div>
+                    <div class="text-xs text-emerald-300/80">В графике</div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <img class="h-6 w-6 rounded-md border border-white/10" src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&amp;w=200&amp;auto=format&amp;fit=crop" alt="user">
+                      <span class="text-xs text-white/70">А. Гаврилов</span>
+                    </div>
+                  </div>
+                  <div class="col-span-1 px-3 py-2 text-right">
+                    <span class="text-xs px-2 py-1 rounded border border-emerald-400/40 text-emerald-200/90">OK</span>
+                  </div>
+                </div>
+                <!-- Row -->
+                <div class="grid grid-cols-12 text-sm hover:bg-white/[0.03] transition-colors">
+                  <div class="col-span-4 px-3 py-2">
+                    <div class="font-medium">LLC «NordSteel» • Комплект метизов</div>
+                    <div class="text-xs text-white/50">Заказ MT-908-12</div>
+                  </div>
+                  <div class="col-span-3 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Комплектация</span>
+                      <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Отгрузка</span>
+                    </div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div>15.09.2025</div>
+                    <div class="text-xs text-amber-200/80">Ожидание материалов</div>
+                  </div>
+                  <div class="col-span-2 px-3 py-2">
+                    <div class="flex items-center gap-2">
+                      <img class="h-6 w-6 rounded-md border border-white/10" src="https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&amp;w=200&amp;auto=format&amp;fit=crop" alt="user">
+                      <span class="text-xs text-white/70">Е. Мартынова</span>
+                    </div>
+                  </div>
+                  <div class="col-span-1 px-3 py-2 text-right">
+                    <span class="text-xs px-2 py-1 rounded border border-amber-300/40 text-amber-100/90">Ожидание</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Micro pipeline legend -->
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="text-xs text-white/50">Этапы:</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Заявка</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">КД</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Производство формы</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Заливка</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Сушка</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Обжиг</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10">Отгрузка</span>
+            </div>
+          </div>
+
+          <!-- Analytics -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4 flex flex-col" style="animation: fadeUp .6s ease .18s both">
+            <div>
+              <h2 class="text-lg font-semibold tracking-tight">Показатели производства</h2>
+              <p class="text-sm text-white/60">Динамика по цехам и отделам</p>
+            </div>
+            <div class="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60 mb-1">Выпуск изделий (шт.) — неделя</div>
+              <!-- containment to avoid canvas sizing bug -->
+              <div>
+                <div class="relative h-40">
+                  <canvas id="productionChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <div class="text-xs text-white/60">Цех №1</div>
+                <div class="text-xl font-semibold tracking-tight">324</div>
+                <div class="text-[11px] text-emerald-300/80">+8%</div>
+              </div>
+              <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <div class="text-xs text-white/60">Цех №2</div>
+                <div class="text-xl font-semibold tracking-tight">287</div>
+                <div class="text-[11px] text-rose-300/80">-3%</div>
+              </div>
+              <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <div class="text-xs text-white/60">Цех №3</div>
+                <div class="text-xl font-semibold tracking-tight">198</div>
+                <div class="text-[11px] text-white/60">0%</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Three Column: Modules Snapshot -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <!-- Constructor -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .2s both">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg data-lucide="layers" class="h-5 w-5 text-white/80"></svg>
+                <h3 class="text-base font-semibold tracking-tight">КД и версии</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5" aria-label="Свернуть секцию" data-collapse-toggle="cd-content" aria-controls="cd-content" aria-expanded="true">
+                  <svg data-lucide="chevron-down" class="h-4 w-4 transition-transform"></svg>
+                </button>
+                <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">Импорт</button>
+              </div>
+            </div>
+            <div id="cd-content" class="mt-3 space-y-2">
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">Опока 120х80 • V5</div>
+                  <div class="text-[11px] text-white/50">3D: 2 файла • Упаковка: 1</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg data-lucide="git-branch" class="h-4 w-4 text-white/60"></svg>
+                  <svg data-lucide="cloud-upload" class="h-4 w-4 text-white/60"></svg>
+                </div>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">Стакан литниковый • V3</div>
+                  <div class="text-[11px] text-white/50">Материалы: 4 • Комплектующие: 12</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg data-lucide="git-commit" class="h-4 w-4 text-white/60"></svg>
+                  <svg data-lucide="link" class="h-4 w-4 text-white/60"></svg>
+                </div>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">Корпус формы • V1 (черновик)</div>
+                  <div class="text-[11px] text-white/50">3D: 1 • КД: 3 • Упаковка: 0</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg data-lucide="pencil-line" class="h-4 w-4 text-white/60"></svg>
+                  <svg data-lucide="share-2" class="h-4 w-4 text-white/60"></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Warehouse -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .22s both">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg data-lucide="package" class="h-5 w-5 text-white/80"></svg>
+                <h3 class="text-base font-semibold tracking-tight">Склад: дефицит</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5" aria-label="Свернуть секцию" data-collapse-toggle="warehouse-content" aria-controls="warehouse-content" aria-expanded="true">
+                  <svg data-lucide="chevron-down" class="h-4 w-4 transition-transform"></svg>
+                </button>
+                <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">Накладная</button>
+              </div>
+            </div>
+            <div id="warehouse-content" class="mt-3 space-y-2">
+              <div class="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-500/5 px-3 py-2">
+                <div>
+                  <div class="text-sm">AISI 304 порошок</div>
+                  <div class="text-[11px] text-amber-100/80">Остаток: 12 кг • Мин.: 30 кг</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-amber-400/40 text-amber-100/90">Купить</span>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-rose-400/30 bg-rose-500/5 px-3 py-2">
+                <div>
+                  <div class="text-sm">Метизы М6 нерж.</div>
+                  <div class="text-[11px] text-rose-100/80">Остаток: 80 шт • Мин.: 200 шт</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-rose-400/40 text-rose-100/90">Критично</span>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">Смола ЭД-20</div>
+                  <div class="text-[11px] text-white/60">Остаток: 15 л • Мин.: 20 л</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-white/20 text-white/70">Запрос</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Maintenance / RMM -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .24s both">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg data-lucide="wrench" class="h-5 w-5 text-white/80"></svg>
+                <h3 class="text-base font-semibold tracking-tight">РММ: обслуживание</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5" aria-label="Свернуть секцию" data-collapse-toggle="rmm-content" aria-controls="rmm-content" aria-expanded="true">
+                  <svg data-lucide="chevron-down" class="h-4 w-4 transition-transform"></svg>
+                </button>
+                <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">План работ</button>
+              </div>
+            </div>
+            <div id="rmm-content" class="mt-3 space-y-2">
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">Фрезерный ЧПУ HAAS</div>
+                  <div class="text-[11px] text-white/60">ТО-2000 ч • История: 3 ремонта</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-emerald-400/40 text-emerald-100/90">Запланировано</span>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-500/5 px-3 py-2">
+                <div>
+                  <div class="text-sm">Печь обжига Nabertherm</div>
+                  <div class="text-[11px] text-amber-100/80">Аномалия температуры</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-amber-400/40 text-amber-100/90">Проверить</span>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <div>
+                  <div class="text-sm">3D‑принтер Formlabs</div>
+                  <div class="text-[11px] text-white/60">Смена фотополимера</div>
+                </div>
+                <span class="text-[11px] px-2 py-1 rounded border border-white/20 text-white/70">В очереди</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom: Shop schedule + Events -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <!-- Shop Schedule -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .26s both">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg data-lucide="building-2" class="h-5 w-5 text-white/80"></svg>
+                <h3 class="text-base font-semibold tracking-tight">График цеха</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5" aria-label="Свернуть секцию" data-collapse-toggle="schedule-content" aria-controls="schedule-content" aria-expanded="true">
+                  <svg data-lucide="chevron-down" class="h-4 w-4 transition-transform"></svg>
+                </button>
+                <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">Экспорт</button>
+              </div>
+            </div>
+            <div id="schedule-content" class="mt-3 space-y-2">
+              <div class="p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm">Заливка сплава A356</div>
+                  <div class="text-[11px] text-white/60">09:00–12:00</div>
+                </div>
+                <div class="mt-2 h-2 rounded bg-white/10 overflow-hidden">
+                  <div class="h-full w-[70%] bg-emerald-400/50"></div>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm">Сушка партии ZK-118</div>
+                  <div class="text-[11px] text-white/60">12:30–16:00</div>
+                </div>
+                <div class="mt-2 h-2 rounded bg-white/10 overflow-hidden">
+                  <div class="h-full w-[40%] bg-amber-400/50"></div>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm">Обжиг деталей AL-305</div>
+                  <div class="text-[11px] text-white/60">16:30–20:00</div>
+                </div>
+                <div class="mt-2 h-2 rounded bg-white/10 overflow-hidden">
+                  <div class="h-full w-[15%] bg-rose-400/50"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Events -->
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .28s both">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg data-lucide="activity" class="h-5 w-5 text-white/80"></svg>
+                <h3 class="text-base font-semibold tracking-tight">Лента событий</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-all duration-200 hover:-translate-y-0.5" aria-label="Свернуть секцию" data-collapse-toggle="events-content" aria-controls="events-content" aria-expanded="true">
+                  <svg data-lucide="chevron-down" class="h-4 w-4 transition-transform"></svg>
+                </button>
+                <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">Фильтр</button>
+              </div>
+            </div>
+            <div id="events-content" class="mt-3 space-y-3">
+              <div class="flex items-start gap-3">
+                <div class="h-8 w-8 rounded-lg overflow-hidden border border-white/10">
+                  <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&amp;w=200&amp;auto=format&amp;fit=crop" class="h-full w-full object-cover" alt="avatar">
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm"><span class="text-white/90">А. Гаврилов</span> изменил статус заказа <span class="text-white/90">AL-305-77</span> → <span class="text-emerald-200/90">«Сушка»</span></div>
+                  <div class="text-[11px] text-white/50">10:21 • сегодня</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="h-8 w-8 rounded-lg grid place-items-center border border-white/10 bg-white/[0.03]">
+                  <svg data-lucide="shield-alert" class="h-4 w-4 text-amber-300"></svg>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm">Дефицит: <span class="text-white/90">AISI 304 порошок</span> ниже минимального остатка</div>
+                  <div class="text-[11px] text-white/50">09:05 • сегодня</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="h-8 w-8 rounded-lg grid place-items-center border border-white/10 bg-white/[0.03]">
+                  <svg data-lucide="wrench" class="h-4 w-4 text-white/80"></svg>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm">План ТО: <span class="text-white/90">Печь обжига</span> — диагностика датчика</div>
+                  <div class="text-[11px] text-white/50">Вчера • 17:44</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="h-8 w-8 rounded-lg grid place-items-center border border-white/10 bg-white/[0.03]">
+                  <svg data-lucide="mail" class="h-4 w-4 text-white/80"></svg>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm">Отправлено уведомление клиенту <span class="text-white/90">ООО «ТехПром»</span> об изменении сроков</div>
+                  <div class="text-[11px] text-white/50">Вчера • 15:12</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cost & Utilization -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div class="lg:col-span-2 rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .3s both">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Себестоимость заказов (тыс. ₽)</h3>
+              <p class="text-sm text-white/60">Материалы, труд, амортизация</p>
+            </div>
+            <div class="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div>
+                <div class="relative h-44">
+                  <canvas id="costChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4" style="animation: fadeUp .6s ease .32s both">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold tracking-tight">Загрузка сотрудников</h3>
+              <button class="h-8 px-2 rounded-lg border border-white/10 hover:bg-white/5 text-xs transition-all duration-200 hover:-translate-y-0.5">Детали</button>
+            </div>
+            <div class="mt-3 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="text-sm">Конструкторы</div>
+                <div class="text-sm text-white/70">72%</div>
+              </div>
+              <div class="h-2 rounded bg-white/10 overflow-hidden"><div class="h-full w-[72%] bg-white/40"></div></div>
+
+              <div class="flex items-center justify-between">
+                <div class="text-sm">Технологи</div>
+                <div class="text-sm text-white/70">65%</div>
+              </div>
+              <div class="h-2 rounded bg-white/10 overflow-hidden"><div class="h-full w-[65%] bg-white/40"></div></div>
+
+              <div class="flex items-center justify-between">
+                <div class="text-sm">Цех</div>
+                <div class="text-sm text-white/70">83%</div>
+              </div>
+              <div class="h-2 rounded bg-white/10 overflow-hidden"><div class="h-full w-[83%] bg-white/40"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="pb-8 pt-2 text-xs text-white/40">
+          © 2025 MFG OS. Все действия логируются. Версия для Android — в разработке.
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+
+      // Collapse controls
+      document.querySelectorAll('[data-collapse-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-collapse-toggle');
+          const el = document.getElementById(id);
+          const icon = btn.querySelector('svg');
+          if (!el) return;
+          const isHidden = el.classList.toggle('hidden');
+          btn.setAttribute('aria-expanded', (!isHidden).toString());
+          if (icon) icon.classList.toggle('rotate-180', isHidden);
+        });
+      });
+
+      const prodCtx = document.getElementById('productionChart').getContext('2d');
+      new Chart(prodCtx, {
+        type: 'line',
+        data: {
+          labels: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+          datasets: [
+            { label: 'Цех 1', data: [48,52,45,58,61,54,46], borderColor: '#a5b4fc', backgroundColor: 'rgba(165,180,252,.15)', tension: .35, fill: true, pointRadius: 2 },
+            { label: 'Цех 2', data: [38,41,39,47,52,49,44], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', tension: .35, fill: true, pointRadius: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: 'rgba(255,255,255,.7)', boxWidth: 12 } } },
+          scales: {
+            x: { ticks: { color: 'rgba(255,255,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } },
+            y: { ticks: { color: 'rgba(255,255,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } }
+          }
+        }
+      });
+
+      const costCtx = document.getElementById('costChart').getContext('2d');
+      new Chart(costCtx, {
+        type: 'bar',
+        data: {
+          labels: ['ZK-118','AL-305','MT-908','ST-441','CP-220'],
+          datasets: [
+            { label: 'Материалы', data: [420, 360, 210, 310, 280], backgroundColor: 'rgba(250,204,21,.6)', borderColor: 'rgba(250,204,21,1)', borderWidth: 1 },
+            { label: 'Труд', data: [280, 240, 180, 210, 190], backgroundColor: 'rgba(96,165,250,.6)', borderColor: 'rgba(96,165,250,1)', borderWidth: 1 },
+            { label: 'Амортизация', data: [110, 95, 60, 80, 70], backgroundColor: 'rgba(203,213,225,.6)', borderColor: 'rgba(203,213,225,1)', borderWidth: 1 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: 'rgba(255,255,255,.7)', boxWidth: 12 } } },
+          scales: {
+            x: { stacked: true, ticks: { color: 'rgba(255,255,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } },
+            y: { stacked: true, ticks: { color: 'rgba(255,255,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } }
+          }
+        }
+      });
+    });
+  </script>
+
+</body></html>

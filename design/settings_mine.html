@@ -1,0 +1,372 @@
+<html lang="ru"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Настройки — Панель</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer="" src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">
+  <!-- Settings Drawer (opened by default) -->
+  <div id="settings-root" class="fixed inset-0 z-[100]">
+    <!-- Overlay -->
+    <div id="settings-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-100 transition-opacity"></div>
+    <!-- Panel -->
+    <aside id="settings-panel" class="absolute right-0 top-0 h-full w-full sm:w-[560px] bg-neutral-950 border-l border-white/10 shadow-2xl translate-x-0 transition-transform">
+      <!-- Header -->
+      <div class="sticky top-0 z-10 border-b border-white/10 bg-neutral-950/90 backdrop-blur px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06] border border-white/10">
+              <svg data-lucide="settings" class="h-4 w-4"></svg>
+            </div>
+            <div class="text-lg font-semibold tracking-tight">Настройки</div>
+            <span class="text-[11px] px-1.5 py-0.5 rounded border border-white/10 text-white/60">панель</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="hidden sm:flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
+              <svg data-lucide="search" class="h-4 w-4 text-white/60"></svg>
+              <input placeholder="Поиск настроек" class="bg-transparent text-sm placeholder:text-white/40 focus:outline-none w-44">
+            </div>
+            <button id="close-settings" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5 transition-colors" aria-label="Закрыть настройки">
+              <svg data-lucide="x" class="h-4 w-4"></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div role="tablist" aria-label="Вкладки настроек" class="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button role="tab" aria-selected="true" data-tab="general" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 bg-white/[0.06] hover:border-white/20 hover:bg-white/10 transition-colors whitespace-nowrap">
+            Общие
+          </button>
+          <button role="tab" aria-selected="false" data-tab="notify" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors whitespace-nowrap">
+            Уведомления
+          </button>
+          <button role="tab" aria-selected="false" data-tab="integrations" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors whitespace-nowrap">
+            Интеграции
+          </button>
+          <button role="tab" aria-selected="false" data-tab="access" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors whitespace-nowrap">
+            Доступ
+          </button>
+          <button role="tab" aria-selected="false" data-tab="data" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors whitespace-nowrap">
+            Данные
+          </button>
+          <button role="tab" aria-selected="false" data-tab="appearance" class="px-2.5 py-1.5 text-xs rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors whitespace-nowrap">
+            Вид
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="h-full overflow-y-auto px-4 py-4 space-y-4">
+        <!-- Panel: Общие -->
+        <section data-panel="general" role="tabpanel" class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Общие</h3>
+              <p class="text-sm text-white/60">Язык, регион и единицы измерения</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Item -->
+            <label class="group rounded-lg border border-white/10 bg-white/[0.02] p-3 hover:border-white/20 transition-colors">
+              <div class="text-xs text-white/60">Язык интерфейса</div>
+              <div class="mt-1 flex items-center justify-between">
+                <span class="text-sm">Русский</span>
+                <svg data-lucide="chevron-right" class="h-4 w-4 text-white/50"></svg>
+              </div>
+            </label>
+            <!-- Item -->
+            <label class="group rounded-lg border border-white/10 bg-white/[0.02] p-3 hover:border-white/20 transition-colors">
+              <div class="text-xs text-white/60">Формат даты</div>
+              <div class="mt-1 flex items-center justify-between">
+                <span class="text-sm">DD.MM.YYYY</span>
+                <svg data-lucide="chevron-right" class="h-4 w-4 text-white/50"></svg>
+              </div>
+            </label>
+            <!-- Item -->
+            <label class="group rounded-lg border border-white/10 bg-white/[0.02] p-3 hover:border-white/20 transition-colors sm:col-span-2">
+              <div class="text-xs text-white/60">Единицы измерения</div>
+              <div class="mt-2 flex items-center gap-1.5">
+                <input type="radio" name="units" id="u-metric" class="peer/u1 hidden" checked="">
+                <label for="u-metric" class="px-2 py-1 text-xs rounded-md border border-white/10 bg-white/[0.06] peer-checked/u1:border-white/20 peer-checked/u1:bg-white/10 cursor-pointer">Метрика</label>
+                <input type="radio" name="units" id="u-imperial" class="peer/u2 hidden">
+                <label for="u-imperial" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Имперская</label>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- Panel: Уведомления -->
+        <section data-panel="notify" role="tabpanel" class="hidden rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Уведомления</h3>
+              <p class="text-sm text-white/60">Контроль сроков и событий</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 space-y-2">
+            <!-- Toggle -->
+            <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div>
+                <div class="text-sm">Push‑уведомления</div>
+                <div class="text-[11px] text-white/60">Просрочки, аномалии, статусы заказов</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="peer sr-only" checked="">
+                <div class="h-5 w-9 rounded-full bg-white/10 border border-white/15 transition-colors peer-checked:bg-emerald-400/40 peer-checked:border-emerald-300/40"></div>
+                <div class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white/80 transition-transform peer-checked:translate-x-4"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div>
+                <div class="text-sm">E‑mail рассылка</div>
+                <div class="text:[11px] text-white/60">Сводки: ежедневно/еженедельно</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="peer sr-only">
+                <div class="h-5 w-9 rounded-full bg-white/10 border border-white/15 transition-colors peer-checked:bg-emerald-400/40 peer-checked:border-emerald-300/40"></div>
+                <div class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white/80 transition-transform peer-checked:translate-x-4"></div>
+              </label>
+            </div>
+            <!-- Frequency -->
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60">Частота e‑mail</div>
+              <div class="mt-2 flex items-center gap-1.5">
+                <input type="radio" name="freq" id="f-daily" class="peer/f1 hidden" checked="">
+                <label for="f-daily" class="px-2 py-1 text-xs rounded-md border border-white/10 bg-white/[0.06] peer-checked/f1:border-white/20 peer-checked/f1:bg-white/10 cursor-pointer">Ежедневно</label>
+                <input type="radio" name="freq" id="f-weekly" class="peer/f2 hidden">
+                <label for="f-weekly" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Еженедельно</label>
+                <input type="radio" name="freq" id="f-off" class="peer/f3 hidden">
+                <label for="f-off" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Выкл.</label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel: Интеграции -->
+        <section data-panel="integrations" role="tabpanel" class="hidden rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Интеграции</h3>
+              <p class="text-sm text-white/60">API, Webhooks и внешние сервисы</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 space-y-2">
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60">Webhook URL</div>
+              <div class="mt-1 flex items-center gap-2">
+                <input value="https://mfg.example.com/webhook/production" class="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-white/40">
+                <button class="h-8 px-2 rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs transition-colors" id="test-webhook">
+                  Тест
+                </button>
+              </div>
+            </div>
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-white/60">API ключ</div>
+                  <div class="mt-1 text-sm font-medium tracking-tight" id="api-key">sk_live_9f3c•••d27</div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button id="copy-key" class="h-8 w-8 grid place-items-center rounded-md border border-white/10 hover:bg-white/5 transition-colors" aria-label="Скопировать ключ">
+                    <svg data-lucide="copy" class="h-4 w-4"></svg>
+                  </button>
+                  <button class="h-8 w-8 grid place-items-center rounded-md border border-white/10 hover:bg-white/5 transition-colors" aria-label="Обновить ключ">
+                    <svg data-lucide="refresh-ccw" class="h-4 w-4"></svg>
+                  </button>
+                </div>
+              </div>
+              <div id="copy-toast" class="mt-2 hidden text-[11px] text-emerald-300/90">Ключ скопирован</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel: Доступ -->
+        <section data-panel="access" role="tabpanel" class="hidden rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Доступ</h3>
+              <p class="text-sm text-white/60">Роли и разрешения</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 space-y-2">
+            <!-- Role row -->
+            <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06] border border-white/10">
+                  <svg data-lucide="shield" class="h-4 w-4"></svg>
+                </div>
+                <div>
+                  <div class="text-sm">Администратор</div>
+                  <div class="text-[11px] text-white/60">Полный доступ</div>
+                </div>
+              </div>
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" class="peer sr-only" checked="">
+                <div class="h-5 w-9 rounded-full bg-white/10 border border-white/15 transition-colors peer-checked:bg-emerald-400/40 peer-checked:border-emerald-300/40"></div>
+                <div class="relative -ml-9 h-4 w-4 rounded-full bg-white/80 transition-transform pointer-events-none translate-x-0 peer-checked:translate-x-4"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06] border border-white/10">
+                  <svg data-lucide="badge-check" class="h-4 w-4"></svg>
+                </div>
+                <div>
+                  <div class="text-sm">Менеджер</div>
+                  <div class="text-[11px] text-white/60">Заказы, клиенты, отчёты</div>
+                </div>
+              </div>
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" class="peer sr-only" checked="">
+                <div class="h-5 w-9 rounded-full bg-white/10 border border-white/15 transition-colors peer-checked:bg-emerald-400/40 peer-checked:border-emerald-300/40"></div>
+                <div class="relative -ml-9 h-4 w-4 rounded-full bg-white/80 transition-transform pointer-events-none translate-x-0 peer-checked:translate-x-4"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06] border border-white/10">
+                  <svg data-lucide="wrench" class="h-4 w-4"></svg>
+                </div>
+                <div>
+                  <div class="text-sm">Главный инженер</div>
+                  <div class="text-[11px] text-white/60">РММ, технологические карты</div>
+                </div>
+              </div>
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" class="peer sr-only">
+                <div class="h-5 w-9 rounded-full bg-white/10 border border-white/15 transition-colors peer-checked:bg-emerald-400/40 peer-checked:border-emerald-300/40"></div>
+                <div class="relative -ml-9 h-4 w-4 rounded-full bg-white/80 transition-transform pointer-events-none translate-x-0 peer-checked:translate-x-4"></div>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel: Данные -->
+        <section data-panel="data" role="tabpanel" class="hidden rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Данные</h3>
+              <p class="text-sm text-white/60">Резервное копирование и импорт</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 space-y-2">
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm">Резервная копия</div>
+                  <div class="text-[11px] text-white/60">Последняя: сегодня, 04:12</div>
+                </div>
+                <button class="h-8 px-2 rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs transition-colors">
+                  Создать бэкап
+                </button>
+              </div>
+            </div>
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60">Импорт данных (CSV/JSON)</div>
+              <div class="mt-2 flex items-center gap-2">
+                <button class="h-8 px-2 rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs transition-colors">
+                  Выбрать файл
+                </button>
+                <span class="text-[11px] text-white/50">Файл не выбран</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel: Вид -->
+        <section data-panel="appearance" role="tabpanel" class="hidden rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold tracking-tight">Вид</h3>
+              <p class="text-sm text-white/60">Тема и плотность интерфейса</p>
+            </div>
+            <span class="text-[11px] px-2 py-1 rounded border border-white/10 text-white/60">Модуль</span>
+          </div>
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60">Тема</div>
+              <div class="mt-2 flex items-center gap-1.5">
+                <input type="radio" name="theme" id="t-system" class="peer/t1 hidden" checked="">
+                <label for="t-system" class="px-2 py-1 text-xs rounded-md border border-white/10 bg-white/[0.06] peer-checked/t1:border-white/20 peer-checked/t1:bg-white/10 cursor-pointer">Системная</label>
+                <input type="radio" name="theme" id="t-light" class="peer/t2 hidden">
+                <label for="t-light" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Светлая</label>
+                <input type="radio" name="theme" id="t-dark" class="peer/t3 hidden">
+                <label for="t-dark" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Тёмная</label>
+              </div>
+            </div>
+            <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div class="text-xs text-white/60">Плотность интерфейса</div>
+              <div class="mt-2 flex items-center gap-1.5">
+                <input type="radio" name="density" id="d-comfy" class="peer/d1 hidden" checked="">
+                <label for="d-comfy" class="px-2 py-1 text-xs rounded-md border border-white/10 bg-white/[0.06] peer-checked/d1:border-white/20 peer-checked/d1:bg-white/10 cursor-pointer">Обычная</label>
+                <input type="radio" name="density" id="d-compact" class="peer/d2 hidden">
+                <label for="d-compact" class="px-2 py-1 text-xs rounded-md border border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer">Компактная</label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide && lucide.createIcons) {
+        lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+      }
+
+      // Close drawer
+      const root = document.getElementById('settings-root');
+      const overlay = document.getElementById('settings-overlay');
+      const closeBtn = document.getElementById('close-settings');
+      const close = () => root.classList.add('hidden');
+      overlay.addEventListener('click', close);
+      closeBtn.addEventListener('click', close);
+
+      // Tabs
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+      function activate(key) {
+        tabs.forEach(t => {
+          const active = t.dataset.tab === key;
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+          t.classList.toggle('bg-white/[0.06]', active);
+          t.classList.toggle('hover:bg-white/10', active);
+        });
+        panels.forEach(p => {
+          const active = p.dataset.panel === key;
+          p.classList.toggle('hidden', !active);
+        });
+      }
+
+      tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.tab)));
+      activate('general');
+
+      // Copy API key toast
+      const copyBtn = document.getElementById('copy-key');
+      const keyEl = document.getElementById('api-key');
+      const toast = document.getElementById('copy-toast');
+      if (copyBtn && keyEl) {
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText('sk_live_9f3c•••d27');
+            if (toast) {
+              toast.classList.remove('hidden');
+              setTimeout(() => toast.classList.add('hidden'), 1500);
+            }
+          } catch (e) {}
+        });
+      }
+    });
+  </script>
+
+</body></html>

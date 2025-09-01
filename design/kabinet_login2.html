@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MFG OS — Личный кабинет</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes fadeIn { from { opacity: 0; filter: blur(6px) } to { opacity: 1; filter: blur(0) } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.98) } to { opacity: 1; transform: scale(1) } }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 tracking-tight">
+
+  <!-- App background -->
+  <div id="appBackground" class="fixed inset-0 -z-20 bg-cover bg-center opacity-20 transition-opacity duration-300" style="background-image: url('https://images.unsplash.com/photo-1530041539828-114de6693903?q=80&w=1600&auto=format&fit=crop');"></div>
+
+  <!-- App Window Bar -->
+  <div class="sticky top-0 z-50">
+    <div class="w-full border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+      <div class="mx-auto max-w-[1600px] px-4">
+        <div class="flex items-center justify-between h-11">
+          <div class="flex items-center gap-2">
+            <div class="h-5 w-5 rounded-sm bg-white/90 text-neutral-900 font-semibold flex items-center justify-center">M</div>
+            <div class="text-sm text-white/80">MFG OS • Личный кабинет</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-white/10 transition-colors" aria-label="Свернуть">
+              <svg data-lucide="minus" class="h-4 w-4 text-white/70"></svg>
+            </button>
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-white/10 transition-colors" aria-label="Развернуть">
+              <svg data-lucide="square" class="h-4 w-4 text-white/70"></svg>
+            </button>
+            <button class="h-7 w-7 grid place-items-center rounded hover:bg-rose-500/10 hover:text-rose-400 transition-colors" aria-label="Закрыть">
+              <svg data-lucide="x" class="h-4 w-4"></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ambient glass gradients -->
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl"></div>
+    <div class="absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-72 w-[42rem] rounded-full bg-sky-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Layout -->
+  <div class="mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8">
+    <div class="grid grid-cols-12 gap-4 lg:gap-6 pt-4 lg:pt-6">
+
+      <!-- Sidebar -->
+      <aside class="col-span-12 lg:col-span-3 xl:col-span-2">
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4" style="animation: fadeIn .6s ease .05s both">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-base font-semibold text-white/90">Навигация</div>
+            <button class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+              <div class="flex items-center gap-1.5">
+                <svg data-lucide="settings" class="h-4 w-4"></svg>
+                Настройки
+              </div>
+            </button>
+          </div>
+
+          <nav class="space-y-1.5">
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-indigo-400/30 bg-indigo-500/10">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="user-round" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white">Личный кабинет</div>
+                <div class="text-[11px] text-white/70">Профиль и активность</div>
+              </div>
+              <span class="text-[11px] text-white/70">•</span>
+            </a>
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="clipboard-list" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Управление заказами</div>
+                <div class="text-[11px] text-white/50">Клиенты, проекты, этапы</div>
+              </div>
+              <span class="text-[11px] text-white/50">1</span>
+            </a>
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="layers" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Конструкторский модуль</div>
+                <div class="text-[11px] text-white/50">Версии КД, 3D, упаковка</div>
+              </div>
+              <span class="text-[11px] text-white/50">2</span>
+            </a>
+            <a href="#" class="group flex items-center gap-2 px-2 py-2 rounded-lg border border-white/5 hover:border-white/15 hover:bg-white/5 transition-colors">
+              <div class="h-6 w-6 grid place-items-center rounded-md bg-white/[0.06]">
+                <svg data-lucide="package" class="h-4 w-4"></svg>
+              </div>
+              <div class="flex-1">
+                <div class="text-[13px] font-medium text-white/90">Складской модуль</div>
+                <div class="text-[11px] text-white/50">Остатки, накладные</div>
+              </div>
+              <span class="text-[11px] text-white/50">3</span>
+            </a>
+          </nav>
+
+          <div class="my-3 border-t border-white/10"></div>
+
+          <div class="space-y-2">
+            <div class="text-[12px] text-white/50 mb-1">Быстрые действия</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btnOpenChangeModal" class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20">
+                <svg data-lucide="file-edit" class="h-4 w-4"></svg>
+                Изменить данные
+              </button>
+              <label for="appBgInput" class="flex items-center justify-center gap-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 px-3 py-2 text-[12px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20 cursor-pointer">
+                <svg data-lucide="image-up" class="h-4 w-4"></svg>
+                Фон профиля
+              </label>
+              <input id="appBgInput" type="file" accept="image/*" class="hidden">
+            </div>
+          </div>
+
+          <div class="my-3 border-t border-white/10"></div>
+
+          <div class="p-3 rounded-lg border border-white/10 bg-white/[0.03]">
+            <div class="flex items-center justify-between">
+              <div class="text-[12px] text-white/70">Хранилище</div>
+              <div class="text-[12px] text-white/50">64% использовано</div>
+            </div>
+            <div class="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div class="h-full w-[64%] bg-white/40"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="col-span-12 lg:col-span-9 xl:col-span-10 space-y-4 lg:space-y-6">
+
+        <!-- Topbar -->
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 px-3 lg:px-4 py-2.5" style="animation: fadeIn .5s ease .05s both">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="text-xl md:text-2xl font-semibold text-white">Личный кабинет</div>
+              <span class="px-2 py-1 text-[11px] rounded-md border border-white/10 text-white/70">beta</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="hidden lg:flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
+                <svg data-lucide="search" class="h-4 w-4 text-white/60"></svg>
+                <input placeholder="Поиск по задачам и событиям…" class="bg-transparent text-sm placeholder:text-white/40 focus:outline-none w-64">
+                <span class="ml-2 text-[10px] text-white/40 border border-white/10 rounded px-1.5 py-0.5">Ctrl K</span>
+              </div>
+              <button class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200 text-sm flex items-center gap-1.5">
+                <svg data-lucide="calendar" class="h-4 w-4"></svg>
+                Период
+              </button>
+              <button class="relative h-9 w-9 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 grid place-items-center">
+                <svg data-lucide="bell" class="h-4 w-4"></svg>
+                <span class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-rose-500 text-[10px] grid place-items-center">3</span>
+              </button>
+              <div class="h-9 w-9 rounded-lg overflow-hidden border border-white/10">
+                <img id="avatarTop" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" class="h-full w-full object-cover" alt="User">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile header -->
+        <section class="rounded-xl border border-white/10 bg-neutral-900/40 overflow-hidden" style="animation: scaleIn .5s ease .08s both">
+          <!-- Cover -->
+          <div class="relative h-44 md:h-56 lg:h-64">
+            <img id="coverImage" src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop" class="h-full w-full object-cover opacity-70" alt="cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-neutral-950/20 to-transparent"></div>
+            <div class="absolute top-3 right-3 flex items-center gap-2">
+              <label for="coverInput" class="h-9 px-3 rounded-lg border border-white/10 bg-white/10 hover:bg-white/15 backdrop-blur text-sm flex items-center gap-1.5 cursor-pointer">
+                <svg data-lucide="image-up" class="h-4 w-4"></svg>
+                Изменить фон
+              </label>
+            </div>
+            <input id="coverInput" type="file" accept="image/*" class="hidden">
+          </div>
+          <!-- Avatar + name -->
+          <div class="p-4 md:p-5">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div class="flex items-end gap-4">
+                <div class="relative -mt-16">
+                  <div class="h-24 w-24 md:h-28 md:w-28 rounded-xl overflow-hidden border-2 border-white/10 shadow-lg shadow-black/40">
+                    <img id="avatarImage" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop" class="h-full w-full object-cover" alt="avatar">
+                  </div>
+                  <label for="avatarInput" class="absolute -bottom-2 -right-2 h-9 w-9 grid place-items-center rounded-lg border border-white/10 bg-white/10 hover:bg-white/15 backdrop-blur cursor-pointer">
+                    <svg data-lucide="upload" class="h-4 w-4"></svg>
+                  </label>
+                  <input id="avatarInput" type="file" accept="image/*" class="hidden">
+                </div>
+                <div>
+                  <div class="text-xl md:text-2xl font-semibold tracking-tight">Иванов Иван Иванович</div>
+                  <div class="text-sm text-white/70">Ведущий технолог • Отдел производства</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="btnRequestChange" class="h-10 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200 text-sm flex items-center gap-1.5">
+                  <svg data-lucide="file-edit" class="h-4 w-4"></svg>
+                  Запросить изменение данных
+                </button>
+                <button class="h-10 px-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200 text-sm flex items-center gap-1.5">
+                  <svg data-lucide="bell-ring" class="h-4 w-4"></svg>
+                  Уведомления
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tasks + Right column (User info + App activity) -->
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
+          <div class="xl:col-span-2 space-y-4" style="animation: fadeUp .6s ease .1s both">
+            <!-- Tasks (moved to the left, adaptive height with scroll) -->
+            <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4 flex flex-col" style="animation: fadeUp .6s ease .1s both">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <h2 class="text-lg font-semibold">Текущие задачи</h2>
+                  <p class="text-sm text-white/60">Активные поручения</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.06] text-sm text-white">Все</button>
+                  <button class="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-sm text-white/80">В работе</button>
+                  <button class="px-3 py-1.5 rounded-lg border border-rose-500/30 hover:border-rose-500/50 hover:bg-rose-500/10 text-sm text-rose-200/80">
+                    <div class="flex items-center gap-1.5">
+                      <svg data-lucide="alert-triangle" class="h-4 w-4"></svg>
+                      Просрочено
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sorting controls -->
+              <div class="mt-3 flex items-center gap-2">
+                <span class="text-[12px] text-white/60 px-2 py-1 rounded-md border border-white/10 bg-white/[0.03]">Сортировка:</span>
+                <button class="sort-btn h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-sm flex items-center gap-1.5" data-sort="status" data-dir="none">
+                  <svg data-lucide="arrow-up-down" class="h-4 w-4"></svg> Статус
+                </button>
+                <button class="sort-btn h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-sm flex items-center gap-1.5" data-sort="priority" data-dir="none">
+                  <svg data-lucide="arrow-up-down" class="h-4 w-4"></svg> Важность
+                </button>
+                <button class="sort-btn h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-sm flex items-center gap-1.5" data-sort="state" data-dir="none">
+                  <svg data-lucide="arrow-up-down" class="h-4 w-4"></svg> Состояние
+                </button>
+              </div>
+
+              <!-- Table -->
+              <div class="mt-3 rounded-lg border border-white/10 overflow-hidden">
+                <div class="grid grid-cols-12 bg-gradient-to-b from-white/[0.04] to-white/[0.02] text-xs text-white/60">
+                  <div class="col-span-6 px-3 py-2">Задача</div>
+                  <div class="col-span-3 px-3 py-2">Дедлайн</div>
+                  <div class="col-span-2 px-3 py-2">Статус</div>
+                  <div class="col-span-1 px-3 py-2 text-right">Приоритет</div>
+                </div>
+                <div id="tasksScroll" class="max-h-[28rem] overflow-y-auto [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
+                  <div id="tasksContainer" class="divide-y divide-white/10 text-sm">
+                    <div class="grid grid-cols-12 hover:bg-white/[0.03]" data-status="in-progress" data-priority="medium" data-state="due-soon">
+                      <div class="col-span-6 px-3 py-2">
+                        <div class="font-medium">Подготовить ТУ для партии AL-305</div>
+                        <div class="text-xs text-white/50">Документы • Технологи</div>
+                      </div>
+                      <div class="col-span-3 px-3 py-2">
+                        <div>02.09.2025</div>
+                        <div class="text-[11px] text-white/50">через 4 дня</div>
+                      </div>
+                      <div class="col-span-2 px-3 py-2">
+                        <span class="text-xs px-2 py-1 rounded border border-emerald-400/40 text-emerald-200/90">В работе</span>
+                      </div>
+                      <div class="col-span-1 px-3 py-2 text-right">
+                        <span class="text-xs px-2 py-1 rounded border border-white/20 text-white/70">Средн.</span>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-12 hover:bg-white/[0.03]" data-status="overdue" data-priority="high" data-state="overdue">
+                      <div class="col-span-6 px-3 py-2">
+                        <div class="font-medium">Согласовать КД v3 «Стакан литниковый»</div>
+                        <div class="text-xs text-white/50">КД • Конструкторы</div>
+                      </div>
+                      <div class="col-span-3 px-3 py-2">
+                        <div>31.08.2025</div>
+                        <div class="text-[11px] text-rose-300/80">просрочено на 1 д.</div>
+                      </div>
+                      <div class="col-span-2 px-3 py-2">
+                        <span class="text-xs px-2 py-1 rounded border border-rose-400/40 text-rose-200/90">Просрочено</span>
+                      </div>
+                      <div class="col-span-1 px-3 py-2 text-right">
+                        <span class="text-xs px-2 py-1 rounded border border-rose-400/40 text-rose-200/90">Высок.</span>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-12 hover:bg-white/[0.03]" data-status="pending" data-priority="medium" data-state="today">
+                      <div class="col-span-6 px-3 py-2">
+                        <div class="font-medium">Проверить аномалию температуры печи</div>
+                        <div class="text-xs text-white/50">РММ • Диагностика</div>
+                      </div>
+                      <div class="col-span-3 px-3 py-2">
+                        <div>Сегодня</div>
+                        <div class="text-[11px] text-white/50">до 17:00</div>
+                      </div>
+                      <div class="col-span-2 px-3 py-2">
+                        <span class="text-xs px-2 py-1 rounded border border-amber-400/40 text-amber-100/90">Ожидает</span>
+                      </div>
+                      <div class="col-span-1 px-3 py-2 text-right">
+                        <span class="text-xs px-2 py-1 rounded border border-white/20 text-white/70">Средн.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attendance heatmap (GitHub-style, refined) -->
+            <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4" style="animation: fadeUp .6s ease .14s both">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Посещения</h2>
+                  <p class="text-sm text-white/60">Приход и уход по дням</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1 text-[11px] text-white/60">
+                    <span class="h-3 w-3 rounded bg-emerald-500/70 border border-emerald-300/40"></span> вовремя
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] text-white/60">
+                    <span class="h-3 w-3 rounded bg-fuchsia-500/70 border border-fuchsia-300/40"></span> задержался
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] text-white/60">
+                    <span class="h-3 w-3 rounded bg-amber-500/70 border border-amber-300/40"></span> опоздал
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] text-white/60">
+                    <span class="h-3 w-3 rounded bg-rose-500/70 border border-rose-300/40"></span> отсутствовал
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] text-white/60">
+                    <span class="h-3 w-3 rounded bg-neutral-700 border border-white/10"></span> выходной
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 overflow-x-auto">
+                <div class="inline-grid grid-cols-[auto,1fr] gap-2">
+                  <!-- Weekday labels -->
+                  <div class="grid grid-rows-7 gap-1 pt-4 pr-1">
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Пн</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Вт</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Ср</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Чт</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Пт</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Сб</div>
+                    <div class="h-4 text-[11px] text-white/50 flex items-center justify-end pr-1">Вс</div>
+                  </div>
+                  <!-- Heatmap weeks -->
+                  <div id="heatmap" class="grid grid-flow-col auto-cols-max gap-1">
+                    <!-- JS will render week columns (7 rows each) here -->
+                  </div>
+                </div>
+
+                <!-- Tooltip -->
+                <div id="heatmapTooltip" class="pointer-events-none fixed z-50 px-2 py-1 rounded border border-white/10 bg-neutral-900/95 text-[11px] text-white/80 opacity-0 transition-opacity"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: user info and app activity stacked -->
+          <div class="space-y-4" style="animation: fadeUp .6s ease .12s both">
+            <!-- User info (moved to the right, same width as activity) -->
+            <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Информация о пользователе</h2>
+                  <p class="text-sm text-white/60">Контактные данные и реквизиты</p>
+                </div>
+                <button id="btnCopyEmail" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm transition-all duration-200 flex items-center gap-1.5">
+                  <svg data-lucide="copy" class="h-4 w-4"></svg>
+                  Копировать e‑mail
+                </button>
+              </div>
+
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <div class="text-[11px] text-white//60">Электронная почта</div>
+                  <div class="text-sm font-medium">ivanov@example.com</div>
+                </div>
+                <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <div class="text-[11px] text-white/60">Телефон</div>
+                  <div class="text-sm font-medium">+7 (900) 123‑45‑67</div>
+                </div>
+                <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <div class="text-[11px] text-white/60">Должность</div>
+                  <div class="text-sm font-medium">Ведущий технолог</div>
+                </div>
+                <div class="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                  <div class="text-[11px] text-white/60">Отдел</div>
+                  <div class="text-sm font-medium">Производство</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- App activity (placed under user info) -->
+            <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Активность в приложении</h2>
+                  <p class="text-sm text-white/60">Последние действия</p>
+                </div>
+              </div>
+              <div class="mt-3 space-y-2">
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/50 w-8 shrink-0 text-center">Пн</div>
+                  <div class="flex-1 h-3 rounded bg-white/10 relative group">
+                    <div class="absolute inset-y-0 left-0 bg-emerald-400/60 rounded" style="width: 60%;"></div>
+                    <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] text-white/70 opacity-0 group-hover:opacity-100 transition">25.08.2025</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/50 w-8 shrink-0 text-center">Вт</div>
+                  <div class="flex-1 h-3 rounded bg-white/10 relative group">
+                    <div class="absolute inset-y-0 left-0 bg-emerald-400/60 rounded" style="width: 80%;"></div>
+                    <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] text-white/70 opacity-0 group-hover:opacity-100 transition">26.08.2025</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/50 w-8 shrink-0 text-center">Ср</div>
+                  <div class="flex-1 h-3 rounded bg-white/10 relative group">
+                    <div class="absolute inset-y-0 left-0 bg-emerald-400/60 rounded" style="width: 30%;"></div>
+                    <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] text-white/70 opacity-0 group-hover:opacity-100 transition">27.08.2025</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/50 w-8 shrink-0 text-center">Чт</div>
+                  <div class="flex-1 h-3 rounded bg-white/10 relative group">
+                    <div class="absolute inset-y-0 left-0 bg-emerald-400/60 rounded" style="width: 50%;"></div>
+                    <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] text-white/70 opacity-0 group-hover:opacity-100 transition">28.08.2025</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/50 w-8 shrink-0 text-center">Пт</div>
+                  <div class="flex-1 h-3 rounded bg-white/10 relative group">
+                    <div class="absolute inset-y-0 left-0 bg-emerald-400/60 rounded" style="width: 90%;"></div>
+                    <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] text-white/70 opacity-0 group-hover:opacity-100 transition">29.08.2025</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    lucide.createIcons();
+
+    // Change app background
+    document.getElementById('appBgInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById('appBackground').style.backgroundImage = `url('${ev.target.result}')`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Change cover image
+    document.getElementById('coverInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById('coverImage').src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Copy email
+    document.getElementById('btnCopyEmail').addEventListener('click', () => {
+      navigator.clipboard.writeText('ivanov@example.com');
+    });
+
+  // --- Attendance heatmap (GitHub-style) ---
+
+  // Color classes per status
+  const statusStyles = {
+    'on-time':    'bg-emerald-500/70 border border-emerald-300/40',
+    'overtime':   'bg-fuchsia-500/70 border border-fuchsia-300/40',
+    'late':       'bg-amber-500/70 border border-amber-300/40',
+    'absent':     'bg-rose-500/70 border border-rose-300/40',
+    'off':        'bg-neutral-700 border border-white/10'
+  };
+
+  // Human labels per status
+  const statusLabel = {
+    'on-time':  'вовремя',
+    'overtime': 'задержался',
+    'late':     'опоздал',
+    'absent':   'отсутствовал',
+    'off':      'выходной'
+  };
+
+  // Build a 3-week matrix like in your original mock, Mon-Sun columns
+  // Week data mirrors your example: W1, W2, W3
+  const sampleWeeks = [
+    // Week 1 (Пн..Вс)
+    ['absent','late','on-time','overtime','on-time','off','off'],
+    // Week 2
+    ['on-time','on-time','late','overtime','on-time','off','off'],
+    // Week 3
+    ['on-time','on-time','absent','late','on-time','off','off']
+  ];
+
+  // Compute date for each cell: take current week ending on Sunday, go back to cover 3 weeks
+  const weeksToRender = sampleWeeks.length;
+  const today = new Date();
+  // Normalize to Monday as start of week
+  const day = today.getDay(); // 0 Sun .. 6 Sat
+  const diffToMonday = (day === 0 ? -6 : 1 - day);
+  const mondayThisWeek = new Date(today);
+  mondayThisWeek.setDate(today.getDate() + diffToMonday);
+
+  const heatmapRoot = document.getElementById('heatmap');
+
+  // Render from oldest to newest week
+  for (let w = 0; w < weeksToRender; w++) {
+    const weekCol = document.createElement('div');
+    weekCol.className = 'grid grid-rows-7 gap-1';
+
+    // Base Monday date for this week (oldest first)
+    const monday = new Date(mondayThisWeek);
+    monday.setDate(mondayThisWeek.getDate() - (weeksToRender - 1 - w) * 7);
+
+    for (let d = 0; d < 7; d++) {
+      const cellDate = new Date(monday);
+      cellDate.setDate(monday.getDate() + d);
+
+      const status = sampleWeeks[w][d];
+      const cell = document.createElement('div');
+      cell.className = `h-4 w-4 rounded ${statusStyles[status]} hover:ring-2 hover:ring-white/20 transition-shadow`;
+      cell.dataset.status = status;
+
+      // Tooltip text: date + status
+      const dateText = cellDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      cell.dataset.tooltip = `${dateText} • ${statusLabel[status]}`;
+
+      // Optional: add more details for workdays (imitate your original tooltips)
+      if (status === 'on-time')   cell.dataset.tooltip += ' • 08:55–18:02';
+      if (status === 'late')      cell.dataset.tooltip += ' • 09:15–18:05';
+      if (status === 'overtime')  cell.dataset.tooltip += ' • 08:50–19:40';
+      if (status === 'absent')    cell.dataset.tooltip += ' • не пришёл';
+      if (status === 'off')       cell.dataset.tooltip += '';
+
+      weekCol.appendChild(cell);
+    }
+
+    heatmapRoot.appendChild(weekCol);
+  }
+
+  // Tooltip behavior
+  const tooltip = document.getElementById('heatmapTooltip');
+  if (tooltip && heatmapRoot) {
+    heatmapRoot.addEventListener('mouseover', (e) => {
+      const cell = e.target.closest('[data-tooltip]');
+      if (!cell) return;
+      tooltip.textContent = cell.dataset.tooltip || '';
+      tooltip.style.opacity = '1';
+    });
+    heatmapRoot.addEventListener('mousemove', (e) => {
+      tooltip.style.left = e.pageX + 12 + 'px';
+      tooltip.style.top = e.pageY + 12 + 'px';
+    });
+    heatmapRoot.addEventListener('mouseout', (e) => {
+      const to = e.relatedTarget;
+      if (!to || !heatmapRoot.contains(to)) {
+        tooltip.style.opacity = '0';
+      }
+    });
+  }
+  </script>
+</body>
+</html>

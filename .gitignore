@@ -1,0 +1,71 @@
+# Зависимости
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Сборка
+dist/
+build/
+out/
+
+# Временные файлы
+.tmp/
+.temp/
+
+# Логи
+logs/
+*.log
+
+# Файлы окружения
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Операционная система
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Electron
+app/
+release/
+
+# База данных (локальные данные)
+data/
+*.db
+*.sqlite
+
+# Резервные копии
+*.backup
+*.bak
+
+# Кэш
+.cache/
+.parcel-cache/
+
+# Тесты
+coverage/
+.nyc_output/
+
+# Документация
+docs/_build/
+
+# Локальные настройки
+local.settings.json
+
+
+

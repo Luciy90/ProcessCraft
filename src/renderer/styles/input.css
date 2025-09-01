@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for ProcessCraft */
+@layer components {
+  .module-content { 
+    display: none; 
+  }
+  
+  .module-content.active { 
+    display: block; 
+  }
+  
+  .nav-item.active { 
+    border-color: rgba(255, 255, 255, 0.3); 
+    background-color: rgba(255, 255, 255, 0.1); 
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #262626;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #525252;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #737373;
+  }
+}

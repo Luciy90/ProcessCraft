@@ -1,0 +1,65 @@
+{
+  "name": "processcraft",
+  "version": "1.0.0",
+  "description": "Приложение для управления производством",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "npm run build:css && electron-builder",
+    "build:css": "tailwindcss -i ./src/renderer/styles/input.css -o ./src/renderer/styles/tailwind.css --watch",
+    "build:css:prod": "tailwindcss -i ./src/renderer/styles/input.css -o ./src/renderer/styles/tailwind.css --minify",
+    "dist": "npm run build:css:prod && electron-builder --publish=never",
+    "pack": "npm run build:css:prod && electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "production",
+    "management",
+    "electron",
+    "desktop"
+  ],
+  "author": "ProcessCraft Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^22.3.27",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.7",
+    "uuid": "^9.0.1",
+    "nunjucks": "^3.2.4"
+  },
+  "devDependencies": {
+    "electron": "^22.3.27",
+    "electron-builder": "^24.9.1",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
+  },
+  "build": {
+    "appId": "com.processcraft.app",
+    "productName": "ProcessCraft",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
+
