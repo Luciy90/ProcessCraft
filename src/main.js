@@ -399,6 +399,23 @@ ipcMain.handle('users:delete', async (event, username) => {
   }
 });
 
+// Helper function to resolve cover path with fallback
+function resolveCoverPath(username) {
+  const userAssetsDir = path.join(__dirname, '../Server/users', username, 'assets');
+  const coverExtensions = ['jpg', 'jpeg', 'png'];
+  
+  // Check for user-specific cover images
+  for (const ext of coverExtensions) {
+    const coverPath = path.join(userAssetsDir, `cover.${ext}`);
+    if (fs.existsSync(coverPath)) {
+      return coverPath;
+    }
+  }
+  
+  // Return null if no user-specific cover found (will fallback to default in renderer)
+  return null;
+}
+
 // Логин
 ipcMain.handle('auth:login', async (event, credentials) => {
   try {
@@ -407,9 +424,33 @@ ipcMain.handle('auth:login', async (event, credentials) => {
     const data = readJsonSafe(getUserFile(username));
     if (!data) return { ok: false, error: 'not_found' };
     if (data.password !== password) return { ok: false, error: 'invalid_password' };
+    
+    // Update last login time
     data.lastLoginAt = new Date().toISOString();
     writeJsonSafe(getUserFile(username), data);
-    return { ok: true, user: { username: data.username, displayName: data.displayName, role: data.role, avatarPath: data.avatarPath, lastLoginAt: data.lastLoginAt } };
+    
+    // Resolve cover path with fallback logic
+    let coverPath = data.coverPath;
+    if (!coverPath || !fs.existsSync(coverPath)) {
+      coverPath = resolveCoverPath(username);
+      // Update user data with resolved cover path if found
+      if (coverPath && coverPath !== data.coverPath) {
+        data.coverPath = coverPath;
+        writeJsonSafe(getUserFile(username), data);
+      }
+    }
+    
+    return { 
+      ok: true, 
+      user: { 
+        username: data.username, 
+        displayName: data.displayName, 
+        role: data.role, 
+        avatarPath: data.avatarPath, 
+        coverPath: coverPath, 
+        lastLoginAt: data.lastLoginAt 
+      } 
+    };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

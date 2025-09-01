@@ -437,6 +437,7 @@ class ProcessCraftApp {
             return;
         }
         this.switchModule('profile');
+        // Always re-initialize profile to ensure fresh data (including cover images)
         this.modules.profile.init();
         const currentModuleEl = document.getElementById('current-module');
         if (currentModuleEl) currentModuleEl.textContent = 'Профиль пользователя';

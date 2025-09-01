@@ -1,9 +1,11 @@
 class ProfileModule {
   init() {
-    this.render();
+    this.render().catch(error => {
+      console.error('Failed to render profile module:', error);
+    });
   }
 
-  render() {
+  async render() {
     const container = document.getElementById('profile-module');
     if (!container) return;
 
@@ -33,8 +35,14 @@ class ProfileModule {
             }
           </div>`;
 
-        // Determine cover image source
-        const coverImageSrc = user?.coverPath ? `file://${user.coverPath}` : 'file://' + require('path').join(__dirname, '../../assets/cover.jpg').replace(/\\/g, '/');
+        // Determine cover image source with user-specific fallback
+        let coverImageSrc;
+        if (user?.coverPath) {
+          coverImageSrc = `file://${user.coverPath}`;
+        } else {
+          // Check for user-specific cover images, fallback to default
+          coverImageSrc = await this.getCoverImagePath(user);
+        }
 
         let out = html
           .replace(/\{\{AVATAR_HTML\}\}/g, avatar)
@@ -159,6 +167,99 @@ class ProfileModule {
       });
   }
 
+  /**
+   * Update avatar images across all UI locations instantly
+   * @param {string} avatarPath - Path to the new avatar image
+   * @param {boolean} useCacheBusting - Whether to add timestamp to prevent caching
+   */
+  updateAvatarInstantly(avatarPath, useCacheBusting = true) {
+    const imageUrl = useCacheBusting ? `file://${avatarPath}?t=${Date.now()}` : `file://${avatarPath}`;
+    console.log('Updating avatar instantly with URL:', imageUrl);
+    
+    // Update profile avatar - handle both container and direct img cases
+    const profileAvatarContainer = document.querySelector('.h-24.w-24, .h-28.w-28');
+    if (profileAvatarContainer) {
+      // Check if it already has an img element
+      const existingImg = profileAvatarContainer.querySelector('img');
+      if (existingImg) {
+        // Update existing image
+        existingImg.src = imageUrl;
+        console.log('Updated existing profile avatar image');
+      } else {
+        // Create new image element and replace container content
+        const img = document.createElement('img');
+        img.className = 'h-full w-full object-cover';
+        img.onload = () => {
+          profileAvatarContainer.innerHTML = '';
+          profileAvatarContainer.appendChild(img);
+          console.log('Created new profile avatar image');
+        };
+        img.onerror = () => {
+          console.warn('Profile avatar load failed, trying without cache-busting');
+          img.src = `file://${avatarPath}`;
+        };
+        img.src = imageUrl;
+      }
+    }
+    
+    // Update top bar avatar
+    const topBarAvatar = document.getElementById('user-avatar');
+    const fallback = document.getElementById('user-avatar-fallback');
+    if (topBarAvatar) {
+      topBarAvatar.onload = () => {
+        topBarAvatar.classList.remove('hidden');
+        if (fallback) fallback.classList.add('hidden');
+        console.log('Top bar avatar loaded and displayed');
+      };
+      topBarAvatar.onerror = () => {
+        console.warn('Top bar avatar load failed, trying without cache-busting');
+        topBarAvatar.src = `file://${avatarPath}`;
+      };
+      topBarAvatar.src = imageUrl;
+      console.log('Top bar avatar source updated');
+    }
+    
+    // Update modal avatars if present
+    const modalAvatars = document.querySelectorAll('#profile-modal-avatar img, .modal img[src*="avatar"]');
+    modalAvatars.forEach(img => {
+      img.src = imageUrl;
+    });
+    
+    if (modalAvatars.length > 0) {
+      console.log(`Updated ${modalAvatars.length} modal avatars`);
+    }
+    
+    // Make this function globally available for use by other modules
+    if (!window.updateAvatarInstantly) {
+      window.updateAvatarInstantly = (path, cacheBust = true) => this.updateAvatarInstantly(path, cacheBust);
+    }
+  }
+
+  async getCoverImagePath(user) {
+    if (!user?.username) {
+      return 'file://' + require('path').join(__dirname, '../../assets/cover.jpg').replace(/\\/g, '/');
+    }
+
+    // Check for user-specific cover images
+    const userAssetsPath = require('path').join(__dirname, '../../..', 'Server', 'users', user.username, 'assets');
+    const coverExtensions = ['jpg', 'jpeg', 'png'];
+    
+    for (const ext of coverExtensions) {
+      const coverPath = require('path').join(userAssetsPath, `cover.${ext}`);
+      try {
+        const exists = await window.UserStore.checkAvatarFileExists(coverPath);
+        if (exists) {
+          return `file://${coverPath.replace(/\\/g, '/')}`;
+        }
+      } catch (error) {
+        console.warn(`Failed to check cover file: ${coverPath}`, error);
+      }
+    }
+    
+    // Fallback to default cover
+    return 'file://' + require('path').join(__dirname, '../../assets/cover.jpg').replace(/\\/g, '/');
+  }
+
   processUIConfigPlaceholders(html) {
     // Replace UI_CONFIG placeholders with actual values
     const cfg = window.UI_CONFIG;
@@ -227,11 +328,9 @@ class ProfileModule {
           const result = await this.uploadFile(file, 'cover', user.username);
           console.log('upload result:', result);
           if (result.status === 'success') {
-            // Update cover image
-            const coverImage = document.getElementById('coverImage');
-            if (coverImage) {
-              coverImage.src = `file://${result.file_path}`;
-            }
+            // Add cache-busting timestamp to prevent browser caching
+            const timestamp = Date.now();
+            const imageUrl = `file://${result.file_path}?t=${timestamp}`;
             
             // Update current user in store with cover path
             const currentUser = window.UserStore.getCurrentUser();
@@ -239,6 +338,22 @@ class ProfileModule {
               currentUser.coverPath = result.file_path;
               window.UserStore.setCurrentUser(currentUser);
             }
+            
+            // Use setTimeout to ensure file system has completed the write operation
+            setTimeout(() => {
+              const coverImage = document.getElementById('coverImage');
+              if (coverImage) {
+                coverImage.onload = () => {
+                  console.log('Cover image updated successfully');
+                };
+                coverImage.onerror = () => {
+                  // Fallback: try loading without cache-busting
+                  console.warn('Cover image load with cache-busting failed, trying without timestamp');
+                  coverImage.src = `file://${result.file_path}`;
+                };
+                coverImage.src = imageUrl;
+              }
+            }, 50); // Small delay to ensure file write completion
             
             window.app.showMessage('Фоновое изображение обновлено', 'success');
           } else {
@@ -268,32 +383,26 @@ class ProfileModule {
           const result = await this.uploadFile(file, 'avatar', user.username);
           console.log('upload result:', result);
           if (result.status === 'success') {
-            // Update avatar in profile - fix size to fill container
-            const avatarContainer = document.querySelector('.h-24.w-24, .h-28.w-28');
-            if (avatarContainer) {
-              avatarContainer.innerHTML = `<img src="file://${result.file_path}" class="h-full w-full object-cover">`;
-            }
+            // Add cache-busting timestamp to prevent browser caching
+            const timestamp = Date.now();
+            const imageUrl = `file://${result.file_path}?t=${timestamp}`;
             
-            // Update avatar in top bar
-            const topBarAvatar = document.getElementById('user-avatar');
-            if (topBarAvatar) {
-              topBarAvatar.src = `file://${result.file_path}`;
-              topBarAvatar.classList.remove('hidden');
-            }
-            const fallback = document.getElementById('user-avatar-fallback');
-            if (fallback) fallback.classList.add('hidden');
-
-            // Update current user in store
+            // Update current user in store first
             const currentUser = window.UserStore.getCurrentUser();
             if (currentUser) {
               currentUser.avatarPath = result.file_path;
               window.UserStore.setCurrentUser(currentUser);
             }
 
-            // Re-render user avatar in top bar to ensure consistency
-            if (window.app && typeof window.app.updateUserInterface === 'function') {
-              window.app.updateUserInterface();
-            }
+            // Use setTimeout to ensure file system has completed the write operation
+            setTimeout(() => {
+              console.log('Starting avatar UI update with result:', result.file_path);
+              
+              // Use the new instant update method
+              this.updateAvatarInstantly(result.file_path, true);
+              
+              console.log('Avatar UI update completed');
+            }, 50); // Reduced delay for faster response
 
             window.app.showMessage('Аватар обновлен', 'success');
           } else {
