@@ -349,7 +349,8 @@ form {
     min-height: 80px;
 }
 
-.form-actions {
+/* Make form actions more specific to modal context to avoid conflicts with login modal */
+.modal .form-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;

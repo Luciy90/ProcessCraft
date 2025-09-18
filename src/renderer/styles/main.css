@@ -10,12 +10,16 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5;
     color: #333;
-    overflow: hidden;
+    /* Remove overflow: hidden to allow scrolling */
+    overflow-y: auto;
+    min-height: 100vh;
+    padding-bottom: 2rem; /* Add bottom padding for better scrolling experience */
 }
 
+/* Update #app to allow scrolling instead of fixed height */
 #app {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
 }
 
@@ -271,7 +275,6 @@ body {
 }
 
 .modal-content {
-    background: white;
     border-radius: 10px;
     padding: 30px;
     max-width: 90%;
@@ -283,6 +286,194 @@ body {
 /* Утилиты */
 .hidden {
     display: none !important;
+}
+
+/* Login Modal Styles - From Uiverse.io by gharsh11032000 */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1px;
+}
+
+.form-submit-btn {
+  flex-shrink: 0;
+  padding: 12px 12px;
+  font-size: 18px;
+}
+
+.form-container {
+  background: linear-gradient(#212121, #212121) padding-box,
+    linear-gradient(145deg, transparent 35%,#b82815, #aa5d1e) border-box;
+  border: 2px solid transparent;
+  padding: 32px 24px;
+  font-size: 14px;
+  font-family: inherit;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  border-radius: 16px;
+}
+
+.form-container button:active {
+  scale: 0.95;
+}
+
+.form-container .form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-container .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.form-container .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #717171;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.form-container .form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #fff;
+  font-family: inherit;
+  background-color: transparent;
+  border: 1px solid #414141;
+}
+
+.form-container .form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  resize: none;
+  color: #fff;
+  height: 96px;
+  border: 1px solid #414141;
+  background-color: transparent;
+  font-family: inherit;
+}
+
+.form-container .form-group input::placeholder {
+  opacity: 0.5;
+}
+
+.form-container .form-group input:focus {
+  outline: none;
+  border-color: #aa5d1e;
+}
+
+.form-container .form-group textarea:focus {
+  outline: none;
+  border-color: #aa5d1e;
+}
+
+.form-container .form-submit-btn {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  align-self: flex-start;
+  font-family: inherit;
+  color: #717171;
+  font-weight: 600;
+  width: 40%;
+  background: #313131;
+  border: 1px solid #414141;
+  padding: 12px 16px;
+  font-size: inherit;
+  gap: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.form-container .form-submit-btn:hover {
+  background-color: #3a3a3a; /* менее яркий оттенок */
+  border-color: #5a5a5a;
+  color: #b0b0b0;
+}
+
+.form-container .form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-container .form-submit-btn.btn-loading {
+  position: relative;
+}
+
+.form-container .form-submit-btn.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.field-error {
+  color: #ff4d4d;
+  font-size: 12px;
+  display: none;
+}
+
+.field-error.show {
+  display: block;
+}
+
+.auth-error {
+  color: #ff4d4d;
+  font-size: 12px;
+  display: none;
+}
+
+.auth-error.show {
+  display: block;
+}
+
+.form-container .form-group input.error {
+  border-color: #ff4d4d;
+}
+
+.form-container .form-group input.error:focus {
+  border-color: #ff4d4d;
+  box-shadow: 0 0 0 2px rgba(255, 77, 77, 0.25);
+}
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #717171;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.forgot-password-btn:hover {
+  color: #40c9ff;
+  opacity: 1;
 }
 
 /* Скроллбары */

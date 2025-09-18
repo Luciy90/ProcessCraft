@@ -213,18 +213,14 @@
     font-weight: 500;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 /* Модальные окна - дополнительные стили */
 .modal.show {
     opacity: 1;
     visibility: visible;
 }
 
-.modal-content {
+/* Make modal content styles more specific to avoid conflicts */
+.modal .modal-content {
     transform: scale(0.9);
     transition: transform 0.3s ease;
 }
@@ -233,27 +229,27 @@
     transform: scale(1);
 }
 
-.modal-content.small {
+.modal .modal-content.small {
     max-width: 400px;
 }
 
-.modal-content.medium {
+.modal .modal-content.medium {
     max-width: 600px;
 }
 
-.modal-content.large {
+.modal .modal-content.large {
     max-width: 800px;
 }
 
-.modal-content.xlarge {
+.modal .modal-content.xlarge {
     max-width: 1200px;
 }
 
-.modal-body {
+.modal .modal-body {
     padding: 20px 30px;
 }
 
-.modal-footer {
+.modal .modal-footer {
     padding: 20px 30px;
     border-top: 1px solid #e9ecef;
     display: flex;
@@ -261,20 +257,21 @@
     gap: 10px;
 }
 
-/* Дополнительные стили для форм */
+/* Make form validation styles more specific to avoid conflicts */
 .form-group .required {
     color: #dc3545;
 }
 
-.form-group input:invalid,
-.form-group select:invalid,
-.form-group textarea:invalid {
+/* Apply validation styles only to standard forms, not form-container */
+.modal .form-group input:invalid,
+.modal .form-group select:invalid,
+.modal .form-group textarea:invalid {
     border-color: #dc3545;
 }
 
-.form-group input:invalid:focus,
-.form-group select:invalid:focus,
-.form-group textarea:invalid:focus {
+.modal .form-group input:invalid:focus,
+.modal .form-group select:invalid:focus,
+.modal .form-group textarea:invalid:focus {
     box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
 }
 

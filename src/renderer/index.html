@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/tailwind.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+  
   <style>
     :root { color-scheme: dark; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
@@ -115,6 +118,130 @@
                 <div class="rounded-xl border border-white/10 ring-1 ring-amber-400/20 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-4"><div class="text-sm text-white/60">Критические задачи</div><div class="mt-2 text-3xl font-semibold tracking-tight" id="critical-tasks-count">0</div></div>
               </div>
             </section>
+
+            <!-- Additional content to test scrolling -->
+            <section class="space-y-4 mt-8">
+              <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Последние действия</h2>
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <div class="h-8 w-8 rounded-full bg-indigo-500/20 grid place-items-center">
+                      <svg data-lucide="clipboard-check" class="h-4 w-4"></svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Заказ #1001 завершен</div>
+                      <div class="text-xs text-white/60">2 часа назад</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <div class="h-8 w-8 rounded-full bg-rose-500/20 grid place-items-center">
+                      <svg data-lucide="alert-triangle" class="h-4 w-4"></svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Критическая задача: Замена оборудования</div>
+                      <div class="text-xs text-white/60">5 часов назад</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <div class="h-8 w-8 rounded-full bg-sky-500/20 grid place-items-center">
+                      <svg data-lucide="package" class="h-4 w-4"></svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Поступление материалов на склад</div>
+                      <div class="text-xs text-white/60">8 часов назад</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <div class="h-8 w-8 rounded-full bg-amber-500/20 grid place-items-center">
+                      <svg data-lucide="wrench" class="h-4 w-4"></svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Плановое обслуживание линии А</div>
+                      <div class="text-xs text-white/60">1 день назад</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Аналитика производства</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-3">
+                    <div class="text-sm text-white/60">Эффективность за месяц</div>
+                    <div class="text-2xl font-semibold text-green-400">94.2%</div>
+                    <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div class="h-full bg-green-400 rounded-full" style="width: 94.2%"></div>
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <div class="text-sm text-white/60">Выполнение плана</div>
+                    <div class="text-2xl font-semibold text-blue-400">87.8%</div>
+                    <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div class="h-full bg-blue-400 rounded-full" style="width: 87.8%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Загрузка оборудования</h2>
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-white/80">Линия производства А</span>
+                    <span class="text-sm font-medium text-green-400">85%</span>
+                  </div>
+                  <div class="h-3 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-400 rounded-full" style="width: 85%"></div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-white/80">Линия производства Б</span>
+                    <span class="text-sm font-medium text-blue-400">72%</span>
+                  </div>
+                  <div class="h-3 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-400 rounded-full" style="width: 72%"></div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-white/80">Упаковочная линия</span>
+                    <span class="text-sm font-medium text-amber-400">91%</span>
+                  </div>
+                  <div class="h-3 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-400 rounded-full" style="width: 91%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Планы на сегодня</h2>
+                <div class="space-y-3">
+                  <div class="flex items-start gap-3">
+                    <div class="mt-1 h-2 w-2 rounded-full bg-indigo-400"></div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Проверка качества продукции серии X1001</div>
+                      <div class="text-xs text-white/60">Запланировано на 14:00</div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="mt-1 h-2 w-2 rounded-full bg-rose-400"></div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Замена фильтров в системе вентиляции</div>
+                      <div class="text-xs text-white/60">Запланировано на 16:30</div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="mt-1 h-2 w-2 rounded-full bg-sky-400"></div>
+                    <div class="flex-1">
+                      <div class="text-sm font-medium text-white/90">Совещание по планам на следующую неделю</div>
+                      <div class="text-xs text-white/60">Запланировано на 17:00</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional spacing to ensure scrolling -->
+              <div class="h-32"></div>
+            </section>
           </div>
           <div id="orders-module" class="module-content"></div>
           <div id="design-module" class="module-content"></div>
@@ -139,7 +266,7 @@
   </div>
 
   <div id="modal-overlay" class="fixed inset-0 bg-black/50 hidden">
-    <div id="modal-content" class="mx-auto mt-20 max-w-xl rounded-xl border border-white/10 bg-neutral-900 p-4"></div>
+    <div id="modal-content" class="mx-auto mt-20 max-w-xl rounded-xl border-white/10 p-4"></div>
   </div>
 
   <script src="js/vendor/lucide.min.js"></script>

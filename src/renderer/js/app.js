@@ -344,25 +344,43 @@ class ProcessCraftApp {
 
     openLoginModal() {
         const cfg = window.UI_CONFIG;
-        const t = cfg?.texts;
+        const t = cfg?.texts?.auth || {};
         const html = `
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="text-lg font-semibold">Вход в систему</div>
-            <button onclick="window.app.closeModal()" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5">✕</button>
-          </div>
-          <form id="login-form" class="space-y-3">
-            <div>
-              <div class="text-xs text-white/60 mb-1">Логин</div>
-              <input id="login-username" class="w-full bg-transparent text-sm border border-white/10 rounded px-2 py-2" placeholder="username">
+        <!-- From Uiverse.io by gharsh11032000 -->
+        <div class="form-container">
+          <form id="login-form" class="form">
+            <div class="form-group">
+              <label for="login-username">${t.login?.label || 'Логин'}</label>
+              <input
+                type="text"
+                id="login-username"
+                name="username"
+                placeholder="${t.login?.placeholder || 'Введите логин'}"
+                autocomplete="username"
+                required
+              />
+              <div id="login-error" class="field-error">
+                ${t.errors?.login?.not_found || 'Пользователь не найден'}
+              </div>
             </div>
-            <div>
-              <div class="text-xs text-white/60 mb-1">Пароль</div>
-              <input id="login-password" type="password" class="w-full bg-transparent text-sm border border-white/10 rounded px-2 py-2" placeholder="••••••••">
+            <div class="form-group">
+              <label for="login-password">${t.password?.label || 'Пароль'}</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                placeholder="${t.password?.placeholder || 'Введите пароль'}"
+                autocomplete="current-password"
+                required
+              />
+              <div id="password-error" class="field-error"></div>
             </div>
-            <div class="flex justify-end gap-2 pt-1">
-              <button type="button" onclick="window.app.closeModal()" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">${t?.buttons?.cancel || 'Отмена'}</button>
-              <button type="submit" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">Войти</button>
+            <div id="auth-error" class="auth-error">
+              ${t.errors?.general?.auth_failed || 'Неверный логин или пароль'}
+            </div>
+            <div class="form-actions">
+              <button class="form-submit-btn" type="submit">${t.buttons?.login || 'Войти'}</button>
+              <button type="button" id="forgot-password-btn" class="forgot-password-btn">${t.buttons?.forgot_password || 'Забыли пароль?'}</button>
             </div>
           </form>
         </div>`;
@@ -372,26 +390,298 @@ class ProcessCraftApp {
             e.preventDefault();
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
-            const res = await window.UserStore.login(username, password);
-            if (res?.ok) {
-                this.closeModal();
-                this.updateUserInterface().catch(console.warn);
-                this.openProfilePage();
-                this.showMessage('Успешный вход', 'success');
-            } else {
-                this.showMessage('Неверные учетные данные', 'error');
+            
+            // Очистка предыдущих ошибок
+            this.clearValidationErrors();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalSubmitText = submitBtn.textContent;
+            const cfg = window.UI_CONFIG;
+            const authTexts = cfg?.texts?.auth?.messages || {};
+            
+            // Предварительная валидация (проверка заполненности полей)
+            const preliminaryValidation = this.validateAuthCredentials(username, password);
+            
+            if (preliminaryValidation.hasErrors) {
+                this.displayValidationErrors(preliminaryValidation);
+                return;
+            }
+            
+            // Показываем состояние загрузки
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading');
+            submitBtn.textContent = authTexts.loading || 'Выполняется вход...';
+            
+            try {
+                const authResult = await window.UserStore.login(username, password);
+                
+                if (authResult?.ok) {
+                    // Успешная авторизация
+                    this.closeModal();
+                    this.updateUserInterface().catch(console.warn);
+                    this.openProfilePage();
+                    this.showMessage(authTexts.success || 'Успешный вход в систему', 'success');
+                } else {
+                    // Ошибка авторизации - валидация с результатом сервера
+                    const validationResult = this.validateAuthCredentials(username, password, authResult);
+                    this.displayValidationErrors(validationResult);
+                    
+                    // Логирование ошибки авторизации
+                    console.warn('Auth failed:', {
+                        username: username,
+                        error: authResult?.error,
+                        validationResult: validationResult
+                    });
+                }
+            } catch (error) {
+                // Ошибка сети или неожиданная ошибка
+                console.error('Login error:', error);
+                
+                const networkValidation = {
+                    errors: {},
+                    auth_error: cfg?.texts?.auth?.errors?.general?.network_error || 'Ошибка сети, проверьте подключение',
+                    hasErrors: true
+                };
+                
+                this.displayValidationErrors(networkValidation);
+            } finally {
+                // Восстанавливаем кнопку
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.textContent = originalSubmitText;
+                
+                // Проверка результата валидации
+                this.validateUIState();
             }
         });
+        
+        // Обработчик для "Забыли пароль?"
+        const forgotPasswordBtn = document.getElementById('forgot-password-btn');
+        if (forgotPasswordBtn) {
+            forgotPasswordBtn.addEventListener('click', () => {
+                this.showForgotPasswordHelp();
+            });
+        }
+    }
+
+    showForgotPasswordHelp() {
+        const cfg = window.UI_CONFIG;
+        const t = cfg?.texts?.password_recovery || {};
+        const html = `
+        <div class="form-container space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold">${t.title || '🔒 Восстановление пароля'}</div>
+            <button onclick="window.app.closeModal()" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5">✕</button>
+          </div>
+          
+          <div class="rounded-lg border border-amber-400/20 bg-amber-500/5 p-4">
+            <div class="flex items-start gap-3">
+              <div class="text-amber-400 text-xl">ℹ️</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-amber-200 mb-2">${t.how_to_recover || 'Как восстановирь пароль?'}</div>
+                <div class="text-xs text-white/80 space-y-2">
+                  <p>${t.instruction || 'Для сброса пароля обратитесь к администратору системы.'}</p>
+                  <p><strong>${t.what_to_tell || 'Что сообщить администратору:'}:</strong></p>
+                  <ul class="list-disc list-inside text-xs space-y-1 ml-2">
+                    <li>${t.instructions?.username || 'Ваш логин (имя пользователя)'}</li>
+                    <li>${t.instructions?.problem || 'Описание проблемы (забыли пароль)'}</li>
+                    <li>${t.instructions?.contact_info || 'Контактную информацию для связи'}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="rounded-lg border border-blue-400/20 bg-blue-500/5 p-4">
+            <div class="flex items-start gap-3">
+              <div class="text-blue-400 text-xl">👥</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-blue-200 mb-2">${t.contacts_title || 'Контакты администрации'}</div>
+                <div class="text-xs text-white/80">
+                  <p>${t.contacts_text || 'Обратитесь к системному администратору вашей организации или IT-поддержке для получения нового пароля.'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center pt-2">
+            <button onclick="window.app.openLoginModal()" class="text-xs text-white/60 hover:text-white/80 underline">${t.buttons?.back_to_login || '← Назад к входу'}</button>
+            <button onclick="window.app.closeModal()" class="h-9 px-4 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">${t.buttons?.understood || 'Понятно'}</button>
+          </div>
+        </div>`;
+        this.showModal(html);
+    }
+
+    /**
+     * Валидация данных авторизации
+     * @param {string} username - Логин пользователя
+     * @param {string} password - Пароль пользователя
+     * @param {Object} authResult - Результат попытки авторизации
+     * @returns {Object} Структурированный объект ошибок
+     */
+    validateAuthCredentials(username, password, authResult = null) {
+        const cfg = window.UI_CONFIG;
+        const errorTexts = cfg?.texts?.auth?.errors || {};
+        
+        const validationResult = {
+            errors: {},
+            auth_error: null,
+            hasErrors: false
+        };
+
+        // Проверка логина
+        const trimmedUsername = username ? username.trim() : '';
+        if (!trimmedUsername) {
+            validationResult.errors.login = {
+                message: errorTexts.login?.required || 'Поле логин обязательно для заполнения',
+                highlight: true
+            };
+            validationResult.hasErrors = true;
+        } else if (trimmedUsername.length < 2) {
+            validationResult.errors.login = {
+                message: errorTexts.login?.invalid_format || 'Некорректный формат логина',
+                highlight: true
+            };
+            validationResult.hasErrors = true;
+        }
+
+        // Проверка пароля
+        if (!password) {
+            validationResult.errors.password = {
+                message: errorTexts.password?.required || 'Поле пароль обязательно для заполнения',
+                highlight: true
+            };
+            validationResult.hasErrors = true;
+        }
+
+        // Обработка ошибок авторизации (если поля заполнены)
+        if (!validationResult.hasErrors && authResult && !authResult.ok) {
+            switch (authResult.error) {
+                case 'not_found':
+                    validationResult.errors.login = {
+                        message: errorTexts.login?.not_found || 'Пользователь не найден',
+                        highlight: true
+                    };
+                    validationResult.auth_error = errorTexts.general?.auth_failed || 'Неверный логин или пароль';
+                    break;
+                case 'invalid_password':
+                    validationResult.errors.password = {
+                        message: errorTexts.password?.invalid || 'Неверный пароль',
+                        highlight: true
+                    };
+                    validationResult.auth_error = errorTexts.general?.auth_failed || 'Неверный логин или пароль';
+                    break;
+                default:
+                    validationResult.auth_error = errorTexts.general?.server_error || 'Ошибка сервера, попробуйте позже';
+            }
+            validationResult.hasErrors = true;
+        }
+
+        return validationResult;
+    }
+
+    /**
+     * Отображение ошибок валидации на форме
+     * @param {Object} validationResult - Результат валидации
+     */
+    displayValidationErrors(validationResult) {
+        // Очистка предыдущих ошибок
+        this.clearValidationErrors();
+
+        // Отображение ошибок полей
+        Object.keys(validationResult.errors).forEach(fieldName => {
+            const fieldError = validationResult.errors[fieldName];
+            const input = document.getElementById(`login-${fieldName}`);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+
+            if (input && fieldError.highlight) {
+                input.classList.add('error');
+            }
+
+            if (errorElement && fieldError.message) {
+                errorElement.textContent = fieldError.message;
+                errorElement.classList.add('show');
+            }
+        });
+
+        // Отображение общей ошибки авторизации
+        if (validationResult.auth_error) {
+            const authErrorElement = document.getElementById('auth-error');
+            if (authErrorElement) {
+                authErrorElement.textContent = validationResult.auth_error;
+                authErrorElement.classList.add('show');
+            }
+        }
+    }
+
+    /**
+     * Очистка ошибок валидации
+     */
+    clearValidationErrors() {
+        // Очистка классов ошибок у полей
+        ['login-username', 'login-password'].forEach(fieldId => {
+            const input = document.getElementById(fieldId);
+            if (input) {
+                input.classList.remove('error', 'success');
+            }
+        });
+
+        // Очистка сообщений об ошибках
+        ['login-error', 'password-error', 'auth-error'].forEach(errorId => {
+            const errorElement = document.getElementById(errorId);
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.classList.remove('show');
+            }
+        });
+    }
+
+    /**
+     * Проверка состояния UI после валидации
+     */
+    validateUIState() {
+        const loginInput = document.getElementById('login-username');
+        const passwordInput = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
+        const passwordError = document.getElementById('password-error');
+        const authError = document.getElementById('auth-error');
+        
+        // Проверяем корректность состояния полей и ошибок
+        const validationState = {
+            fields: {
+                login: {
+                    hasError: loginInput?.classList.contains('error') || false,
+                    errorMessage: loginError?.textContent || '',
+                    errorVisible: loginError?.classList.contains('show') || false
+                },
+                password: {
+                    hasError: passwordInput?.classList.contains('error') || false,
+                    errorMessage: passwordError?.textContent || '',
+                    errorVisible: passwordError?.classList.contains('show') || false
+                }
+            },
+            authError: {
+                message: authError?.textContent || '',
+                visible: authError?.classList.contains('show') || false
+            }
+        };
+        
+        // Логирование для отладки
+        console.log('UI Validation State:', validationState);
+        
+        return validationState;
     }
 
     openProfileModal(user) {
         const u = user || window.UserStore?.getCurrentUser();
         if (!u) { this.openLoginModal(); return; }
         const isSuper = (u.role === 'SuperAdmin' || u.role === 'СуперАдминистратор');
+        const cfg = window.UI_CONFIG;
+        const t = cfg?.texts?.user_management?.profile || {};
         const html = `
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <div class="text-lg font-semibold">Личный кабинет</div>
+            <div class="text-lg font-semibold">${t.title || 'Личный кабинет'}</div>
             <button onclick="window.app.closeModal()" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5">✕</button>
           </div>
           <div class="flex items-center gap-3">
@@ -400,12 +690,12 @@ class ProcessCraftApp {
             </div>
             <div>
               <div class="text-base font-medium">${u.displayName || u.username}</div>
-              <div class="text-xs text-white/60">Роль: ${u.role || 'User'}</div>
+              <div class="text-xs text-white/60">${t.role_label || 'Роль:'} ${u.role || 'User'}</div>
             </div>
           </div>
           <div class="flex gap-2 pt-1">
-            <button id="logout-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Выйти</button>
-            ${isSuper ? `<button id="admin-panel-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">Администрирование</button>` : ''}
+            <button id="logout-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">${t.buttons?.logout || 'Выйти'}</button>
+            ${isSuper ? `<button id="admin-panel-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">${t.buttons?.admin_panel || 'Администрирование'}</button>` : ''}
           </div>
         </div>`;
         this.showModal(html);
@@ -440,12 +730,14 @@ class ProcessCraftApp {
         // Always re-initialize profile to ensure fresh data (including cover images)
         this.modules.profile.init();
         const currentModuleEl = document.getElementById('current-module');
-        if (currentModuleEl) currentModuleEl.textContent = 'Профиль пользователя';
+        if (currentModuleEl) currentModuleEl.textContent = window.UI_CONFIG?.texts?.user_management?.profile?.user_profile_title || 'Профиль пользователя';
     }
 
     async openAdminPanelModal() {
         const res = await window.UserStore.listUsers();
-        if (!res?.ok) { this.showMessage('Не удалось получить список пользователей', 'error'); return; }
+        const cfg = window.UI_CONFIG;
+        const t = cfg?.texts?.user_management?.admin || {};
+        if (!res?.ok) { this.showMessage(t.messages?.get_users_error || 'Не удалось получить список пользователей', 'error'); return; }
         const users = res.users || [];
         
         // Generate avatar HTML for all users
@@ -457,12 +749,12 @@ class ProcessCraftApp {
         const html = `
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <div class="text-lg font-semibold">Администрирование пользователей</div>
+            <div class="text-lg font-semibold">${t.title || 'Администрирование пользователей'}</div>
             <button onclick="window.app.closeModal()" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5">✕</button>
           </div>
           <div class="flex justify-end gap-2">
-            <button id="delete-users-toggle" class="h-9 px-3 rounded-lg border border-rose-400/20 hover:bg-rose-500/10 text-sm">Удалить пользователей</button>
-            <button id="create-user-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">Создать пользователя</button>
+            <button id="delete-users-toggle" class="h-9 px-3 rounded-lg border border-rose-400/20 hover:bg-rose-500/10 text-sm">${t.buttons?.delete_users || 'Удалить пользователей'}</button>
+            <button id="create-user-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">${t.buttons?.create_user || 'Создать пользователя'}</button>
           </div>
           <div id="users-list" class="rounded-lg border border-white/10 divide-y divide-white/5">
             ${usersWithAvatars.map(u => `
@@ -475,7 +767,7 @@ class ProcessCraftApp {
                   </div>
                 </div>
                 <div>
-                  <button data-username="${u.username}" class="edit-user-btn h-8 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-xs">Редактировать</button>
+                  <button data-username="${u.username}" class="edit-user-btn h-8 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-xs">${t.buttons?.edit || 'Редактировать'}</button>
                 </div>
               </div>
             `).join('')}
@@ -486,7 +778,7 @@ class ProcessCraftApp {
             btn.addEventListener('click', async (e) => {
                 const username = e.currentTarget.getAttribute('data-username');
                 const data = await window.UserStore.getUser(username);
-                if (data?.ok) this.openEditUserModal(data.user); else this.showMessage('Пользователь не найден', 'error');
+                if (data?.ok) this.openEditUserModal(data.user); else this.showMessage(t.messages?.user_not_found || 'Пользователь не найден', 'error');
             });
         });
         document.getElementById('create-user-btn').addEventListener('click', () => this.openCreateUserModal());
@@ -502,7 +794,7 @@ class ProcessCraftApp {
             btn.addEventListener('click', async (e) => {
               const username = e.currentTarget.getAttribute('data-username');
               const data = await window.UserStore.getUser(username);
-              if (data?.ok) this.openEditUserModal(data.user); else this.showMessage('Пользователь не найден', 'error');
+              if (data?.ok) this.openEditUserModal(data.user); else this.showMessage(t.messages?.user_not_found || 'Пользователь не найден', 'error');
             });
           });
         };
@@ -518,7 +810,7 @@ class ProcessCraftApp {
               // Очистим прежние обработчики, создадим новый узел кнопки (clone)
               const newBtn = btn.cloneNode(true);
               btn.replaceWith(newBtn);
-              newBtn.textContent = 'Удалить';
+              newBtn.textContent = t.buttons?.delete || 'Удалить';
               newBtn.classList.remove('edit-user-btn');
               newBtn.classList.add('delete-user-btn','border-rose-400/30');
               newBtn.setAttribute('data-username', username);
@@ -545,7 +837,7 @@ class ProcessCraftApp {
               });
             }
           });
-          toggleBtn.textContent = 'Принять изменения';
+          toggleBtn.textContent = t.buttons?.accept_changes || 'Принять изменения';
           toggleBtn.classList.remove('border-rose-400/20','hover:bg-rose-500/10');
           toggleBtn.classList.add('border-emerald-400/30','hover:bg-emerald-500/10');
           // add cancel button
@@ -553,7 +845,7 @@ class ProcessCraftApp {
             const cancelBtn = document.createElement('button');
             cancelBtn.id = 'cancel-delete-users';
             cancelBtn.className = 'h-9 px-3 rounded-lg border border-emerald-400/40 hover:bg-emerald-500/10 text-sm text-emerald-200';
-            cancelBtn.textContent = 'Отменить';
+            cancelBtn.textContent = t.buttons?.cancel || 'Отменить';
             toggleBtn.parentElement.insertBefore(cancelBtn, toggleBtn);
             cancelBtn.addEventListener('click', exitDeleteMode);
           }
@@ -589,12 +881,12 @@ class ProcessCraftApp {
               // Пересоздаем кнопку, чтобы очистить обработчики
               const newBtn = btn.cloneNode(true);
               btn.replaceWith(newBtn);
-              newBtn.textContent = 'Редактировать';
+              newBtn.textContent = t.buttons?.edit || 'Редактировать';
               newBtn.classList.remove('delete-user-btn','border-rose-400/30');
               newBtn.classList.add('edit-user-btn');
             }
           });
-          toggleBtn.textContent = 'Удалить пользователей';
+          toggleBtn.textContent = t.buttons?.delete_users || 'Удалить пользователей';
           toggleBtn.classList.remove('border-emerald-400/30','hover:bg-emerald-500/10');
           toggleBtn.classList.add('border-rose-400/20','hover:bg-rose-500/10');
           const cancelBtn = document.getElementById('cancel-delete-users');
@@ -611,13 +903,13 @@ class ProcessCraftApp {
             const confirmHtml = `
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <div class="text-lg font-semibold">Подтверждение удаления</div>
+                  <div class="text-lg font-semibold">${t.confirm_delete?.title || 'Подтверждение удаления'}</div>
                   <button onclick="window.app.closeModal()" class="h-8 w-8 grid place-items-center rounded-lg border border-white/10 hover:bg-white/5">✕</button>
                 </div>
-                <div class="text-sm text-white/80">Вы уверены, что хотите удалить выбранных пользователей (${toDelete.size})? Это действие необратимо.</div>
+                <div class="text-sm text-white/80">${(t.confirm_delete?.message || 'Вы уверены, что хотите удалить выбранных пользователей ({count})? Это действие необратимо.').replace('{count}', toDelete.size)}</div>
                 <div class="flex justify-end gap-2">
-                  <button id="delete-cancel" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Отмена</button>
-                  <button id="delete-confirm" class="h-9 px-3 rounded-lg border border-rose-400/30 hover:bg-rose-500/10 text-sm text-rose-200">Да, удалить</button>
+                  <button id="delete-cancel" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">${t.confirm_delete?.buttons?.cancel || 'Отмена'}</button>
+                  <button id="delete-confirm" class="h-9 px-3 rounded-lg border border-rose-400/30 hover:bg-rose-500/10 text-sm text-rose-200">${t.confirm_delete?.buttons?.confirm || 'Да, удалить'}</button>
                 </div>
               </div>`;
             this.showModal(confirmHtml);
@@ -628,7 +920,7 @@ class ProcessCraftApp {
                 try { const r = await window.UserStore.deleteUser(username); if (!r?.ok) allOk = false; } catch { allOk = false; }
               }
               this.closeModal();
-              if (allOk) this.showMessage('Пользователи удалены', 'success'); else this.showMessage('Часть пользователей удалить не удалось', 'error');
+              if (allOk) this.showMessage(t.messages?.users_deleted || 'Пользователи удалены', 'success'); else this.showMessage(t.messages?.partial_delete_error || 'Часть пользователей удалить не удалось', 'error');
               this.openAdminPanelModal();
             };
             document.getElementById('delete-cancel').addEventListener('click', onCancel);

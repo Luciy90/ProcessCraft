@@ -17,21 +17,21 @@
     background-color: rgba(255, 255, 255, 0.1); 
   }
   
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
+  /* Dark theme scrollbar - scoped to dark theme */
+  [data-theme="dark"] ::-webkit-scrollbar {
     width: 6px;
   }
   
-  ::-webkit-scrollbar-track {
+  [data-theme="dark"] ::-webkit-scrollbar-track {
     background: #262626;
   }
   
-  ::-webkit-scrollbar-thumb {
+  [data-theme="dark"] ::-webkit-scrollbar-thumb {
     background: #525252;
     border-radius: 3px;
   }
   
-  ::-webkit-scrollbar-thumb:hover {
+  [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: #737373;
   }
 }
