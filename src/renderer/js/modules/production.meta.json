@@ -1,0 +1,42 @@
+{
+  "moduleId": "production",
+  "moduleName": "Производство",
+  "version": "1.0.0",
+  "description": "Модуль управления производственными процессами",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 4,
+  "permissions": [
+    "production:read",
+    "production:write",
+    "scheduling:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "factory",
+    "navigationTitle": "Производство",
+    "navigationSubtitle": "Управление производством"
+  },
+  "features": [
+    "production_planning",
+    "quality_control",
+    "batch_tracking",
+    "resource_management"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля производства",
+        "Планирование производства",
+        "Контроль качества"
+      ]
+    }
+  ]
+}

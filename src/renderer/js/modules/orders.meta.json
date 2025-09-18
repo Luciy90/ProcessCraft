@@ -1,0 +1,44 @@
+{
+  "moduleId": "orders",
+  "moduleName": "Управление заказами", 
+  "version": "1.0.0",
+  "description": "Модуль для управления заказами клиентов с полным функционалом создания, редактирования, фильтрации и экспорта",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 1,
+  "permissions": [
+    "orders:read",
+    "orders:write",
+    "customers:read"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "clipboard-list",
+    "navigationTitle": "Заказы",
+    "navigationSubtitle": "Управление заказами"
+  },
+  "features": [
+    "create_order",
+    "edit_order", 
+    "filter_orders",
+    "export_orders",
+    "customer_management"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля",
+        "Создание и редактирование заказов",
+        "Фильтрация по статусу и клиенту",
+        "Экспорт заказов"
+      ]
+    }
+  ]
+}

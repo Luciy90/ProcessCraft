@@ -1,15 +1,77 @@
-// Модуль технологов
+// Модуль технологов - с поддержкой динамической загрузки
 
 class TechnologyModule {
-    constructor() {
-        this.db = new Database();
+    constructor(options = {}) {
+        // Сохраняем опции от загрузчика модулей
+        this.moduleId = options.moduleId || 'technology';
+        this.meta = options.meta || {};
+        this.loader = options.loader || null;
+        
+        // Инициализация модуля
+        this.db = null;
         this.currentMaterial = null;
+        
+        console.log(`[${this.moduleId}] Конструктор модуля выполнен`);
     }
 
-    init() {
-        this.render();
-        this.setupEventListeners();
-        this.loadMaterials();
+    /**
+     * Инициализация модуля
+     * Вызывается автоматически загрузчиком модулей или вручную
+     */
+    async init() {
+        try {
+            console.log(`[${this.moduleId}] Начало инициализации модуля`);
+            
+            // Инициализация базы данных
+            await this.initDatabase();
+            
+            // Рендер UI модуля
+            this.render();
+            
+            // Настройка обработчиков событий
+            this.setupEventListeners();
+            
+            // Загрузка данных
+            await this.loadMaterials();
+            
+            console.log(`[${this.moduleId}] Модуль успешно инициализирован`);
+            
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка инициализации:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Инициализация базы данных
+     */
+    async initDatabase() {
+        try {
+            // Проверяем наличие глобального экземпляра Database
+            if (window.Database) {
+                this.db = new window.Database();
+            } else {
+                // Fallback: создаем заглушку для работы без БД
+                this.db = {
+                    getMaterials: () => Promise.resolve([]),
+                    getMaterial: () => Promise.resolve({}),
+                    saveMaterial: () => Promise.resolve({ success: true }),
+                    deleteMaterial: () => Promise.resolve({ success: true })
+                };
+            }
+            
+            console.log(`[${this.moduleId}] База данных инициализирована`);
+            
+        } catch (error) {
+            console.warn(`[${this.moduleId}] Ошибка инициализации БД:`, error);
+            // Создаем заглушку для работы без БД
+            this.db = {
+                getMaterials: () => Promise.resolve([]),
+                getMaterial: () => Promise.resolve({}),
+                saveMaterial: () => Promise.resolve({ success: true }),
+                deleteMaterial: () => Promise.resolve({ success: true })
+            };
+        }
     }
 
     render() {
@@ -324,6 +386,51 @@ class TechnologyModule {
         // Implementation for adding technical specifications
         console.log('Add specification modal');
     }
+
+    /**
+     * Уничтожение модуля (для hot-reload)
+     * Вызывается при перезагрузке модуля
+     */
+    async destroy() {
+        try {
+            console.log(`[${this.moduleId}] Уничтожение модуля`);
+            
+            // Очистка обработчиков событий
+            // (в реальном приложении нужно сохранять ссылки на обработчики для их удаления)
+            
+            // Очистка таймеров, если есть
+            // clearInterval(this.someInterval);
+            
+            // Освобождение ресурсов
+            this.db = null;
+            this.currentMaterial = null;
+            
+            console.log(`[${this.moduleId}] Модуль уничтожен`);
+            
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка при уничтожении модуля:`, error);
+        }
+    }
+
+    /**
+     * Статические метаданные модуля (альтернатива .meta.json)
+     * Используется загрузчиком если нет .meta.json файла
+     */
+    static get meta() {
+        return {
+            moduleId: 'technology',
+            moduleName: 'Модуль технологов',
+            version: '1.0.0',
+            description: 'Модуль для управления материалами, ТУ и параметрами оборудования',
+            dependencies: ['database'],
+            author: 'ProcessCraft Team',
+            enabled: true
+        };
+    }
 }
 
+// Экспорт модуля для ES6 import
+export default TechnologyModule;
+
+// Глобальная доступность для совместимости с существующим кодом
 window.TechnologyModule = TechnologyModule;

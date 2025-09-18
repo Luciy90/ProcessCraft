@@ -8,16 +8,24 @@ class ProcessCraftApp {
         this.init();
     }
 
-    init() {
+    async init() {
         this.renderChromeFromConfig();
         this.setupEventListeners();
-        this.initializeModules();
+        
+        // Обработчик событий загрузки модулей
+        document.addEventListener('modules:loaded', (e) => {
+            console.log('✓ Получено событие modules:loaded', e.detail);
+            this.onModulesLoaded(e.detail);
+        });
+        
+        // Инициализация модулей
+        await this.initializeModules();
         
         // Настраиваем обработчики навигации после рендеринга
         this.setupNavigationListeners();
         
         // Активируем модуль dashboard по умолчанию
-        this.switchModule('dashboard');
+        this.switchModule('dashboard').catch(error => console.error('Error switching to dashboard:', error));
         
         console.log('ProcessCraft приложение инициализировано');
         
@@ -25,26 +33,62 @@ class ProcessCraftApp {
         this.testModuleSwitching();
     }
     
+    /**
+     * Обработчик события завершения загрузки модулей
+     * @param {Object} detail Детали события
+     */
+    onModulesLoaded(detail) {
+        console.log('Обработка события загрузки модулей');
+        
+        // Обновляем навигацию с учетом загруженных модулей
+        this.updateNavigationFromModules(detail.success);
+        
+        // Перенастраиваем обработчики навигации
+        this.setupNavigationListeners();
+    }
+    
+    /**
+     * Обновление навигации на основе загруженных модулей
+     * @param {Array} loadedModules Массив загруженных модулей
+     */
+    updateNavigationFromModules(loadedModules) {
+        // Можно добавить логику динамического обновления навигации
+        // на основе метаданных модулей
+        console.log('Обновление навигации на основе загруженных модулей:', 
+            loadedModules.map(m => m.id));
+    }
+    
     testModuleSwitching() {
         console.log('Тестирование переключения модулей...');
         console.log('Доступные модули:', Object.keys(this.modules));
         
-        // Проверяем, что все контейнеры модулей существуют
-        const moduleNames = ['dashboard', 'orders', 'design', 'technology', 'warehouse', 'molds', 'maintenance', 'production', 'analytics'];
-        moduleNames.forEach(moduleName => {
+        // Динамически проверяем загруженные модули
+        const loadedModules = Object.keys(this.modules);
+        console.log(`Проверка ${loadedModules.length} загруженных модулей:`);
+        
+        loadedModules.forEach(moduleName => {
             const container = document.getElementById(`${moduleName}-module`);
             const navItem = document.querySelector(`[data-module="${moduleName}"]`);
+            
+            if (!container) {
+                console.warn(`⚠ Контейнер для модуля "${moduleName}" не найден в DOM`);
+            }
+            if (!navItem) {
+                console.warn(`⚠ Навигационный элемент для модуля "${moduleName}" не найден`);
+            }
+            
             console.log(`Модуль ${moduleName}:`, {
                 container: !!container,
                 navItem: !!navItem,
-                moduleClass: !!this.modules[moduleName]
+                moduleInstance: !!this.modules[moduleName],
+                initialized: !!this.modules[moduleName]?._initialized
             });
         });
         
         // Добавляем глобальную функцию для тестирования
         window.testSwitchModule = (moduleName) => {
             console.log('Тестовое переключение на модуль:', moduleName);
-            this.switchModule(moduleName);
+            this.switchModule(moduleName).catch(error => console.error(`Error switching to module ${moduleName}:`, error));
         };
         
         console.log('Для тестирования используйте: testSwitchModule("orders")');
@@ -183,7 +227,7 @@ class ProcessCraftApp {
         // Обработка меню приложения
         const { ipcRenderer } = require('electron');
         ipcRenderer.on('menu-new-order', () => {
-            this.switchModule('orders');
+            this.switchModule('orders').catch(error => console.error('Error switching to orders:', error));
             // Здесь будет логика создания нового заказа
         });
 
@@ -208,10 +252,10 @@ class ProcessCraftApp {
         e.preventDefault();
         const moduleName = e.currentTarget.dataset.module;
         console.log('Клик по навигации:', moduleName);
-        this.switchModule(moduleName);
+        this.switchModule(moduleName).catch(error => console.error(`Error switching to module ${moduleName}:`, error));
     }
 
-    switchModule(moduleName) {
+    async switchModule(moduleName) {
         console.log('Переключение на модуль:', moduleName);
         
         try {
@@ -250,35 +294,129 @@ class ProcessCraftApp {
             this.currentModule = moduleName;
 
             // Инициализируем модуль если он еще не загружен
-            if (this.modules[moduleName] && typeof this.modules[moduleName].init === 'function') {
-                console.log('Инициализация модуля:', moduleName);
-                this.modules[moduleName].init();
+            // Проверяем сначала динамический реестр, потом this.modules
+            let moduleInstance = null;
+            
+            // Поиск в динамическом реестре
+            if (window.getModuleInstance) {
+                moduleInstance = window.getModuleInstance(moduleName);
+                if (moduleInstance) {
+                    console.log(`Модуль ${moduleName} найден в динамическом реестре`);
+                }
+            }
+            
+            // Fallback на статический this.modules
+            if (!moduleInstance && this.modules && this.modules[moduleName]) {
+                moduleInstance = this.modules[moduleName];
+                console.log(`Модуль ${moduleName} найден в статическом реестре`);
+            }
+            
+            // Инициализация модуля (только если еще не инициализирован)
+            if (moduleInstance && typeof moduleInstance.init === 'function') {
+                // Проверяем, не инициализирован ли модуль уже
+                if (!moduleInstance._initialized) {
+                    console.log('Инициализация модуля:', moduleName);
+                    try {
+                        await moduleInstance.init();
+                        moduleInstance._initialized = true; // Помечаем как инициализированный
+                    } catch (error) {
+                        console.error(`Ошибка инициализации модуля ${moduleName}:`, error);
+                    }
+                } else {
+                    console.log(`Модуль ${moduleName} уже инициализирован, повторная инициализация пропущена`);
+                }
             } else {
                 console.warn('Модуль не найден или не имеет метода init:', moduleName);
+                
+                // Попытка ленивой загрузки модуля
+                if (window.moduleLoader && typeof window.moduleLoader.initModule === 'function') {
+                    console.log(`Попытка ленивой инициализации модуля: ${moduleName}`);
+                    window.moduleLoader.initModule(moduleName).catch(console.error);
+                }
             }
         } catch (error) {
             console.error('Ошибка при переключении модуля:', moduleName, error);
         }
     }
 
-    initializeModules() {
+    async initializeModules() {
         try {
-            // Инициализация всех модулей
-            this.modules = {
-                dashboard: new DashboardModule(),
-                orders: new OrdersModule(),
-                design: new DesignModule(),
-                technology: new TechnologyModule(),
-                warehouse: new WarehouseModule(),
-                molds: new MoldsModule(),
-                maintenance: new MaintenanceModule(),
-                production: new ProductionModule(),
-                analytics: new AnalyticsModule()
+            console.log('Запуск динамической загрузки модулей...');
+            
+            // Динамическая загрузка модулей
+            const loadResult = await window.loadModules({
+                path: 'js/modules',
+                dev: true, // включаем dev режим для отладки
+                lazyLoad: false // инициализируем модули сразу
+            });
+            
+            if (loadResult.success) {
+                console.log('✓ Динамическая загрузка модулей завершена успешно');
+                console.log(`Загружено модулей: ${loadResult.loaded.length}/${loadResult.total}`);
+                
+                // Создаем совместимый объект this.modules для существующего кода
+                this.modules = {};
+                for (const moduleInfo of loadResult.loaded) {
+                    this.modules[moduleInfo.id] = moduleInfo.instance;
+                }
+                
+                console.log('Доступные модули:', Object.keys(this.modules));
+                
+                // Логируем неудачные загрузки
+                if (loadResult.failed.length > 0) {
+                    console.warn('Модули с ошибками загрузки:', loadResult.failed);
+                }
+                
+            } else {
+                console.error('✗ Ошибка динамической загрузки модулей:', loadResult.error);
+                // Fallback на статическую инициализацию
+                await this.initializeModulesStatic();
+            }
+            
+        } catch (error) {
+            console.error('Критическая ошибка инициализации модулей:', error);
+            // Fallback на статическую инициализацию
+            await this.initializeModulesStatic();
+        }
+    }
+    
+    // Fallback: статическая инициализация модулей (старый способ)
+    async initializeModulesStatic() {
+        try {
+            console.log('Fallback: статическая инициализация модулей...');
+            
+            this.modules = {};
+            
+            // Инициализация модулей с проверкой доступности классов
+            const moduleClasses = {
+                dashboard: window.DashboardModule,
+                orders: window.OrdersModule,
+                design: window.DesignModule,
+                technology: window.TechnologyModule,
+                warehouse: window.WarehouseModule,
+                molds: window.MoldsModule,
+                maintenance: window.MaintenanceModule,
+                production: window.ProductionModule,
+                analytics: window.AnalyticsModule
             };
             
-            console.log('Модули инициализированы:', Object.keys(this.modules));
+            for (const [moduleId, ModuleClass] of Object.entries(moduleClasses)) {
+                if (ModuleClass && typeof ModuleClass === 'function') {
+                    try {
+                        this.modules[moduleId] = new ModuleClass();
+                        console.log(`✓ Статически инициализирован модуль: ${moduleId}`);
+                    } catch (error) {
+                        console.error(`✗ Ошибка статической инициализации модуля ${moduleId}:`, error);
+                    }
+                } else {
+                    console.warn(`⚠ Класс модуля ${moduleId} не найден или недоступен`);
+                }
+            }
+            
+            console.log('Статическая инициализация завершена. Доступные модули:', Object.keys(this.modules));
+            
         } catch (error) {
-            console.error('Ошибка инициализации модулей:', error);
+            console.error('Ошибка статической инициализации модулей:', error);
         }
     }
 
@@ -726,7 +864,7 @@ class ProcessCraftApp {
             console.error('Нет контейнера profile-module');
             return;
         }
-        this.switchModule('profile');
+        this.switchModule('profile').catch(error => console.error('Error switching to profile:', error));
         // Always re-initialize profile to ensure fresh data (including cover images)
         this.modules.profile.init();
         const currentModuleEl = document.getElementById('current-module');
@@ -1363,8 +1501,22 @@ class ProcessCraftApp {
 }
 
 // Инициализация приложения при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Импорт загрузчика модулей асинхронно
+    try {
+        // Гарантируем, что загрузчик модулей доступен
+        if (!window.loadModules) {
+            console.log('Импорт загрузчика модулей...');
+            const moduleLoader = await import('./module-loader.js');
+            console.log('✓ Загрузчик модулей загружен');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки модуля-загрузчика:', error);
+    }
+    
+    // Создание экземпляра приложения
     window.app = new ProcessCraftApp();
+    
     // Глобальный ремонт пустых Lucide-иконок
     window.repairLucideIcons = (root) => {
         try {
@@ -1434,4 +1586,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('MutationObserver for Lucide failed:', e);
     }
 });
+
+// Экспорт для ES6 модулей
+export default ProcessCraftApp;
+
+// Глобальная доступность для совместимости
+window.ProcessCraftApp = ProcessCraftApp;
 

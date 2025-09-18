@@ -1,0 +1,42 @@
+{
+  "moduleId": "warehouse",
+  "moduleName": "Склад",
+  "version": "1.0.0",
+  "description": "Модуль управления складом и инвентаризацией",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 7,
+  "permissions": [
+    "warehouse:read",
+    "warehouse:write",
+    "inventory:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "package",
+    "navigationTitle": "Склад",
+    "navigationSubtitle": "Управление складом"
+  },
+  "features": [
+    "inventory_management",
+    "stock_tracking",
+    "material_planning",
+    "warehouse_operations"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля склада",
+        "Учет инвентаря",
+        "Складские операции"
+      ]
+    }
+  ]
+}

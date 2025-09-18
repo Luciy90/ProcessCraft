@@ -1,0 +1,41 @@
+{
+  "moduleId": "analytics",
+  "moduleName": "Аналитика",
+  "version": "1.0.0",
+  "description": "Модуль аналитики и отчетности для мониторинга производственных показателей",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 8,
+  "permissions": [
+    "analytics:read",
+    "reports:generate"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "bar-chart",
+    "navigationTitle": "Аналитика",
+    "navigationSubtitle": "Отчеты и аналитика"
+  },
+  "features": [
+    "dashboard_analytics",
+    "production_reports",
+    "performance_metrics",
+    "data_visualization"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля аналитики",
+        "Базовые метрики производства",
+        "Отчеты по заказам и производству"
+      ]
+    }
+  ]
+}

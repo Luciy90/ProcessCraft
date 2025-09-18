@@ -1,0 +1,42 @@
+{
+  "moduleId": "maintenance",
+  "moduleName": "Ремонт и модернизация машин",
+  "version": "1.0.0",
+  "description": "Модуль ремонта и модернизации машин (РММ) для управления обслуживанием оборудования",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 6,
+  "permissions": [
+    "maintenance:read",
+    "maintenance:write",
+    "equipment:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "wrench",
+    "navigationTitle": "РММ",
+    "navigationSubtitle": "Ремонт и модернизация"
+  },
+  "features": [
+    "maintenance_tasks",
+    "equipment_registry",
+    "repair_scheduling",
+    "maintenance_history"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля РММ",
+        "Планирование ремонтных работ",
+        "Учет оборудования"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "moduleId": "design",
+  "moduleName": "Конструкторский отдел",
+  "version": "1.0.0",
+  "description": "Модуль конструкторского отдела для управления проектами и чертежами",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 3,
+  "permissions": [
+    "design:read",
+    "design:write",
+    "projects:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "drafting-compass",
+    "navigationTitle": "Конструкторский отдел",
+    "navigationSubtitle": "Проекты и чертежи"
+  },
+  "features": [
+    "project_management",
+    "document_storage",
+    "design_review",
+    "version_control"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля дизайна",
+        "Управление проектами",
+        "Система документооборота"
+      ]
+    }
+  ]
+}

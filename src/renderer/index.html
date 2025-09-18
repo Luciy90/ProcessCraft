@@ -266,7 +266,7 @@
   </div>
 
   <div id="modal-overlay" class="fixed inset-0 bg-black/50 hidden">
-    <div id="modal-content" class="mx-auto mt-20 max-w-xl rounded-xl border-white/10 p-4"></div>
+    <div id="modal-content" class="mx-auto mt-20 max-w-xl rounded-xl border border-white/10 bg-neutral-900/90 backdrop-blur backdrop-saturate-150 p-4"></div>
   </div>
 
   <script src="js/vendor/lucide.min.js"></script>
@@ -284,24 +284,64 @@
       }
     });
   </script>
+  
+  <!-- Конфигурация UI (должна быть перед остальными скриптами) -->
   <script src="js/ui_config.js"></script>
-
-  <script src="js/app.js"></script>
-  <script src="js/modules/dashboard.js"></script>
-  <script src="js/modules/orders.js"></script>
-  <script src="js/modules/design.js"></script>
-  <script src="js/modules/technology.js"></script>
-  <script src="js/modules/warehouse.js"></script>
-  <script src="js/modules/molds.js"></script>
-  <script src="js/modules/maintenance.js"></script>
-  <script src="js/modules/production.js"></script>
-  <script src="js/modules/analytics.js"></script>
-  <script src="js/modules/profile.js"></script>
+  
+  <!-- Утилиты (должны быть до основного приложения) -->
   <script src="js/utils/database.js"></script>
   <script src="js/utils/notifications.js"></script>
   <script src="js/utils/userStore.js"></script>
   <script src="js/utils/avatarUtils.js"></script>
   <script src="js/utils/ui.js"></script>
+  
+  <!-- Основное приложение с ES6 модулями -->
+  <script type="module" src="js/app.js"></script>
+  
+  <!-- Fallback: статические модули для совместимости (будут использоваться только если динамическая загрузка не сработает) -->
+  <script>
+    // Проверяем поддержку ES6 модулей
+    window.__fallbackScriptsLoaded = false;
+    
+    // Если через 2 секунды приложение не загрузилось, загружаем fallback
+    setTimeout(() => {
+      if (!window.app && !window.__fallbackScriptsLoaded) {
+        console.warn('Загрузка fallback скриптов (статические модули)...');
+        window.__fallbackScriptsLoaded = true;
+        
+        // Загружаем статические модули
+        const scripts = [
+          'js/modules/dashboard.js',
+          'js/modules/orders.js',
+          'js/modules/design.js',
+          'js/modules/technology.js',
+          'js/modules/warehouse.js',
+          'js/modules/molds.js',
+          'js/modules/maintenance.js',
+          'js/modules/production.js',
+          'js/modules/analytics.js',
+          'js/modules/profile.js'
+        ];
+        
+        let loadedCount = 0;
+        scripts.forEach(src => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.onload = () => {
+            loadedCount++;
+            if (loadedCount === scripts.length) {
+              console.log('Fallback скрипты загружены, создаём приложение...');
+              if (!window.app && window.ProcessCraftApp) {
+                window.app = new window.ProcessCraftApp();
+              }
+            }
+          };
+          script.onerror = () => console.error(`Ошибка загрузки fallback скрипта: ${src}`);
+          document.head.appendChild(script);
+        });
+      }
+    }, 2000);
+  </script>
 </body>
 </html>
 

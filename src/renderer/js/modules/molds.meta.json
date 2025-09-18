@@ -1,0 +1,42 @@
+{
+  "moduleId": "molds",
+  "moduleName": "Пресс-формы",
+  "version": "1.0.0",
+  "description": "Модуль управления пресс-формами и проектами форм",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 5,
+  "permissions": [
+    "molds:read",
+    "molds:write",
+    "projects:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "box",
+    "navigationTitle": "Пресс-формы",
+    "navigationSubtitle": "Управление формами"
+  },
+  "features": [
+    "mold_projects",
+    "form_management",
+    "project_tracking",
+    "material_planning"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля пресс-форм",
+        "Управление проектами форм",
+        "Отслеживание материалов"
+      ]
+    }
+  ]
+}

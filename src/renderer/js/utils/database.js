@@ -31,6 +31,7 @@ class Database {
         this.initCollection('production');
         this.initCollection('maintenance');
         this.initCollection('analytics');
+        this.initCollection('molds');
     }
 
     initCollection(collectionName) {
@@ -47,7 +48,9 @@ class Database {
     readCollection(collectionName) {
         try {
             const filePath = this.getCollectionPath(collectionName);
-            const data = fs.readFileSync(filePath, 'utf8');
+            let data = fs.readFileSync(filePath, 'utf8');
+            // Remove BOM (Byte Order Mark) if present
+            data = data.replace(/^\uFEFF/, '');
             return JSON.parse(data);
         } catch (error) {
             console.error(`Ошибка чтения коллекции ${collectionName}:`, error);
@@ -146,6 +149,37 @@ class Database {
         return newMaterial;
     }
 
+    async addMaterial(materialData) {
+        return await this.createMaterial(materialData);
+    }
+
+    async getMaterial(materialId) {
+        const materials = this.readCollection('materials');
+        return materials.find(material => material.id === materialId) || null;
+    }
+
+    async updateMaterial(materialId, updateData) {
+        const materials = this.readCollection('materials');
+        const materialIndex = materials.findIndex(material => material.id === materialId);
+        if (materialIndex !== -1) {
+            materials[materialIndex] = {
+                ...materials[materialIndex],
+                ...updateData,
+                updatedAt: new Date().toISOString()
+            };
+            this.writeCollection('materials', materials);
+            return materials[materialIndex];
+        }
+        return null;
+    }
+
+    async deleteMaterial(materialId) {
+        const materials = this.readCollection('materials');
+        const filteredMaterials = materials.filter(material => material.id !== materialId);
+        this.writeCollection('materials', filteredMaterials);
+        return true;
+    }
+
     // Методы для работы с задачами
     async getTasks(filter = {}) {
         const tasks = this.readCollection('tasks');
@@ -225,6 +259,24 @@ class Database {
         return this.filterData(warehouse, filter);
     }
 
+    async getInventory(filter = {}) {
+        const warehouse = this.readCollection('warehouse');
+        return this.filterData(warehouse, filter);
+    }
+
+    async addInventoryItem(itemData) {
+        const warehouse = this.readCollection('warehouse');
+        const newItem = {
+            id: uuidv4(),
+            ...itemData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        warehouse.push(newItem);
+        this.writeCollection('warehouse', warehouse);
+        return newItem;
+    }
+
     async updateWarehouseItem(itemId, updateData) {
         const warehouse = this.readCollection('warehouse');
         const itemIndex = warehouse.findIndex(item => item.id === itemId);
@@ -238,6 +290,13 @@ class Database {
             return warehouse[itemIndex];
         }
         return null;
+    }
+
+    async deleteInventoryItem(itemId) {
+        const warehouse = this.readCollection('warehouse');
+        const filteredWarehouse = warehouse.filter(item => item.id !== itemId);
+        this.writeCollection('warehouse', filteredWarehouse);
+        return true;
     }
 
     // Методы для работы с производством
@@ -265,6 +324,11 @@ class Database {
         return this.filterData(maintenance, filter);
     }
 
+    async getMaintenanceTasks(filter = {}) {
+        const tasks = this.readCollection('maintenance');
+        return this.filterData(tasks, filter);
+    }
+
     async createMaintenanceRecord(recordData) {
         const maintenance = this.readCollection('maintenance');
         const newRecord = {
@@ -278,7 +342,47 @@ class Database {
         return newRecord;
     }
 
-    // Методы для аналитики
+    // Методы для работы с пресс-формами
+    async getMoldProjects(filter = {}) {
+        const molds = this.readCollection('molds');
+        return this.filterData(molds, filter);
+    }
+
+    async createMoldProject(projectData) {
+        const molds = this.readCollection('molds');
+        const newProject = {
+            id: uuidv4(),
+            ...projectData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: projectData.status || 'planning'
+        };
+        molds.push(newProject);
+        this.writeCollection('molds', molds);
+        return newProject;
+    }
+
+    async updateMoldProject(projectId, updateData) {
+        const molds = this.readCollection('molds');
+        const projectIndex = molds.findIndex(project => project.id === projectId);
+        if (projectIndex !== -1) {
+            molds[projectIndex] = {
+                ...molds[projectIndex],
+                ...updateData,
+                updatedAt: new Date().toISOString()
+            };
+            this.writeCollection('molds', molds);
+            return molds[projectIndex];
+        }
+        return null;
+    }
+
+    async deleteMoldProject(projectId) {
+        const molds = this.readCollection('molds');
+        const filteredMolds = molds.filter(project => project.id !== projectId);
+        this.writeCollection('molds', filteredMolds);
+        return true;
+    }
     async getAnalyticsData(filter = {}) {
         const analytics = this.readCollection('analytics');
         return this.filterData(analytics, filter);
@@ -349,8 +453,41 @@ class Database {
             return false;
         }
     }
+
+    // Методы для аналитики
+    async getAnalyticsData(filter = {}) {
+        const analytics = this.readCollection('analytics');
+        return this.filterData(analytics, filter);
+    }
+
+    async saveAnalyticsData(data) {
+        const analytics = this.readCollection('analytics');
+        const newData = {
+            id: uuidv4(),
+            ...data,
+            createdAt: new Date().toISOString()
+        };
+        analytics.push(newData);
+        this.writeCollection('analytics', analytics);
+        return newData;
+    }
 }
 
+// CommonJS export for Node.js/Electron
 module.exports = Database;
+
+// ES6 export for browser modules
+if (typeof window !== 'undefined') {
+    window.Database = Database;
+}
+
+// Try to export as ES6 module if possible
+if (typeof module === 'undefined') {
+    // Browser environment - make it globally available
+    window.Database = Database;
+} else {
+    // Node.js environment
+    module.exports = Database;
+}
 
 

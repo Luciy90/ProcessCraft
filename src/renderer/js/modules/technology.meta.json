@@ -1,0 +1,42 @@
+{
+  "moduleId": "technology",
+  "moduleName": "Модуль технологов",
+  "version": "1.0.0",
+  "description": "Модуль для управления материалами, ТУ и параметрами оборудования",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 2,
+  "permissions": [
+    "technology:read",
+    "technology:write",
+    "materials:manage"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "cog",
+    "navigationTitle": "Технологи",
+    "navigationSubtitle": "Материалы и ТУ"
+  },
+  "features": [
+    "material_management",
+    "technical_specifications",
+    "equipment_parameters",
+    "process_documentation"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия модуля технологов",
+        "Управление материалами",
+        "Технические условия"
+      ]
+    }
+  ]
+}

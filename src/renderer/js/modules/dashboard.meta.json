@@ -1,0 +1,40 @@
+{
+  "moduleId": "dashboard",
+  "moduleName": "Панель управления",
+  "version": "1.0.0",
+  "description": "Главная панель управления с обзором ключевых показателей",
+  "dependencies": [
+    "database",
+    "ui"
+  ],
+  "author": "ProcessCraft Team",
+  "enabled": true,
+  "category": "core",
+  "priority": 0,
+  "permissions": [
+    "dashboard:read"
+  ],
+  "ui": {
+    "hasNavigation": true,
+    "navigationIcon": "home",
+    "navigationTitle": "Панель управления",
+    "navigationSubtitle": "Главная страница"
+  },
+  "features": [
+    "overview_stats",
+    "recent_orders",
+    "production_status",
+    "notifications"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": [
+        "Начальная версия панели управления",
+        "Обзор активных заказов",
+        "Статистика производства"
+      ]
+    }
+  ]
+}
