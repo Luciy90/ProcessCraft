@@ -505,12 +505,12 @@ class MaintenanceModule {
 
     showScheduleMaintenanceModal() {
         // Implementation for scheduling maintenance
-        console.log('Schedule maintenance modal');
+        console.log('Модальное окно планирования обслуживания');
     }
 
     async editTask(taskId) {
         // Implementation for editing task
-        console.log('Edit task:', taskId);
+        console.log('Редактирование задачи:', taskId);
     }
 
     async deleteTask(taskId) {

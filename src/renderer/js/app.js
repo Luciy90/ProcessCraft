@@ -339,6 +339,15 @@ class ProcessCraftApp {
         }
     }
 
+    /**
+     * Получение экземпляра модуля (безопасный доступ)
+     * @param {string} moduleName Название модуля
+     * @returns {Object|null} Экземпляр модуля или null
+     */
+    getModule(moduleName) {
+        return this.modules && this.modules[moduleName] ? this.modules[moduleName] : null;
+    }
+
     async initializeModules() {
         try {
             console.log('Запуск динамической загрузки модулей...');
@@ -359,6 +368,9 @@ class ProcessCraftApp {
                 for (const moduleInfo of loadResult.loaded) {
                     this.modules[moduleInfo.id] = moduleInfo.instance;
                 }
+                
+                // Делаем модули доступными глобально через window.app.modules
+                window.app.modules = this.modules;
                 
                 console.log('Доступные модули:', Object.keys(this.modules));
                 
@@ -414,6 +426,9 @@ class ProcessCraftApp {
             }
             
             console.log('Статическая инициализация завершена. Доступные модули:', Object.keys(this.modules));
+            
+            // Делаем модули доступными глобально через window.app.modules
+            window.app.modules = this.modules;
             
         } catch (error) {
             console.error('Ошибка статической инициализации модулей:', error);
@@ -805,7 +820,7 @@ class ProcessCraftApp {
         };
         
         // Логирование для отладки
-        console.log('UI Validation State:', validationState);
+        console.log('Состояние валидации UI:', validationState);
         
         return validationState;
     }
@@ -1516,6 +1531,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Создание экземпляра приложения
     window.app = new ProcessCraftApp();
+    
+    // Настраиваем объект modules для глобального доступа
+    if (!window.app.modules) {
+        window.app.modules = {};
+    }
+    
+    // Настраиваем глобальную функцию для безопасного доступа к модулям
+    window.getModule = function(moduleName) {
+        return window.app && window.app.modules && window.app.modules[moduleName] ? window.app.modules[moduleName] : null;
+    };
     
     // Глобальный ремонт пустых Lucide-иконок
     window.repairLucideIcons = (root) => {

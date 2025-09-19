@@ -68,7 +68,7 @@ class ProfileModule {
                 attrs: { 'stroke-width': 1.5 },
                 container: container 
               });
-              console.log('Lucide icons recreated for profile module');
+              console.log('Иконки Lucide пересозданы для модуля профиля');
             } catch (e) { 
               console.warn('Lucide render warn:', e); 
             }
@@ -155,7 +155,7 @@ class ProfileModule {
                 attrs: { 'stroke-width': 1.5 },
                 container: container 
               });
-              console.log('Final Lucide icons initialization for profile completed');
+              console.log('Финальная инициализация иконок Lucide для профиля завершена');
             } catch (e) { 
               console.warn('Final Lucide initialization warn:', e); 
             }
@@ -174,7 +174,7 @@ class ProfileModule {
    */
   updateAvatarInstantly(avatarPath, useCacheBusting = true) {
     const imageUrl = useCacheBusting ? `file://${avatarPath}?t=${Date.now()}` : `file://${avatarPath}`;
-    console.log('Updating avatar instantly with URL:', imageUrl);
+    console.log('Мгновенное обновление аватара с URL:', imageUrl);
     
     // Update profile avatar - handle both container and direct img cases
     const profileAvatarContainer = document.querySelector('.h-24.w-24, .h-28.w-28');
@@ -184,7 +184,7 @@ class ProfileModule {
       if (existingImg) {
         // Update existing image
         existingImg.src = imageUrl;
-        console.log('Updated existing profile avatar image');
+        console.log('Обновлено существующее изображение аватара профиля');
       } else {
         // Create new image element and replace container content
         const img = document.createElement('img');
@@ -192,7 +192,7 @@ class ProfileModule {
         img.onload = () => {
           profileAvatarContainer.innerHTML = '';
           profileAvatarContainer.appendChild(img);
-          console.log('Created new profile avatar image');
+          console.log('Создано новое изображение аватара профиля');
         };
         img.onerror = () => {
           console.warn('Profile avatar load failed, trying without cache-busting');
@@ -209,14 +209,14 @@ class ProfileModule {
       topBarAvatar.onload = () => {
         topBarAvatar.classList.remove('hidden');
         if (fallback) fallback.classList.add('hidden');
-        console.log('Top bar avatar loaded and displayed');
+        console.log('Аватар верхней панели загружен и отображен');
       };
       topBarAvatar.onerror = () => {
         console.warn('Top bar avatar load failed, trying without cache-busting');
         topBarAvatar.src = `file://${avatarPath}`;
       };
       topBarAvatar.src = imageUrl;
-      console.log('Top bar avatar source updated');
+      console.log('Источник аватара верхней панели обновлен');
     }
     
     // Update modal avatars if present
@@ -226,7 +226,7 @@ class ProfileModule {
     });
     
     if (modalAvatars.length > 0) {
-      console.log(`Updated ${modalAvatars.length} modal avatars`);
+      console.log(`Обновлено ${modalAvatars.length} аватаров в модальных окнах`);
     }
     
     // Make this function globally available for use by other modules
@@ -305,24 +305,24 @@ class ProfileModule {
 
   setupFileUploads(user) {
     if (!user?.username) {
-      console.log('setupFileUploads: no user or username');
+      console.log('setupFileUploads: нет пользователя или имени пользователя');
       return;
     }
 
-    console.log('setupFileUploads: setting up for user:', user.username);
+    console.log('setupFileUploads: настройка для пользователя:', user.username);
 
     // Cover image upload
     const coverInput = document.getElementById('coverInput');
-    console.log('coverInput found:', !!coverInput);
+    console.log('coverInput найден:', !!coverInput);
     if (coverInput) {
       coverInput.addEventListener('change', async (e) => {
-        console.log('coverInput change event triggered');
+        console.log('Вызвано событие изменения coverInput');
         const file = e.target.files[0];
         if (!file) {
-          console.log('no file selected');
+          console.log('файл не выбран');
           return;
         }
-        console.log('file selected:', file.name, file.type, file.size);
+        console.log('выбран файл:', file.name, file.type, file.size);
 
         try {
           const result = await this.uploadFile(file, 'cover', user.username);
@@ -344,7 +344,7 @@ class ProfileModule {
               const coverImage = document.getElementById('coverImage');
               if (coverImage) {
                 coverImage.onload = () => {
-                  console.log('Cover image updated successfully');
+                  console.log('Изображение обложки успешно обновлено');
                 };
                 coverImage.onerror = () => {
                   // Fallback: try loading without cache-busting
@@ -368,16 +368,16 @@ class ProfileModule {
 
     // Avatar upload
     const avatarInput = document.getElementById('avatarInput');
-    console.log('avatarInput found:', !!avatarInput);
+    console.log('avatarInput найден:', !!avatarInput);
     if (avatarInput) {
       avatarInput.addEventListener('change', async (e) => {
-        console.log('avatarInput change event triggered');
+        console.log('Вызвано событие изменения avatarInput');
         const file = e.target.files[0];
         if (!file) {
-          console.log('no file selected');
+          console.log('файл не выбран');
           return;
         }
-        console.log('file selected:', file.name, file.type, file.size);
+        console.log('выбран файл:', file.name, file.type, file.size);
 
         try {
           const result = await this.uploadFile(file, 'avatar', user.username);
@@ -396,12 +396,12 @@ class ProfileModule {
 
             // Use setTimeout to ensure file system has completed the write operation
             setTimeout(() => {
-              console.log('Starting avatar UI update with result:', result.file_path);
+              console.log('Начало обновления UI аватара с результатом:', result.file_path);
               
               // Use the new instant update method
               this.updateAvatarInstantly(result.file_path, true);
               
-              console.log('Avatar UI update completed');
+              console.log('Обновление UI аватара завершено');
             }, 50); // Reduced delay for faster response
 
             window.app.showMessage('Аватар обновлен', 'success');
@@ -456,4 +456,8 @@ class ProfileModule {
   }
 }
 
+// Экспорт модуля для ES6 import
+export default ProfileModule;
+
+// Глобальная доступность для совместимости
 window.ProfileModule = ProfileModule;

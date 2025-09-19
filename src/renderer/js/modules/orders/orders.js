@@ -57,7 +57,7 @@ class OrdersModule {
                 this.db = new window.Database();
             } else {
                 // Fallback: импорт Database если доступен
-                const { Database } = await import('../utils/database.js');
+                const { Database } = await import('../../utils/database.js');
                 this.db = new Database();
             }
             

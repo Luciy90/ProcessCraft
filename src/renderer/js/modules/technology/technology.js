@@ -361,7 +361,7 @@ class TechnologyModule {
 
     async editMaterial(materialId) {
         // Implementation for editing material
-        console.log('Edit material:', materialId);
+        console.log('Редактирование материала:', materialId);
     }
 
     async deleteMaterial(materialId) {
@@ -384,7 +384,7 @@ class TechnologyModule {
 
     showAddSpecModal() {
         // Implementation for adding technical specifications
-        console.log('Add specification modal');
+        console.log('Модальное окно добавления спецификации');
     }
 
     /**

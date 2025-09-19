@@ -111,6 +111,23 @@ function createMenu() {
 
 // Инициализация приложения
 app.whenReady().then(() => {
+  // При старте в Electron — обновим modules/index.json автоматически
+  try {
+    const child = require('child_process');
+    const scriptsPath = path.join(__dirname, '..', 'scripts', 'build-modules-index.js');
+    if (fs.existsSync(scriptsPath)) {
+      // Выполняем синхронно, чтобы индекс был готов до загрузки renderer
+      try {
+        child.execFileSync(process.execPath, [scriptsPath], { stdio: 'inherit' });
+        console.log('modules/index.json успешно перестроен');
+      } catch (e) {
+        console.warn('Failed to rebuild modules/index.json (continuing):', e.message);
+      }
+    }
+  } catch (e) {
+    console.warn('Rebuild modules step skipped:', e.message);
+  }
+
   createWindow();
   createMenu();
   // Создаем дефолтного администратора, если его еще нет
@@ -513,7 +530,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
       if (fs.existsSync(oldFilePath)) {
         try {
           fs.unlinkSync(oldFilePath);
-          console.log(`Removed old cover file: ${oldFile}`);
+          console.log(`Удален старый файл обложки: ${oldFile}`);
         } catch (err) {
           console.warn(`Failed to remove old cover file ${oldFile}:`, err);
         }
@@ -619,7 +636,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
       if (fs.existsSync(oldFilePath)) {
         try {
           fs.unlinkSync(oldFilePath);
-          console.log(`Removed old avatar file: ${oldFile}`);
+          console.log(`Удален старый файл аватара: ${oldFile}`);
         } catch (err) {
           console.warn(`Failed to remove old avatar file ${oldFile}:`, err);
         }

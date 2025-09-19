@@ -299,7 +299,7 @@ initializeModules() {
             analytics: new AnalyticsModule()
         };
         
-        console.log('Modules initialized:', Object.keys(this.modules));
+        console.log('Модули инициализированы:', Object.keys(this.modules));
     } catch (error) {
         console.error('Module initialization error:', error);
     }
@@ -617,7 +617,7 @@ window.app.openModal(htmlContent);
 #### Module Not Loading
 ```javascript
 // Check console for errors
-console.log('Available modules:', Object.keys(this.modules));
+console.log('Доступные модули:', Object.keys(this.modules));
 
 // Verify module registration
 if (!this.modules[moduleName]) {
@@ -650,14 +650,14 @@ Enable debug mode in development:
 ```javascript
 // app.js
 testModuleSwitching() {
-    console.log('Available modules:', Object.keys(this.modules));
+    console.log('Доступные модули:', Object.keys(this.modules));
     
     // Test each module container
     const moduleNames = ['dashboard', 'orders', 'design', /* ... */];
     moduleNames.forEach(moduleName => {
         const container = document.getElementById(`${moduleName}-module`);
         const navItem = document.querySelector(`[data-module="${moduleName}"]`);
-        console.log(`Module ${moduleName}:`, {
+        console.log(`Модуль ${moduleName}:`, {
             container: !!container,
             navItem: !!navItem,
             moduleClass: !!this.modules[moduleName]
@@ -673,7 +673,7 @@ testModuleSwitching() {
 const startTime = performance.now();
 this.modules[moduleName].init();
 const endTime = performance.now();
-console.log(`Module ${moduleName} initialized in ${endTime - startTime}ms`);
+console.log(`Модуль ${moduleName} инициализирован за ${endTime - startTime}мс`);
 ```
 
 ## 📈 Future Enhancements

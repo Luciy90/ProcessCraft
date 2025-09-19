@@ -34,6 +34,10 @@ class ProductionModule {
     }
 }
 
+// Экспорт модуля для ES6 import
+export default ProductionModule;
+
+// Глобальная доступность для совместимости
 window.ProductionModule = ProductionModule;
 
 

@@ -1,15 +1,92 @@
-// Производство форм
+// Производство форм - с поддержкой динамической загрузки
 
 class MoldsModule {
-    constructor() {
-        this.db = new Database();
+    constructor(options = {}) {
+        // Сохраняем опции от загрузчика модулей
+        this.moduleId = options.moduleId || 'molds';
+        this.meta = options.meta || {};
+        this.loader = options.loader || null;
+        
+        // Инициализация модуля
+        this.db = null;
         this.currentProject = null;
+        
+        console.log(`[${this.moduleId}] Конструктор модуля выполнен`);
     }
 
-    init() {
-        this.render();
-        this.setupEventListeners();
-        this.loadProjects();
+    /**
+     * Инициализация модуля
+     * Вызывается автоматически загрузчиком модулей или вручную
+     */
+    async init() {
+        try {
+            console.log(`[${this.moduleId}] Начало инициализации модуля`);
+            
+            // Инициализация базы данных
+            await this.initDatabase();
+            
+            // Проверяем, что база данных инициализирована
+            if (!this.db) {
+                console.error(`[${this.moduleId}] База данных не инициализирована после initDatabase`);
+                return;
+            }
+            
+            // Рендер UI модуля
+            this.render();
+            
+            // Настройка обработчиков событий
+            this.setupEventListeners();
+            
+            // Загрузка данных
+            await this.loadProjects();
+            
+            console.log(`[${this.moduleId}] Модуль успешно инициализирован`);
+            
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка инициализации:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Инициализация базы данных
+     */
+    async initDatabase() {
+        try {
+            // Проверяем наличие глобального экземпляра Database
+            if (window.Database) {
+                this.db = new window.Database();
+                console.log(`[${this.moduleId}] База данных инициализирована через window.Database`);
+            } else {
+                // Fallback: импорт Database если доступен
+                console.log(`[${this.moduleId}] Попытка импорта Database из модуля`);
+                const { Database } = await import('../../utils/database.js');
+                this.db = new Database();
+                console.log(`[${this.moduleId}] База данных инициализирована через import`);
+            }
+            
+            // Проверяем, что все необходимые методы доступны
+            const requiredMethods = ['getMoldProjects', 'getMoldProject', 'addMoldProject', 'deleteMoldProject'];
+            for (const method of requiredMethods) {
+                if (typeof this.db[method] !== 'function') {
+                    console.error(`[${this.moduleId}] Метод ${method} не найден в базе данных`);
+                } else {
+                    console.log(`[${this.moduleId}] Метод ${method} доступен`);
+                }
+            }
+            
+            console.log(`[${this.moduleId}] База данных инициализирована`);
+            
+        } catch (error) {
+            console.warn(`[${this.moduleId}] Ошибка инициализации БД:`, error);
+            // Создаем заглушку для работы без БД
+            this.db = {
+                getMoldProjects: () => Promise.resolve([]),
+                getMoldProject: () => Promise.resolve({}),
+                addMoldProject: () => Promise.resolve({ success: true }),
+                deleteMoldProject: () => Promise.resolve({ success: true })
+            };
+        }
     }
 
     render() {
@@ -148,6 +225,18 @@ class MoldsModule {
 
     async loadProjects() {
         try {
+            // Добавляем проверку на наличие базы данных
+            if (!this.db) {
+                console.error('База данных не инициализирована в loadProjects');
+                return;
+            }
+            
+            // Проверяем наличие метода getMoldProjects
+            if (typeof this.db.getMoldProjects !== 'function') {
+                console.error('Метод getMoldProjects не найден в базе данных', this.db);
+                return;
+            }
+            
             const projects = await this.db.getMoldProjects();
             this.renderProjectsList(projects);
             this.updateStatistics(projects);
@@ -237,6 +326,18 @@ class MoldsModule {
 
     async selectProject(projectId) {
         try {
+            // Добавляем проверку на наличие базы данных
+            if (!this.db) {
+                console.error('База данных не инициализирована в selectProject');
+                return;
+            }
+            
+            // Проверяем наличие метода getMoldProject
+            if (typeof this.db.getMoldProject !== 'function') {
+                console.error('Метод getMoldProject не найден в базе данных', this.db);
+                return;
+            }
+            
             const project = await this.db.getMoldProject(projectId);
             this.currentProject = project;
             this.renderProjectDetails(project);
@@ -384,6 +485,26 @@ class MoldsModule {
     }
 
     showNewProjectModal() {
+        console.log(`[${this.moduleId}] Открытие модального окна создания проекта`);
+        
+        // Проверяем доступность window.app
+        if (!window.app) {
+            console.error(`[${this.moduleId}] window.app не доступен`);
+            return;
+        }
+        
+        // Проверяем доступность window.app.modules
+        if (!window.app.modules) {
+            console.error(`[${this.moduleId}] window.app.modules не доступен`);
+            return;
+        }
+        
+        // Проверяем доступность текущего модуля
+        if (!window.app.modules.molds) {
+            console.error(`[${this.moduleId}] window.app.modules.molds не доступен`);
+            return;
+        }
+        
         const modalContent = `
             <div class="space-y-4">
                 <h3 class="text-lg font-semibold text-white">Новый проект формы</h3>
@@ -455,6 +576,20 @@ class MoldsModule {
         };
 
         try {
+            // Добавляем проверку на наличие базы данных
+            if (!this.db) {
+                console.error('База данных не инициализирована');
+                window.app.showMessage('Ошибка: База данных не доступна', 'error');
+                return;
+            }
+            
+            // Проверяем наличие метода addMoldProject
+            if (typeof this.db.addMoldProject !== 'function') {
+                console.error('Метод addMoldProject не найден в базе данных', this.db);
+                window.app.showMessage('Ошибка: Метод сохранения не доступен', 'error');
+                return;
+            }
+            
             await this.db.addMoldProject(projectData);
             window.app.closeModal();
             this.loadProjects();
@@ -467,17 +602,31 @@ class MoldsModule {
 
     showRequestMaterialsModal() {
         // Implementation for requesting materials from warehouse
-        console.log('Request materials modal');
+        console.log('Модальное окно запроса материалов');
     }
 
     async editProject(projectId) {
         // Implementation for editing project
-        console.log('Edit project:', projectId);
+        console.log('Редактирование проекта:', projectId);
     }
 
     async deleteProject(projectId) {
         if (confirm('Вы уверены, что хотите удалить этот проект?')) {
             try {
+                // Добавляем проверку на наличие базы данных
+                if (!this.db) {
+                    console.error('База данных не инициализирована');
+                    window.app.showMessage('Ошибка: База данных не доступна', 'error');
+                    return;
+                }
+                
+                // Проверяем наличие метода deleteMoldProject
+                if (typeof this.db.deleteMoldProject !== 'function') {
+                    console.error('Метод deleteMoldProject не найден в базе данных', this.db);
+                    window.app.showMessage('Ошибка: Метод удаления не доступен', 'error');
+                    return;
+                }
+                
                 await this.db.deleteMoldProject(projectId);
                 this.loadProjects();
                 document.getElementById('project-details').innerHTML = `
@@ -492,6 +641,48 @@ class MoldsModule {
             }
         }
     }
+
+    /**
+     * Уничтожение модуля (для hot-reload)
+     * Вызывается при перезагрузке модуля
+     */
+    async destroy() {
+        try {
+            console.log(`[${this.moduleId}] Уничтожение модуля`);
+            
+            // Очистка обработчиков событий
+            // (в реальном приложении нужно сохранять ссылки на обработчики для их удаления)
+            
+            // Освобождение ресурсов
+            this.db = null;
+            this.currentProject = null;
+            
+            console.log(`[${this.moduleId}] Модуль уничтожен`);
+            
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка при уничтожении модуля:`, error);
+        }
+    }
+
+    /**
+     * Статические метаданные модуля (альтернатива .meta.json)
+     * Используется загрузчиком если нет .meta.json файла
+     */
+    static get meta() {
+        return {
+            moduleId: 'molds',
+            moduleName: 'Производство форм',
+            version: '1.0.0',
+            description: 'Модуль для управления проектами производства форм',
+            dependencies: ['database'],
+            author: 'ProcessCraft Team',
+            enabled: true
+        };
+    }
 }
 
+// Экспорт модуля для ES6 import
+export default MoldsModule;
+
+// Глобальная доступность для совместимости
 window.MoldsModule = MoldsModule;

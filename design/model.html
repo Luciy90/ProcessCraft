@@ -7,53 +7,175 @@
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     :root { color-scheme: dark; }
+
+    /* Custom toggle */
+    .switch {
+      --switch-width: 46px;
+      --switch-height: 24px;
+      --switch-bg: rgb(131, 131, 131);
+      --switch-checked-bg: rgb(16, 185, 129);
+      --switch-offset: calc((var(--switch-height) - var(--circle-diameter)) / 2);
+      --switch-transition: all .2s cubic-bezier(0.27, 0.2, 0.25, 1.51);
+      --circle-diameter: 18px;
+      --circle-bg: #fff;
+      --circle-shadow: 1px 1px 2px rgba(146, 146, 146, 0.45);
+      --circle-checked-shadow: -1px 1px 2px rgba(163, 163, 163, 0.45);
+      --circle-transition: var(--switch-transition);
+      --icon-transition: all .2s cubic-bezier(0.27, 0.2, 0.25, 1.51);
+      --icon-cross-color: var(--switch-bg);
+      --icon-cross-size: 6px;
+      --icon-checkmark-color: var(--switch-checked-bg);
+      --icon-checkmark-size: 10px;
+      --effect-width: calc(var(--circle-diameter) / 2);
+      --effect-height: calc(var(--effect-width) / 2 - 1px);
+      --effect-bg: var(--circle-bg);
+      --effect-border-radius: 1px;
+      --effect-transition: all .2s ease-in-out;
+      display: inline-block;
+    }
+    .switch input { display: none; }
+    .switch svg {
+      transition: var(--icon-transition);
+      position: absolute;
+      height: auto;
+    }
+    .switch .checkmark {
+      width: var(--icon-checkmark-size);
+      color: var(--icon-checkmark-color);
+      transform: scale(0);
+    }
+    .switch .cross {
+      width: var(--icon-cross-size);
+      color: var(--icon-cross-color);
+    }
+    .slider {
+      box-sizing: border-box;
+      width: var(--switch-width);
+      height: var(--switch-height);
+      background: var(--switch-bg);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      transition: var(--switch-transition);
+      cursor: pointer;
+    }
+    .circle {
+      width: var(--circle-diameter);
+      height: var(--circle-diameter);
+      background: var(--circle-bg);
+      border-radius: inherit;
+      box-shadow: var(--circle-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--circle-transition);
+      z-index: 1;
+      position: absolute;
+      left: var(--switch-offset);
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: var(--effect-width);
+      height: var(--effect-height);
+      left: calc(var(--switch-offset) + (var(--effect-width) / 2));
+      background: var(--effect-bg);
+      border-radius: var(--effect-border-radius);
+      transition: var(--effect-transition);
+    }
+    .switch input:checked + .slider { background: var(--switch-checked-bg); }
+    .switch input:checked + .slider .checkmark { transform: scale(1); }
+    .switch input:checked + .slider .cross { transform: scale(0); }
+    .switch input:checked + .slider::before {
+      left: calc(100% - var(--effect-width) - (var(--effect-width) / 2) - var(--switch-offset));
+    }
+    .switch input:checked + .slider .circle {
+      left: calc(100% - var(--circle-diameter) - var(--switch-offset));
+      box-shadow: var(--circle-checked-shadow);
+    }
+
+    .switch input.toggle-lock:not(:checked) + .slider { --switch-bg: rgb(251, 146, 60); background: var(--switch-bg); }
+    .switch input.toggle-enable:not(:checked) + .slider { --switch-bg: rgb(239, 68, 68); background: var(--switch-bg); }
+
+    /* Stylish scrollbars for lists */
+    .users-list-scroll,
+    .modules-list-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148,163,184,0.35) transparent;
+    }
+    .users-list-scroll::-webkit-scrollbar,
+    .modules-list-scroll::-webkit-scrollbar { width: 10px; }
+    .users-list-scroll::-webkit-scrollbar-track,
+    .modules-list-scroll::-webkit-scrollbar-track { background: transparent; }
+    .users-list-scroll::-webkit-scrollbar-thumb,
+    .modules-list-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(255,255,255,0.12);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      border-radius: 999px;
+    }
+    .users-list-scroll::-webkit-scrollbar-thumb:hover,
+    .modules-list-scroll::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.18); }
+    .users-list-scroll::-webkit-scrollbar-corner,
+    .modules-list-scroll::-webkit-scrollbar-corner { background: transparent; }
   </style>
 </head>
 
-<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight" style="font-family: Inter, ui-sans-serif, system-ui">
-  <!-- entry button (пример интеграции в сайдбар) -->
-  <button id="sidebar-settings" class="fixed bottom-6 right-6 h-11 px-4 rounded-lg border border-white/10 bg-white/[0.06] hover:bg-white/10 transition-colors flex items-center gap-2 z-40">
+<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight antialiased selection:bg-emerald-500/30" style="font-family: Inter, ui-sans-serif, system-ui">
+  <!-- entry button -->
+  <button id="sidebar-settings" class="fixed bottom-6 right-6 h-11 px-4 rounded-lg border border-white/10 bg-white/[0.06] hover:bg-white/10 active:bg-white/20 transition-colors flex items-center gap-2 z-40">
     <svg data-lucide="settings" class="h-5 w-5"></svg>
     Параметры
   </button>
 
   <!-- root modal overlay -->
-  <div id="settingsModal" class="settings-modal fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div id="settingsModal" class="settings-modal fixed inset-0 z-50 hidden flex items-center justify-center p-6" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
     <!-- modal-content -->
-    <div class="modal-content relative mx-auto my-auto w-[min(95vw,1100px)] max-w-[1100px] flex flex-col gap-6 rounded-xl border border-white/10 bg-neutral-900 shadow-xl p-6">
+    <div class="modal-content relative mx-auto my-auto w-[min(95vw,1100px)] max-w-[1100px] h-[80vh] overflow-hidden flex flex-col gap-6 rounded-xl border border-white/10 bg-neutral-900 shadow-xl p-6">
       <header class="flex items-center justify-between">
         <h2 id="settings-title" class="text-xl font-semibold tracking-tight">Настройки доступа</h2>
-        <button id="closeModal" class="h-9 w-9 grid place-items-center rounded-lg hover:bg-white/10 transition-colors">
-          <svg data-lucide="x" class="h-5 w-5"></svg>
-        </button>
       </header>
 
       <!-- columns -->
-      <div class="columns grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="columns grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
         <!-- users column -->
-        <section class="col users flex flex-col">
+        <section class="col users flex flex-col min-h-0">
           <h3 class="text-lg font-medium tracking-tight mb-3 flex items-center gap-2">
             <svg data-lucide="users" class="h-5 w-5"></svg>
             Пользователи
           </h3>
-          <div class="users-list-scroll flex-1 rounded-lg border border-white/10 bg-white/5 overflow-y-auto max-h-[50vh] divide-y divide-white/10">
+          <div class="users-list-scroll flex-1 min-h-0 rounded-lg border border-white/10 bg-white/5 overflow-y-auto divide-y divide-white/10">
             <!-- заполнится скриптом -->
           </div>
         </section>
 
         <!-- modules column -->
-        <section class="col modules flex flex-col">
-          <h3 class="text-lg font-medium tracking-tight mb-3 flex items-center gap-2">
-            <svg data-lucide="boxes" class="h-5 w-5"></svg>
-            Модули
-          </h3>
-          <div class="modules-list-scroll flex-1 rounded-lg border border-white/10 bg-white/5 overflow-y-auto max-h-[50vh] divide-y divide-white/10">
+        <section class="col modules flex flex-col min-h-0">
+          <!-- Заголовок + маркеры столбцов (выровнены по гриду как в строках) -->
+          <div class="mb-3 grid items-center px-4" style="grid-template-columns: minmax(0,1fr) auto auto auto; column-gap: 1.5rem;">
+            <h3 class="text-lg font-medium tracking-tight flex items-center gap-2">
+              <svg data-lucide="boxes" class="h-5 w-5"></svg>
+              Модули
+            </h3>
+            <div class="hidden md:flex justify-center text-xs text-white/60">
+              <svg data-lucide="eye" class="h-4 w-4"></svg>
+            </div>
+            <div class="hidden md:flex justify-center text-xs text-white/60">
+              <svg data-lucide="lock" class="h-4 w-4"></svg>
+            </div>
+            <div class="hidden md:flex justify-center text-xs text-white/60">
+              <svg data-lucide="x" class="h-4 w-4"></svg>
+            </div>
+          </div>
+
+          <div class="modules-list-scroll flex-1 min-h-0 rounded-lg border border-white/10 bg-white/5 overflow-y-auto divide-y divide-white/10">
             <!-- заполнится скриптом -->
           </div>
         </section>
@@ -61,8 +183,8 @@
 
       <!-- footer -->
       <footer class="flex justify-end gap-3 pt-2 border-t border-white/10">
-        <button id="cancel" class="button-cancel h-9 px-4 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">Отмена</button>
-        <button id="apply" class="button-apply h-9 px-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-200 transition-colors">Применить</button>
+        <button id="cancel" class="button-cancel h-9 px-4 rounded-lg border border-white/10 hover:bg-white/10 active:bg-white/20 transition-colors">Отмена</button>
+        <button id="apply" class="button-apply h-9 px-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/25 text-emerald-200 transition-colors">Применить</button>
       </footer>
     </div>
   </div>
@@ -72,23 +194,27 @@
   <script>
     const overlay       = document.getElementById('settingsModal');
     const openBtn       = document.getElementById('sidebar-settings');
-    const closeBtn      = document.getElementById('closeModal');
+    const closeBtn      = document.getElementById('closeModal'); // может отсутствовать
     const cancelBtn     = document.getElementById('cancel');
-    const usersScroll   = overlay.querySelector('.users-list-scroll');
-    const modulesScroll = overlay.querySelector('.modules-list-scroll');
+    const usersScroll   = () => overlay.querySelector('.users-list-scroll');
+    const modulesScroll = () => overlay.querySelector('.modules-list-scroll');
 
     const fakeFetch = () => new Promise(res => setTimeout(() => res({
       users: [
-        'Алексей Смирнов',
-        'Елена Иванова',
-        'Дмитрий Кузнецов',
-        'Мария Петрова'
+        { name: 'Алексей Смирнов',   role: 'Продуктовый дизайнер' },
+        { name: 'Елена Иванова',     role: 'Менеджер проектов' },
+        { name: 'Дмитрий Кузнецов',  role: 'Разработчик фронтенда' },
+        { name: 'Мария Петрова',     role: 'Аналитик данных' },
+        { name: 'Иван Соколов',      role: 'Бэкенд‑разработчик' },
+        { name: 'Ольга Фёдорова',    role: 'HR‑специалист' }
       ],
       modules: [
         'Аналитика',
         'Отчёты',
         'Уведомления',
-        'Администрирование'
+        'Администрирование',
+        'Интеграции',
+        'Каталог'
       ]
     }), 200));
 
@@ -103,74 +229,148 @@
       document.body.classList.remove('overflow-hidden');
     };
 
-    const buildToggle = (extraClasses = '', inputClasses = '') => `
-      <label class="inline-flex items-center cursor-pointer ${extraClasses}">
-        <input type="checkbox" class="sr-only peer ${inputClasses}">
-        <div class="w-10 h-5 bg-white/20 rounded-full peer-focus:ring-2 peer-focus:ring-emerald-400/40 peer-checked:bg-emerald-500 relative transition-colors">
-          <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></span>
+    const initials = (name) => {
+      const parts = name.trim().split(' ');
+      const first = parts[0]?.[0] || '';
+      const last  = parts[1]?.[0] || '';
+      return (first + last).toUpperCase();
+    };
+
+    // Build custom switch
+    const buildToggle = ({ checked = false, inputClasses = '' } = {}) => `
+      <label class="switch">
+        <input type="checkbox" class="${inputClasses}" ${checked ? 'checked' : ''}>
+        <div class="slider">
+          <div class="circle">
+            <svg class="cross" xml:space="preserve" style="enable-background:new 0 0 512 512" viewBox="0 0 365.696 365.696" height="6" width="6" version="1.1" xmlns="http://www.w3.org/2000/svg">
+              <g>
+                <path fill="currentColor" d="M243.188 182.86 356.32 69.726c12.5-12.5 12.5-32.766 0-45.247L341.238 9.398c-12.504-12.503-32.77-12.503-45.25 0L182.86 122.528 69.727 9.374c-12.5-12.5-32.766-12.5-45.247 0L9.375 24.457c-12.5 12.504-12.5 32.77 0 45.25l113.152 113.152L9.398 295.99c-12.503 12.503-12.503 32.769 0 45.25L24.48 356.32c12.5 12.5 32.766 12.5 45.247 0l113.132-113.132L295.99 356.32c12.503 12.5 32.769 12.5 45.25 0l15.081-15.082c12.5-12.504 12.5-32.77 0-45.25zm0 0"></path>
+              </g>
+            </svg>
+            <svg class="checkmark" xml:space="preserve" style="enable-background:new 0 0 512 512" viewBox="0 0 24 24" height="10" width="10" version="1.1" xmlns="http://www.w3.org/2000/svg">
+              <g><path fill="currentColor" d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z"></path></g>
+            </svg>
+          </div>
         </div>
       </label>
     `;
 
+    // Модуль: один ряд (имя + 3 тумблера) в гриде для выравнивания под маркеры
+    const moduleToggleGroup = (m, locked = false) => {
+      return `
+        <div class="module-row p-4 hover:bg-white/5 transition-colors"
+             style="display:grid; grid-template-columns: minmax(0,1fr) auto auto auto; column-gap: 1.5rem; align-items:center;">
+          <div class="flex items-center gap-3 min-w-0">
+            <svg data-lucide="grip-vertical" class="h-4 w-4 text-white/40 shrink-0 cursor-grab active:cursor-grabbing" aria-label="Перетащить" role="img"></svg>
+            <svg data-lucide="${locked ? 'lock' : 'unlock'}" class="h-4 w-4 ${locked ? 'text-orange-400' : 'text-white/60'} lock-indicator shrink-0"></svg>
+            <span class="text-sm truncate">${m}</span>
+          </div>
+          <div class="flex justify-center">
+            ${buildToggle({ checked: true,  inputClasses: 'toggle-visible' })}
+          </div>
+          <div class="flex justify-center">
+            ${buildToggle({ checked: locked, inputClasses: 'toggle-lock' })}
+          </div>
+          <div class="flex justify-center">
+            ${buildToggle({ checked: true,  inputClasses: 'toggle-enable' })}
+          </div>
+        </div>
+      `;
+    };
+
     const loadData = async () => {
       const { users, modules } = await fakeFetch();
 
-      /* users */
-      usersScroll.innerHTML = users.map(u => `
-        <div class="p-4 hover:bg-white/5 transition-colors">${u}</div>
+      // users
+      usersScroll().innerHTML = users.map(u => `
+        <button class="user-row group w-full text-left p-3 flex items-center gap-3 transition-all duration-300 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 active:scale-[0.99]">
+          <div class="relative shrink-0">
+            <div class="h-8 w-8 rounded-full bg-gradient-to-b from-white/20 to-white/5 grid place-items-center text-[11px] text-white/90 border border-white/10">
+              ${initials(u.name)}
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm text-white/90 truncate">
+              ${u.name}
+              <span class="text-xs text-white/50 font-normal pl-2">· ${u.role}</span>
+            </div>
+          </div>
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg data-lucide="chevron-right" class="h-4 w-4 text-white/40"></svg>
+          </div>
+        </button>
       `).join('');
 
-      /* modules */
-      modulesScroll.innerHTML = modules.map(m => `
-        <div class="module-row p-4 flex items-center justify-between gap-4 hover:bg-white/5 transition-colors">
-          <div class="flex items-center gap-3 min-w-0">
-            <svg data-lucide="unlock" class="h-4 w-4 text-white/60 lock-indicator shrink-0"></svg>
-            <span class="text-sm truncate">${m}</span>
-          </div>
-          <div class="flex items-center gap-3 shrink-0">
-            ${buildToggle('', 'toggle-visible')}
-            ${buildToggle('', 'toggle-lock')}
-            ${buildToggle('', 'toggle-enable')}
-          </div>
-        </div>
-      `).join('');
+      // modules: заблокируем несколько (оранжевый замок)
+      const lockedSet = new Set([1, 3]); // индексы заблокированных по умолчанию
+      modulesScroll().innerHTML = modules.map((m, i) => moduleToggleGroup(m, lockedSet.has(i))).join('');
 
       lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
 
-      /* lock icon reaction */
-      modulesScroll.querySelectorAll('.module-row').forEach(row => {
-        const lockToggle = row.querySelector('.toggle-lock');
+      // User select behavior
+      const userRows = usersScroll().querySelectorAll('.user-row');
+      let currentSelected = null;
+
+      userRows.forEach(row => {
+        row.addEventListener('click', () => {
+          if (currentSelected) {
+            currentSelected.classList.remove(
+              'bg-emerald-500/10',
+              'ring-1',
+              'ring-emerald-400/30',
+              'border-emerald-400/40',
+              'shadow-[0_0_0_3px_rgba(16,185,129,0.15)_inset]'
+            );
+          }
+          row.classList.add(
+            'bg-emerald-500/10',
+            'ring-1',
+            'ring-emerald-400/30',
+            'border-emerald-400/40',
+            'shadow-[0_0_0_3px_rgba(16,185,129,0.15)_inset]'
+          );
+          row.animate(
+            [{ transform: 'scale(1)' }, { transform: 'scale(1.01)' }, { transform: 'scale(1)' }],
+            { duration: 160, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+          );
+          currentSelected = row;
+          userRows.forEach(r => r.setAttribute('aria-selected', r === row ? 'true' : 'false'));
+        });
+      });
+
+      // Lock icon reaction (orange on lock)
+      modulesScroll().querySelectorAll('.module-row').forEach(row => {
+        const lockToggle = row.querySelector('input.toggle-lock');
         const lockIcon   = row.querySelector('.lock-indicator');
 
-        lockToggle.addEventListener('change', () => {
+        const applyLockState = () => {
           if (lockToggle.checked) {
             lockIcon.setAttribute('data-lucide', 'lock');
             lockIcon.classList.remove('text-white/60');
-            lockIcon.classList.add('text-emerald-400');
+            lockIcon.classList.add('text-orange-400');
           } else {
             lockIcon.setAttribute('data-lucide', 'unlock');
-            lockIcon.classList.remove('text-emerald-400');
+            lockIcon.classList.remove('text-orange-400');
             lockIcon.classList.add('text-white/60');
           }
           lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
-        });
+        };
+
+        // init and listen
+        applyLockState();
+        lockToggle.addEventListener('change', applyLockState);
       });
     };
 
-    /* listeners */
+    // listeners
     openBtn .addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
+    closeBtn?.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
 
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) closeModal();
-    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal(); });
 
-    window.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
-    });
-
-    /* initial icon render */
+    // initial icon render
     document.addEventListener('DOMContentLoaded', () => lucide.createIcons({ attrs: { 'stroke-width': 1.5 } }));
   </script>
 </body>

@@ -1,15 +1,59 @@
 // Складской модуль
 
 class WarehouseModule {
-    constructor() {
-        this.db = new Database();
+    constructor(options = {}) {
+        this.moduleId = options.moduleId || 'warehouse';
+        this.meta = options.meta || {};
+        this.loader = options.loader || null;
+        
+        this.db = null;
         this.currentItem = null;
+        this._initialized = false;
+        
+        console.log(`[${this.moduleId}] Конструктор модуля выполнен`);
     }
 
-    init() {
-        this.render();
-        this.setupEventListeners();
-        this.loadInventory();
+    async init() {
+        if (this._initialized) return;
+        
+        try {
+            console.log(`[${this.moduleId}] Начало инициализации модуля`);
+            
+            await this.initDatabase();
+            this.render();
+            this.setupEventListeners();
+            await this.loadInventory();
+            
+            this._initialized = true;
+            console.log(`[${this.moduleId}] Модуль успешно инициализирован`);
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка инициализации:`, error);
+            throw error;
+        }
+    }
+
+    async initDatabase() {
+        try {
+            // Проверяем наличие глобального экземпляра Database
+            if (window.Database) {
+                this.db = new window.Database();
+            } else {
+                // Fallback: импорт Database если доступен
+                const { Database } = await import('../../utils/database.js');
+                this.db = new Database();
+            }
+            
+            console.log(`[${this.moduleId}] База данных инициализирована`);
+            
+        } catch (error) {
+            console.warn(`[${this.moduleId}] Ошибка инициализации БД:`, error);
+            // Создаем заглушку для работы без БД
+            this.db = {
+                getInventory: () => Promise.resolve([]),
+                addInventoryItem: () => Promise.resolve({ success: true }),
+                deleteInventoryItem: () => Promise.resolve({ success: true })
+            };
+        }
     }
 
     render() {
@@ -410,12 +454,12 @@ class WarehouseModule {
 
     showCreateInvoiceModal() {
         // Implementation for creating warehouse invoices
-        console.log('Create invoice modal');
+        console.log('Модальное окно создания накладной');
     }
 
     async adjustStock(itemId) {
         // Implementation for stock adjustment
-        console.log('Adjust stock for item:', itemId);
+        console.log('Корректировка запаса для позиции:', itemId);
     }
 
     async deleteItem(itemId) {
@@ -435,6 +479,45 @@ class WarehouseModule {
             }
         }
     }
+
+    async destroy() {
+        try {
+            console.log(`[${this.moduleId}] Уничтожение модуля`);
+            
+            // Очистка обработчиков событий
+            // (в реальном приложении нужно сохранять ссылки на обработчики для их удаления)
+            
+            // Освобождение ресурсов
+            this.db = null;
+            this.currentItem = null;
+            this._initialized = false;
+            
+            console.log(`[${this.moduleId}] Модуль уничтожен`);
+            
+        } catch (error) {
+            console.error(`[${this.moduleId}] Ошибка при уничтожении модуля:`, error);
+        }
+    }
+
+    /**
+     * Статические метаданные модуля (альтернатива .meta.json)
+     * Используется загрузчиком если нет .meta.json файла
+     */
+    static get meta() {
+        return {
+            moduleId: 'warehouse',
+            moduleName: 'Складской модуль',
+            version: '1.0.0',
+            description: 'Модуль для управления складом и инвентаризацией',
+            dependencies: ['database'],
+            author: 'ProcessCraft Team',
+            enabled: true
+        };
+    }
 }
 
+// Экспорт модуля для ES6 import
+export default WarehouseModule;
+
+// Глобальная доступность для совместимости с существующим кодом
 window.WarehouseModule = WarehouseModule;

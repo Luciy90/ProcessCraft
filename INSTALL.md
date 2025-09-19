@@ -60,9 +60,12 @@ ProcessCraft/
 │       │   └── modules.css     # Стили модулей
 │       └── js/                 # JavaScript файлы
 │           ├── app.js          # Основное приложение
+│           ├── module-loader.js # Динамическая загрузка модулей
 │           ├── modules/        # Модули системы
 │           └── utils/          # Утилиты
 ├── assets/                     # Ресурсы
+├── scripts/                    # Скрипты сборки
+│   └── build-module-index.js   # Автоматическая пересборка index.json
 ├── package.json               # Конфигурация проекта
 └── README.md                  # Документация
 ```
@@ -126,6 +129,3 @@ sudo npm install
 ## Лицензия
 
 MIT License
-
-
-

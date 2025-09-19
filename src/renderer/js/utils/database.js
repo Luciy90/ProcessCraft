@@ -200,6 +200,52 @@ class Database {
         return newTask;
     }
 
+    // Методы для работы с проектами форм (molds)
+    async getMoldProjects(filter = {}) {
+        const projects = this.readCollection('molds');
+        return this.filterData(projects, filter);
+    }
+
+    async getMoldProject(projectId) {
+        const projects = this.readCollection('molds');
+        return projects.find(project => project.id === projectId) || null;
+    }
+
+    async addMoldProject(projectData) {
+        const projects = this.readCollection('molds');
+        const newProject = {
+            id: uuidv4(),
+            ...projectData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        projects.push(newProject);
+        this.writeCollection('molds', projects);
+        return newProject;
+    }
+
+    async updateMoldProject(projectId, updateData) {
+        const projects = this.readCollection('molds');
+        const projectIndex = projects.findIndex(project => project.id === projectId);
+        if (projectIndex !== -1) {
+            projects[projectIndex] = {
+                ...projects[projectIndex],
+                ...updateData,
+                updatedAt: new Date().toISOString()
+            };
+            this.writeCollection('molds', projects);
+            return projects[projectIndex];
+        }
+        return null;
+    }
+
+    async deleteMoldProject(projectId) {
+        const projects = this.readCollection('molds');
+        const filteredProjects = projects.filter(project => project.id !== projectId);
+        this.writeCollection('molds', filteredProjects);
+        return true;
+    }
+
     // Методы для работы с уведомлениями
     async getNotifications(filter = {}) {
         const notifications = this.readCollection('notifications');

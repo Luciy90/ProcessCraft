@@ -64,7 +64,15 @@ class ModuleLoader {
             // Отправка события о завершении загрузки
             this.dispatchLoadEvent(loadResults);
             
-            this.log('Загрузка модулей завершена успешно');
+            // Final summary with success or warning message
+            const successfulModules = loadResults.success.length;
+            const failedModules = loadResults.failed.length;
+            
+            if (failedModules > 0) {
+                this.warn(`⚠ Загрузка модулей завершена с ошибками: ${successfulModules} успешно, ${failedModules} с ошибками`);
+            } else {
+                this.log(`✓ Загрузка модулей успешно завершена: ${successfulModules} модулей подключено`);
+            }
             
             return {
                 success: true,
@@ -117,20 +125,45 @@ class ModuleLoader {
             const modulesPath = path.join(process.cwd(), 'src/renderer', this.options.path);
             this.log('Сканирование Electron директории:', modulesPath);
             
-            const files = fs.readdirSync(modulesPath);
-            const moduleFiles = files
-                .filter(file => file.endsWith('.js') && !file.includes('..'))
-                .map(file => ({
-                    name: file,
-                    path: `${this.options.path}/${file}`,
-                    fullPath: path.join(modulesPath, file)
-                }));
+            const items = fs.readdirSync(modulesPath);
+            const moduleFiles = [];
+            
+            // Проходим по всем элементам в директории
+            for (const item of items) {
+                const itemPath = path.join(modulesPath, item);
+                const stat = fs.statSync(itemPath);
                 
-            this.log('Найдено файлов через fs:', moduleFiles.length);
+                if (stat.isDirectory()) {
+                    // Папка модуля - ищем JS файл с таким же именем
+                    const jsFile = `${item}.js`;
+                    const jsFilePath = path.join(itemPath, jsFile);
+                    
+                    if (fs.existsSync(jsFilePath)) {
+                        moduleFiles.push({
+                            name: jsFile,
+                            path: `${this.options.path}/${item}/${jsFile}`,
+                            fullPath: jsFilePath,
+                            moduleFolder: item
+                        });
+                    }
+                } else if (item.endsWith('.js') && !item.includes('..')) {
+                    // Обратная совместимость - обычные JS файлы в корне
+                    moduleFiles.push({
+                        name: item,
+                        path: `${this.options.path}/${item}`,
+                        fullPath: itemPath,
+                        moduleFolder: null
+                    });
+                }
+            }
+                
+            // Log successful scanning with checkmark
+            this.log(`✓ Найдено файлов через fs: ${moduleFiles.length}`);
             return moduleFiles;
             
         } catch (error) {
-            this.warn('Ошибка сканирования Electron директории:', error);
+            // Log scanning error with warning
+            this.warn(`⚠ Ошибка сканирования Electron директории:`, error);
             // Fallback на браузерный режим
             return await this.scanBrowserDirectory();
         }
@@ -157,11 +190,13 @@ class ModuleLoader {
                     fullPath: file
                 }));
                 
-            this.log('Найдено файлов через IPC:', moduleFiles.length);
+            // Log successful IPC scanning with checkmark
+            this.log(`✓ Найдено файлов через IPC: ${moduleFiles.length}`);
             return moduleFiles;
             
         } catch (error) {
-            this.warn('Ошибка IPC сканирования:', error);
+            // Log IPC scanning error with warning
+            this.warn(`⚠ Ошибка IPC сканирования:`, error);
             throw error;
         }
     }
@@ -185,30 +220,50 @@ class ModuleLoader {
             const index = await response.json();
             const moduleFiles = (index.modules || [])
                 .filter(file => file.endsWith('.js') && !file.includes('..'))
-                .map(file => ({
-                    name: file,
-                    path: `${this.options.path}/${file}`,
-                    fullPath: file
-                }));
+                .map(file => {
+                    // Определяем структуру - папка/файл или просто файл
+                    const parts = file.split('/');
+                    const moduleFolder = parts.length > 1 ? parts[0] : null;
+                    const fileName = parts[parts.length - 1];
+                    
+                    return {
+                        name: fileName,
+                        path: `${this.options.path}/${file}`,
+                        fullPath: file,
+                        moduleFolder: moduleFolder
+                    };
+                });
                 
-            this.log('Найдено файлов через index.json:', moduleFiles.length);
+            // Log successful index.json loading with checkmark
+            this.log(`✓ Успешно загружен index.json: найдено ${moduleFiles.length} модулей`);
             return moduleFiles;
             
         } catch (error) {
-            this.warn('Ошибка загрузки index.json:', error);
+            // Log index.json loading error with warning
+            this.warn(`⚠ Ошибка загрузки index.json:`, error);
             
-            // Последний fallback - известные модули
+            // Последний fallback - известные модули в новой структуре
             this.log('Fallback на предопределенный список модулей');
             const knownModules = [
-                'dashboard.js', 'orders.js', 'design.js', 'technology.js',
-                'warehouse.js', 'molds.js', 'maintenance.js', 'production.js', 'analytics.js'
+                'dashboard/dashboard.js', 'orders/orders.js', 'design/design.js', 'technology/technology.js',
+                'warehouse/warehouse.js', 'molds/molds.js', 'maintenance/maintenance.js', 'production/production.js', 'analytics/analytics.js'
             ];
             
-            return knownModules.map(file => ({
-                name: file,
-                path: `${this.options.path}/${file}`,
-                fullPath: file
-            }));
+            const moduleFiles = knownModules.map(file => {
+                const parts = file.split('/');
+                const moduleFolder = parts.length > 1 ? parts[0] : null;
+                const fileName = parts[parts.length - 1];
+                
+                return {
+                    name: fileName,
+                    path: `${this.options.path}/${file}`,
+                    fullPath: file,
+                    moduleFolder: moduleFolder
+                };
+            });
+            
+            this.log(`Fallback: используем предопределенный список из ${moduleFiles.length} модулей`);
+            return moduleFiles;
         }
     }
 
@@ -225,14 +280,25 @@ class ModuleLoader {
                 const moduleInfo = await this.loadSingleModule(file);
                 if (moduleInfo) {
                     results.success.push(moduleInfo);
-                    this.log(`✓ Модуль загружен: ${moduleInfo.id}`);
+                    // Log successful module connection with checkmark
+                    this.log(`✓ Модуль ${moduleInfo.id} успешно подключен`);
                 } else {
                     results.failed.push({ file: file.name, error: 'Модуль не возвращен' });
                 }
             } catch (error) {
-                this.error(`✗ Ошибка загрузки модуля ${file.name}:`, error);
+                // Log failed module connection with cross mark
+                this.error(`✗ Ошибка подключения модуля ${file.name}:`, error);
                 results.failed.push({ file: file.name, error: error.message });
             }
+        }
+        
+        // Summary logging with counts
+        if (results.success.length > 0) {
+            this.log(`Успешно подключено модулей: ${results.success.length}`);
+        }
+        
+        if (results.failed.length > 0) {
+            this.warn(`Не удалось подключить модулей: ${results.failed.length}`);
         }
         
         this.log(`Загрузка завершена: ${results.success.length} успешно, ${results.failed.length} с ошибками`);
@@ -245,7 +311,7 @@ class ModuleLoader {
      * @returns {Promise<Object|null>} Информация о загруженном модуле
      */
     async loadSingleModule(file) {
-        const moduleId = this.extractModuleId(file.name);
+        const moduleId = this.extractModuleId(file.name, file.moduleFolder);
         
         // Валидация moduleId
         if (!this.validateModuleId(moduleId)) {
@@ -291,9 +357,16 @@ class ModuleLoader {
     /**
      * Извлечение moduleId из имени файла
      * @param {string} filename Имя файла
+     * @param {string} moduleFolder Папка модуля (опционально)
      * @returns {string} ID модуля
      */
-    extractModuleId(filename) {
+    extractModuleId(filename, moduleFolder = null) {
+        // Если есть папка модуля, используем её как moduleId
+        if (moduleFolder) {
+            return moduleFolder.toLowerCase();
+        }
+        
+        // Иначе используем имя файла (старая схема)
         return filename.replace(/\.js$/, '').toLowerCase();
     }
 
@@ -323,7 +396,16 @@ class ModuleLoader {
     async loadModuleMeta(file, moduleId) {
         // Попытка загрузить .meta.json файл
         try {
-            const metaPath = file.path.replace('.js', '.meta.json');
+            let metaPath;
+            
+            if (file.moduleFolder) {
+                // Новая структура: moduleFolder/module.meta.json
+                metaPath = `${this.options.path}/${file.moduleFolder}/${moduleId}.meta.json`;
+            } else {
+                // Старая структура: module.meta.json
+                metaPath = file.path.replace('.js', '.meta.json');
+            }
+            
             const response = await fetch(metaPath);
             
             if (response.ok) {
@@ -332,7 +414,8 @@ class ModuleLoader {
                 return this.validateMeta(meta, moduleId);
             }
         } catch (error) {
-            this.log(`Метаданные ${moduleId}.meta.json не найдены:`, error.message);
+            // Log metadata not found with info message
+            this.log(`ℹ Метаданные ${moduleId}.meta.json не найдены, используются значения по умолчанию`);
         }
         
         // Fallback на дефолтные метаданные
@@ -409,11 +492,14 @@ class ModuleLoader {
             // Поиск экспортированного класса
             const ModuleClass = this.findModuleClass(module, file.name);
             if (ModuleClass) {
+                // Log successful import with checkmark
+                this.log(`✓ Модуль ${file.name} успешно импортирован`);
                 return ModuleClass;
             }
             
         } catch (error) {
-            this.warn(`ES6 импорт неудачен для ${file.name}:`, error);
+            // Log import error with warning
+            this.warn(`⚠ ES6 импорт неудачен для ${file.name}:`, error);
         }
         
         // Fallback на глобальные переменные (для совместимости)
@@ -494,10 +580,14 @@ class ModuleLoader {
             // Валидация интерфейса модуля
             this.validateModuleInterface(instance, moduleId);
             
+            // Log successful instance creation with checkmark
+            this.log(`✓ Экземпляр модуля ${moduleId} успешно создан`);
+            
             return instance;
             
         } catch (error) {
-            this.error(`Ошибка создания экземпляра модуля ${moduleId}:`, error);
+            // Log instance creation error with cross mark
+            this.error(`✗ Ошибка создания экземпляра модуля ${moduleId}:`, error);
             throw error;
         }
     }
@@ -531,13 +621,24 @@ class ModuleLoader {
     async initAllModules() {
         this.log('Инициализация всех модулей...');
         
+        let initializedCount = 0;
+        let skippedCount = 0;
+        
         for (const [moduleId, moduleInfo] of window.moduleRegistry) {
             if (moduleInfo.meta.enabled) {
-                await this.initModule(moduleId);
+                const success = await this.initModule(moduleId);
+                if (success) {
+                    initializedCount++;
+                }
             } else {
-                this.log(`Модуль ${moduleId} отключен, пропускаем инициализацию`);
+                // Log disabled modules with warning icon
+                this.warn(`⚠ Модуль ${moduleId} отключен, пропускаем инициализацию`);
+                skippedCount++;
             }
         }
+        
+        // Summary of initialization
+        this.log(`Инициализация модулей завершена: ${initializedCount} инициализировано, ${skippedCount} отключено`);
     }
 
     /**
@@ -549,7 +650,8 @@ class ModuleLoader {
         const moduleInfo = window.moduleRegistry.get(moduleId);
         
         if (!moduleInfo) {
-            this.error(`Модуль ${moduleId} не найден в реестре`);
+            // Log missing modules with cross mark
+            this.error(`✗ Модуль ${moduleId} не найден в реестре`);
             return false;
         }
         
@@ -568,12 +670,14 @@ class ModuleLoader {
             }
             
             moduleInfo.status = 'initialized';
-            this.log(`✓ Модуль ${moduleId} инициализирован`);
+            // Log successful initialization with checkmark
+            this.log(`✓ Модуль ${moduleId} успешно инициализирован`);
             
             return true;
             
         } catch (error) {
-            this.error(`Ошибка инициализации модуля ${moduleId}:`, error);
+            // Log initialization errors with cross mark
+            this.error(`✗ Ошибка инициализации модуля ${moduleId}:`, error);
             moduleInfo.status = 'error';
             moduleInfo.error = error.message;
             return false;
@@ -652,7 +756,8 @@ class ModuleLoader {
         const moduleInfo = window.moduleRegistry.get(moduleId);
         
         if (!moduleInfo) {
-            this.warn(`Модуль ${moduleId} не найден для перезагрузки`);
+            // Log missing module for reload with warning
+            this.warn(`⚠ Модуль ${moduleId} не найден для перезагрузки`);
             return false;
         }
         
@@ -677,11 +782,13 @@ class ModuleLoader {
                 await this.initModule(moduleId);
             }
             
+            // Log successful reload with checkmark
             this.log(`✓ Модуль ${moduleId} успешно перезагружен`);
             return true;
             
         } catch (error) {
-            this.error(`Ошибка перезагрузки модуля ${moduleId}:`, error);
+            // Log reload error with cross mark
+            this.error(`✗ Ошибка перезагрузки модуля ${moduleId}:`, error);
             return false;
         }
     }
