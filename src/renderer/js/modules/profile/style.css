@@ -1,0 +1,637 @@
+/* Profile module styles */
+
+/* Profile header styles */
+.profile-header {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.4);
+  overflow: hidden;
+}
+
+.profile-cover {
+  position: relative;
+  height: 11rem;
+}
+
+.profile-cover-image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0.7;
+}
+
+.profile-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(23, 23, 23, 0.7) 0%, rgba(23, 23, 23, 0.2) 100%);
+}
+
+.profile-cover-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.profile-cover-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.profile-avatar-container {
+  position: relative;
+  margin-top: -4rem;
+}
+
+.profile-avatar {
+  height: 6rem;
+  width: 6rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+}
+
+.profile-avatar-image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-upload {
+  position: absolute;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  height: 2.25rem;
+  width: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.profile-avatar-upload:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.profile-info {
+  padding: 1rem;
+}
+
+.profile-info-md {
+  padding: 1.25rem;
+}
+
+.profile-user-details {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+}
+
+.profile-display-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.profile-display-name-xl {
+  font-size: 1.875rem;
+}
+
+.profile-role {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-action-button {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.profile-action-button:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tasks table styles */
+.tasks-table-container {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tasks-header-md {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tasks-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.tasks-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tasks-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-filter-button {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.875rem;
+}
+
+.task-filter-button-active {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.task-filter-button-overdue {
+  border-color: rgba(244, 63, 94, 0.3);
+  color: rgba(253, 164, 175, 0.8);
+}
+
+.task-filter-button-overdue:hover {
+  border-color: rgba(244, 63, 94, 0.5);
+  background-color: rgba(244, 63, 94, 0.1);
+}
+
+.task-table {
+  margin-top: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.task-table-header {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  width: 100%;
+}
+
+.task-table-header-cell {
+  padding: 0.5rem 0.75rem;
+}
+
+.task-table-body {
+  max-height: 28rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.task-table-body::-webkit-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.task-table-row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.task-table-row:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.task-cell {
+  padding: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.task-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-details {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-due-date {
+  font-size: 0.875rem;
+}
+
+.task-due-date-soon {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.task-overdue {
+  font-size: 0.75rem;
+  color: rgba(253, 164, 175, 0.8);
+}
+
+.task-status-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.task-status-in-progress {
+  border-color: rgba(16, 185, 129, 0.4);
+  color: rgba(154, 230, 198, 0.9);
+}
+
+.task-status-overdue {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: rgba(253, 164, 175, 0.9);
+}
+
+.task-status-pending {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: rgba(253, 230, 138, 0.9);
+}
+
+.task-priority-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
+}
+
+.task-priority-high {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: rgba(253, 164, 175, 0.9);
+}
+
+/* Attendance heatmap styles */
+.attendance-section {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.attendance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attendance-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.attendance-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.attendance-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attendance-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.attendance-legend-color {
+  height: 0.75rem;
+  width: 0.75rem;
+  border-radius: 0.125rem;
+}
+
+.attendance-legend-on-time {
+  background-color: rgba(16, 185, 129, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.attendance-legend-overtime {
+  background-color: rgba(217, 70, 239, 0.7);
+  border: 1px solid rgba(217, 70, 239, 0.4);
+}
+
+.attendance-legend-late {
+  background-color: rgba(245, 158, 11, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.attendance-legend-absent {
+  background-color: rgba(244, 63, 94, 0.7);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+.attendance-legend-off {
+  background-color: #404040;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attendance-heatmap {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.attendance-heatmap-grid {
+  display: inline-grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+}
+
+.attendance-weekday-labels {
+  display: grid;
+  grid-template-rows: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding-top: 1rem;
+  padding-right: 0.25rem;
+}
+
+.attendance-weekday-label {
+  height: 1rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.25rem;
+}
+
+.attendance-weeks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 0.25rem;
+}
+
+.attendance-week-column {
+  display: grid;
+  grid-template-rows: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.attendance-day-cell {
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.125rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.attendance-day-cell:hover {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.attendance-tooltip {
+  position: fixed;
+  z-index: 50;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.95);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* User info styles */
+.user-info-section {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.user-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-info-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.user-info-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.user-info-copy-button {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.user-info-copy-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-info-grid {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.user-info-grid-md {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.user-info-field {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 0.75rem;
+}
+
+.user-info-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.25rem;
+}
+
+.user-info-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* App activity styles */
+.app-activity-section {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(38, 38, 38, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.app-activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-activity-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.app-activity-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.app-activity-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-activity-day {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  width: 2rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.app-activity-bar-container {
+  flex: 1;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.app-activity-bar {
+  position: absolute;
+  inset-y: 0;
+  left: 0;
+  background-color: rgba(16, 185, 129, 0.6);
+  border-radius: 9999px;
+}
+
+.app-activity-tooltip {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.app-activity-bar-container:hover .app-activity-tooltip {
+  opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

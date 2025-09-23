@@ -11,14 +11,9 @@
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/components.css">
   
-  <style>
-    :root { color-scheme: dark; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
-    @keyframes fadeIn { from { opacity: 0; filter: blur(6px) } to { opacity: 1; filter: blur(0) } }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.98) } to { opacity: 1; transform: scale(1) } }
-  </style>
+  <!-- Глобальные CSS переменные и анимации перенесены в styles/components.css -->
 </head>
-<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">
+<body class="bg-neutral-950 text-neutral-100 font-sans tracking-tight">
   <div class="sticky top-0 z-50">
     <div class="w-full border-b border-white/10 bg-neutral-950/80 backdrop-blur">
       <div class="mx-auto max-w-[1600px] px-4">
@@ -53,7 +48,7 @@
   <div class="mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8">
     <div class="grid grid-cols-12 gap-4 lg:gap-6 pt-4 lg:pt-6">
       <aside class="col-span-12 lg:col-span-3 xl:col-span-2">
-        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4" style="animation: fadeIn .6s ease .05s both">
+  <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4 anim-fadeIn">
           <div class="flex items-center justify-between mb-2">
             <div class="text-base font-semibold text-white/90 tracking-tight">Навигация</div>
             <button id="sidebar-settings" class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200">Настройки</button>
@@ -101,7 +96,7 @@
       </aside>
 
       <main class="col-span-12 lg:col-span-9 xl:col-span-10 space-y-4 lg:space-y-6">
-        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 px-3 lg:px-4 py-2.5" style="animation: fadeIn .5s ease .05s both">
+        <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 px-3 lg:px-4 py-2.5 anim-fadeIn" style="--a-dur:.5s">
           <div class="flex items-center gap-2">
             <div id="current-module" class="text-xl md:text-2xl font-semibold text-white tracking-tight">Панель управления</div>
             <span class="px-2 py-1 text-[11px] rounded-md border border-white/10 text-white/70">v1.0.0</span>

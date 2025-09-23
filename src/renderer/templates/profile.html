@@ -1,7 +1,7 @@
 <!-- Profile page template aligned with design/kabinet_login2.html -->
 <section class="space-y-4 lg:space-y-6">
   <!-- Profile header (cover + avatar + name) -->
-  <section class="rounded-xl border border-white/10 bg-neutral-900/40 overflow-hidden" style="animation: scaleIn .5s ease .08s both">
+  <section class="rounded-xl border border-white/10 bg-neutral-900/40 overflow-hidden anim-scaleIn" style="--a-delay:.08s">
     <div class="relative h-44 md:h-56 lg:h-64">
       <img id="coverImage" src="{{COVER_IMAGE_SRC}}" class="h-full w-full object-cover opacity-70" alt="cover">
       <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-neutral-950/20 to-transparent"></div>
@@ -37,7 +37,7 @@
 
   <!-- Main content grid: Tasks + Visits (left), User info + Activity (right) -->
   <section class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
-    <div class="xl:col-span-2 space-y-4" style="animation: fadeUp .6s ease .1s both">
+  <div class="xl:col-span-2 space-y-4 anim-fadeUp">
       <!-- Tasks table (static sample like design) -->
       <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4 flex flex-col">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -119,7 +119,7 @@
       </div>
 
       <!-- Attendance heatmap (static like design) -->
-      <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4" style="animation: fadeUp .6s ease .14s both">
+  <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4 anim-fadeUp" style="--a-delay:.14s">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold">Посещения</h2>
@@ -182,7 +182,7 @@
     </div>
 
     <!-- Right column -->
-    <div class="space-y-4" style="animation: fadeUp .6s ease .12s both">
+  <div class="space-y-4 anim-fadeUp" style="--a-delay:.12s">
       <!-- User info -->
       <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur p-4">
         <div class="flex items-center justify-between">
