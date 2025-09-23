@@ -13,13 +13,48 @@ class ProcessCraftApp {
         this.setupEventListeners();
         
         // Обработчик событий загрузки модулей
-        document.addEventListener('modules:loaded', (e) => {
+    document.addEventListener('modules:loaded', async (e) => {
             console.log('✓ Получено событие modules:loaded', e.detail);
             this.onModulesLoaded(e.detail);
         });
         
         // Инициализация модулей
-        await this.initializeModules();
+    await this.initializeModules(); 
+        
+    // Попытка подгрузить и вставить шаблон модального окна настроек (templates/model_settings.html)
+    // Защищённо: если fetch или вставка неудачны — продолжаем без фатальной ошибки.
+    (async () => {
+      try {
+        const tplPath = 'js/../templates/model_settings.html';
+        const res = await fetch(tplPath, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Template fetch failed: ${res.status}`);
+        const html = await res.text();
+        // Вставляем в body в конец — шаблон содержит свой <script> с поведением, поэтому он выполнится после вставки
+        const container = document.createElement('div');
+        container.innerHTML = html;
+        document.body.appendChild(container);
+        console.log('Template model_settings.html loaded and inserted');
+                
+        // Попытка импортировать ES-модуль и инициализировать
+        try {
+          const mod = await import('./model_settings.js');
+          if (mod && typeof mod.initModelSettings === 'function') {
+            mod.initModelSettings();
+            console.log('initModelSettings invoked');
+          } else if (mod && mod.default && typeof mod.default.initModelSettings === 'function') {
+            mod.default.initModelSettings();
+            console.log('initModelSettings invoked from default export');
+          } else {
+            console.warn('model_settings module loaded but initModelSettings not found');
+          }
+        } catch (e) {
+          console.warn('Failed to import or invoke model_settings module:', e);
+        }
+      } catch (e) {
+        // Неприменимо в некоторых окружениях (CSP, file://, Electron packaging). Это не фатально.
+        console.warn('Could not load model_settings template:', e);
+      }
+    })();
         
         // Настраиваем обработчики навигации после рендеринга
         this.setupNavigationListeners();
