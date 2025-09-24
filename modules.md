@@ -544,7 +544,11 @@ window.app.showMessage('Operation completed', 'success');
 const currentUser = window.UserStore?.getCurrentUser();
 
 // UI helpers
-window.AvatarUtils.updateAvatarInDOM('#avatar-container', user);
+// Preferred: import avatar utilities as an ES module
+// import { updateAvatarInDOM } from './utils/avatarUtils.js';
+// updateAvatarInDOM('#avatar-container', user);
+// Backward-compatible global is still available for older code:
+// window.AvatarUtils.updateAvatarInDOM('#avatar-container', user);
 ```
 
 ### Event System

@@ -1,5 +1,7 @@
 // Основной файл приложения ProcessCraft
 
+import { generateTopBarAvatar, updateAvatarInDOM, generateAvatarHTML } from './utils/avatarUtils.js';
+
 class ProcessCraftApp {
     constructor() {
         this.currentModule = 'dashboard';
@@ -494,8 +496,9 @@ class ProcessCraftApp {
         const fallback = document.getElementById('user-avatar-fallback');
         if (!img || !fallback) return;
 
-        try {
-            const avatarData = await window.AvatarUtils.generateTopBarAvatar(current);
+    try {
+  // Use module function to get avatar for top bar
+  const avatarData = await generateTopBarAvatar(current);
             
             if (typeof avatarData === 'string') {
                 // Image path
@@ -888,8 +891,8 @@ class ProcessCraftApp {
         </div>`;
         this.showModal(html);
         
-        // Populate avatar in modal
-        window.AvatarUtils.updateAvatarInDOM('#profile-modal-avatar', u, { size: 'md' });
+    // Populate avatar in modal using module function
+    updateAvatarInDOM('#profile-modal-avatar', u, { size: 'md' });
         
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await window.UserStore.logout();
@@ -930,7 +933,7 @@ class ProcessCraftApp {
         
         // Сгенерируйте HTML-аватар для всех пользователей
         const usersWithAvatars = await Promise.all(users.map(async u => {
-          const avatarHtml = await window.AvatarUtils.generateAvatarHTML(u, { size: 'sm', checkFileExists: false });
+          const avatarHtml = await generateAvatarHTML(u, { size: 'sm', checkFileExists: false });
           return { ...u, avatarHtml };
         }));
         

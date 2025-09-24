@@ -174,10 +174,26 @@ async function generateTopBarAvatar(user) {
 
 // Export functions
 // Экспорт функций
-window.AvatarUtils = {
+// Named exports for ES modules
+export {
   generateAvatarHTML,
   generateColoredLetterAvatar,
   generateFallbackAvatar,
   updateAvatarInDOM,
   generateTopBarAvatar
 };
+
+// Backward-compatible global for code that expects window.AvatarUtils
+try {
+  if (typeof window !== 'undefined') {
+    window.AvatarUtils = window.AvatarUtils || {};
+    // assign functions without overwriting if already present
+    window.AvatarUtils.generateAvatarHTML = window.AvatarUtils.generateAvatarHTML || generateAvatarHTML;
+    window.AvatarUtils.generateColoredLetterAvatar = window.AvatarUtils.generateColoredLetterAvatar || generateColoredLetterAvatar;
+    window.AvatarUtils.generateFallbackAvatar = window.AvatarUtils.generateFallbackAvatar || generateFallbackAvatar;
+    window.AvatarUtils.updateAvatarInDOM = window.AvatarUtils.updateAvatarInDOM || updateAvatarInDOM;
+    window.AvatarUtils.generateTopBarAvatar = window.AvatarUtils.generateTopBarAvatar || generateTopBarAvatar;
+  }
+} catch (e) {
+  // window may be undefined in some build steps; ignore silently
+}

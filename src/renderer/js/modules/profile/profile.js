@@ -1,3 +1,5 @@
+import { generateAvatarHTML } from '../../utils/avatarUtils.js';
+
 class ProfileModule {
   init() {
     this.render().catch(error => {
@@ -23,8 +25,8 @@ class ProfileModule {
       user?.username ? window.UserStore.getSection(user.username, 'activity') : Promise.resolve({ ok: true, data: { items: [] } }),
       user?.username ? window.UserStore.getSection(user.username, 'info') : Promise.resolve({ ok: true, data: { phone: '', email: '', department: '', position: '' } })
     ]).then(async ([html, visitsRes, tasksRes, activityRes, infoRes]) => {
-        // Generate avatar using centralized logic
-        const avatar = await window.AvatarUtils.generateAvatarHTML(user, { size: 'lg' });
+  // Generate avatar using centralized logic (module import)
+  const avatar = await generateAvatarHTML(user, { size: 'lg' });
         const isSuper = (role === 'SuperAdmin' || role === 'СуперАдминистратор');
         const adminActions = `
           <div class="flex items-center gap-2">

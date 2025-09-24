@@ -1,6 +1,8 @@
 
 // Извлечено из src/renderer/templates/model_settings.html
 // Обеспечивает инициализацию модального окна настроек (списки пользователей / модулей)
+import { generateAvatarHTML } from './utils/avatarUtils.js';
+
 export function initModelSettings() {
   try {
     const overlay       = document.getElementById('settingsModal');
@@ -199,19 +201,16 @@ export function initModelSettings() {
     const loadData = async () => {
       const { users, modules } = await fetchData();
 
-      // users
+      // users — рендерим асинхронно используя centralized avatar utils
       // пользователи
-      usersScroll().innerHTML = users.map(u => `
+      const userNodes = await Promise.all(users.map(async u => {
+        // generate avatar HTML (uses UserStore checks internally)
+        const avatarHtml = await generateAvatarHTML({ username: u.username, displayName: u.name, avatarPath: u.avatarPath }, { size: 'sm' });
+
+        return `
         <button class="user-row group w-full text-left p-3 flex items-center gap-3 transition-all duration-300 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 active:scale-[0.99]">
           <div class="h-9 w-9 rounded-lg overflow-hidden border border-white/10 hover:border-white/20 hover:bg-white/5 grid place-items-center">
-            <!-- Display user avatar or fallback to initials -->
-            <!-- Отображение аватара пользователя или резервный вариант с инициалами -->
-            ${u.avatarPath ? 
-              `<img src="${u.avatarPath}" alt="${u.name}" class="h-9 w-9 object-cover" onerror="this.parentNode.innerHTML='<div class=\'h-8 w-8 rounded-full bg-gradient-to-b from-white/20 to-white/5 grid place-items-center text-[11px] text-white/90 border border-white/10\'>' + (function(name) { const parts = name.trim().split(' '); const first = parts[0]?.[0] || ''; const last = parts[1]?.[0] || ''; return (first + last).toUpperCase(); })('${u.name}') + '</div>';">` :
-              `<div class="h-9 w-9 grid place-items-center text-sm text-white/80">
-                ${initials(u.name)}
-              </div>`
-            }
+            ${avatarHtml}
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm text-white/90 truncate">
@@ -223,7 +222,10 @@ export function initModelSettings() {
             <svg data-lucide="chevron-right" class="h-4 w-4 text-white/40"></svg>
           </div>
         </button>
-      `).join('');
+      `;
+      }));
+
+      usersScroll().innerHTML = userNodes.join('');
 
   // modules: заблокируем несколько (оранжевый замок) — если модулей нет, оставим список пустым
   const lockedSet = new Set([1, 3]); // индексы заблокированных по умолчанию
