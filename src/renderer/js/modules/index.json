@@ -1,17 +1,47 @@
 {
-  "modules": [
-    "analytics/analytics.js",
-    "dashboard/dashboard.js",
-    "design/design.js",
-    "maintenance/maintenance.js",
-    "molds/molds.js",
-    "orders/orders.js",
-    "production/production.js",
-    "profile/profile.js",
-    "technology/technology.js",
-    "warehouse/warehouse.js"
-  ],
-  "generated_at": "2025-09-24T11:16:23.240Z",
+  "modules": {
+    "analytics": {
+      "enable": true,
+      "pathModule": "analytics/analytics.js"
+    },
+    "dashboard": {
+      "enable": true,
+      "pathModule": "dashboard/dashboard.js"
+    },
+    "design": {
+      "enable": true,
+      "pathModule": "design/design.js"
+    },
+    "maintenance": {
+      "enable": true,
+      "pathModule": "maintenance/maintenance.js"
+    },
+    "molds": {
+      "enable": true,
+      "pathModule": "molds/molds.js"
+    },
+    "orders": {
+      "enable": true,
+      "pathModule": "orders/orders.js"
+    },
+    "production": {
+      "enable": true,
+      "pathModule": "production/production.js"
+    },
+    "profile": {
+      "enable": true,
+      "pathModule": "profile/profile.js"
+    },
+    "technology": {
+      "enable": true,
+      "pathModule": "technology/technology.js"
+    },
+    "warehouse": {
+      "enable": true,
+      "pathModule": "warehouse/warehouse.js"
+    }
+  },
+  "generated_at": "2025-09-24T11:24:31.836Z",
   "generator": "Система сборки ProcessCraft",
   "version": "2.0.0",
   "structure": "на основе папок",

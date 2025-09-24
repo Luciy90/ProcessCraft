@@ -16,7 +16,7 @@ const INDEX_FILE = path.join(MODULES_DIR, 'index.json');
 
 /**
  * Сканирует директорию модулей и возвращает список модулей
- * @returns {Array} Список модулей
+ * @returns {Object} Объект с модулями в новом формате
  */
 function scanModules() {
   console.log('[ModuleIndexBuilder] Сканирование директории модулей:', MODULES_DIR);
@@ -28,7 +28,7 @@ function scanModules() {
   }
   
   const items = fs.readdirSync(MODULES_DIR);
-  const modules = [];
+  const modules = {};
   
   console.log(`[ModuleIndexBuilder] Найдено элементов: ${items.length}`);
   
@@ -47,14 +47,20 @@ function scanModules() {
       const jsFilePath = path.join(itemPath, jsFile);
       
       if (fs.existsSync(jsFilePath)) {
-        modules.push(`${item}/${jsFile}`);
+        modules[item] = {
+          enable: true,
+          pathModule: `${item}/${jsFile}`
+        };
         console.log(`[ModuleIndexBuilder] Найден модуль: ${item}/${jsFile}`);
       } else {
         // Ищем первый .js файл в папке (дополнительная функциональность)
         const jsFiles = fs.readdirSync(itemPath).filter(f => f.endsWith('.js'));
         if (jsFiles.length > 0) {
           const firstJsFile = jsFiles[0];
-          modules.push(`${item}/${firstJsFile}`);
+          modules[item] = {
+            enable: true,
+            pathModule: `${item}/${firstJsFile}`
+          };
           console.log(`[ModuleIndexBuilder] Найден модуль: ${item}/${firstJsFile}`);
         } else {
           console.warn(`[ModuleIndexBuilder] Пропущена директория (нет JS файла): ${item}`);
@@ -62,14 +68,16 @@ function scanModules() {
       }
     } else if (item.endsWith('.js')) {
       // Поддержка устаревшей плоской структуры
-      modules.push(item);
+      const moduleName = item.replace(/\.js$/, '');
+      modules[moduleName] = {
+        enable: true,
+        pathModule: item
+      };
       console.log(`[ModuleIndexBuilder] Найден модуль (плоская структура): ${item}`);
     }
   }
   
-  // Сортируем для детерминированности (дополнительная функциональность)
-  modules.sort();
-  console.log(`[ModuleIndexBuilder] Всего найдено модулей: ${modules.length}`);
+  console.log(`[ModuleIndexBuilder] Всего найдено модулей: ${Object.keys(modules).length}`);
   return modules;
 }
 
@@ -91,22 +99,36 @@ function loadPreviousIndex() {
 
 /**
  * Сравнивает текущие и предыдущие модули и выводит сообщения об удаленных модулях
- * @param {Array} currentModules Текущий список модулей
+ * @param {Object} currentModules Текущий список модулей
  * @param {Object|null} previousIndex Предыдущий index.json
  */
 function reportModuleChanges(currentModules, previousIndex) {
-  if (!previousIndex || !Array.isArray(previousIndex.modules)) {
+  if (!previousIndex || !previousIndex.modules) {
     return;
   }
   
-  const previousModules = new Set(previousIndex.modules);
-  const currentModuleSet = new Set(currentModules);
+  let previousModules = previousIndex.modules;
+  // Если предыдущая структура - массив, конвертируем в объект
+  if (Array.isArray(previousModules)) {
+    const converted = {};
+    for (const modulePath of previousModules) {
+      const moduleName = modulePath.split('/')[0];
+      converted[moduleName] = {
+        enable: true,
+        pathModule: modulePath
+      };
+    }
+    previousModules = converted;
+  }
+  
+  const previousModuleNames = new Set(Object.keys(previousModules));
+  const currentModuleNames = new Set(Object.keys(currentModules));
   
   // Находим удаленные модули
   const removedModules = [];
-  for (const module of previousModules) {
-    if (!currentModuleSet.has(module)) {
-      removedModules.push(module);
+  for (const moduleName of previousModuleNames) {
+    if (!currentModuleNames.has(moduleName)) {
+      removedModules.push(moduleName);
     }
   }
   
@@ -119,16 +141,22 @@ function reportModuleChanges(currentModules, previousIndex) {
   }
   
   // Выводим общую статистику
-  const addedModules = currentModules.filter(module => !previousModules.has(module));
+  const addedModules = [];
+  for (const moduleName of currentModuleNames) {
+    if (!previousModuleNames.has(moduleName)) {
+      addedModules.push(moduleName);
+    }
+  }
+  
   console.log(`[ModuleIndexBuilder] Статистика изменений:`);
   console.log(`[ModuleIndexBuilder]   - Добавлено: ${addedModules.length}`);
   console.log(`[ModuleIndexBuilder]   - Удалено: ${removedModules.length}`);
-  console.log(`[ModuleIndexBuilder]   - Всего: ${currentModules.length}`);
+  console.log(`[ModuleIndexBuilder]   - Всего: ${currentModuleNames.size}`);
 }
 
 /**
  * Генерирует содержимое index.json
- * @param {Array} modules Список модулей
+ * @param {Object} modules Список модулей
  * @returns {Object} Объект index.json
  */
 function generateIndexContent(modules) {
@@ -159,7 +187,7 @@ function writeIndexFile(index) {
     const content = JSON.stringify(index, null, 2);
     fs.writeFileSync(INDEX_FILE, content);
     console.log(`[ModuleIndexBuilder] ✓ Успешно создан index.json: ${INDEX_FILE}`);
-    console.log(`[ModuleIndexBuilder] Содержит ${index.modules.length} модулей`);
+    console.log(`[ModuleIndexBuilder] Содержит ${Object.keys(index.modules).length} модулей`);
   } catch (error) {
     console.error('[ModuleIndexBuilder] ✗ Ошибка записи index.json:', error);
     process.exit(1);

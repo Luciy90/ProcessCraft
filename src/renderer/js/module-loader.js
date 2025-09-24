@@ -221,21 +221,44 @@ class ModuleLoader {
             }
             
             const index = await response.json();
-            const moduleFiles = (index.modules || [])
-                .filter(file => file.endsWith('.js') && !file.includes('..'))
-                .map(file => {
-                    // Определяем структуру - папка/файл или просто файл
-                    const parts = file.split('/');
-                    const moduleFolder = parts.length > 1 ? parts[0] : null;
-                    const fileName = parts[parts.length - 1];
-                    
-                    return {
-                        name: fileName,
-                        path: `${this.options.path}/${file}`,
-                        fullPath: file,
-                        moduleFolder: moduleFolder
-                    };
-                });
+            const moduleFiles = [];
+            
+            // Обрабатываем новую структуру объекта modules
+            if (index.modules && typeof index.modules === 'object' && !Array.isArray(index.modules)) {
+                // Новая структура: объект с параметрами для каждого модуля
+                for (const [moduleName, moduleConfig] of Object.entries(index.modules)) {
+                    if (moduleConfig.enable && moduleConfig.pathModule) {
+                        const file = moduleConfig.pathModule;
+                        const parts = file.split('/');
+                        const moduleFolder = parts.length > 1 ? parts[0] : null;
+                        const fileName = parts[parts.length - 1];
+                        
+                        moduleFiles.push({
+                            name: fileName,
+                            path: `${this.options.path}/${file}`,
+                            fullPath: file,
+                            moduleFolder: moduleFolder
+                        });
+                    }
+                }
+            } else if (Array.isArray(index.modules)) {
+                // Старая структура: массив строк (fallback для совместимости)
+                const files = index.modules
+                    .filter(file => file.endsWith('.js') && !file.includes('..'))
+                    .map(file => {
+                        const parts = file.split('/');
+                        const moduleFolder = parts.length > 1 ? parts[0] : null;
+                        const fileName = parts[parts.length - 1];
+                        
+                        return {
+                            name: fileName,
+                            path: `${this.options.path}/${file}`,
+                            fullPath: file,
+                            moduleFolder: moduleFolder
+                        };
+                    });
+                moduleFiles.push(...files);
+            }
                 
             // Log successful index.json loading with checkmark
             this.log(`✓ Успешно загружен index.json: найдено ${moduleFiles.length} модулей`);
@@ -829,11 +852,7 @@ class ModuleLoader {
 
             // Получаем список модулей из index.json
             const moduleIndex = await this.getModuleIndex();
-            const moduleIds = moduleIndex.modules.map(modulePath => {
-                // Извлекаем moduleId из пути к модулю
-                const parts = modulePath.split('/');
-                return parts.length > 1 ? parts[0] : modulePath.replace('.js', '');
-            });
+            const moduleIds = Object.keys(moduleIndex.modules);
 
             this.log('Список модулей для проверки доступа:', moduleIds);
 
@@ -865,7 +884,23 @@ class ModuleLoader {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            return await response.json();
+            const index = await response.json();
+            
+            // Проверяем структуру и при необходимости конвертируем в новый формат
+            if (Array.isArray(index.modules)) {
+                // Конвертируем старую структуру в новую
+                const newModules = {};
+                for (const modulePath of index.modules) {
+                    const moduleName = modulePath.split('/')[0];
+                    newModules[moduleName] = {
+                        enable: true,
+                        pathModule: modulePath
+                    };
+                }
+                index.modules = newModules;
+            }
+            
+            return index;
         } catch (error) {
             this.error('Ошибка загрузки modules/index.json:', error);
             throw error;
