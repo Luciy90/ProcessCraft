@@ -50,7 +50,15 @@ function scanModules() {
         modules.push(`${item}/${jsFile}`);
         console.log(`[ModuleIndexBuilder] Найден модуль: ${item}/${jsFile}`);
       } else {
-        console.warn(`[ModuleIndexBuilder] Пропущена директория (нет JS файла): ${item}`);
+        // Ищем первый .js файл в папке (дополнительная функциональность)
+        const jsFiles = fs.readdirSync(itemPath).filter(f => f.endsWith('.js'));
+        if (jsFiles.length > 0) {
+          const firstJsFile = jsFiles[0];
+          modules.push(`${item}/${firstJsFile}`);
+          console.log(`[ModuleIndexBuilder] Найден модуль: ${item}/${firstJsFile}`);
+        } else {
+          console.warn(`[ModuleIndexBuilder] Пропущена директория (нет JS файла): ${item}`);
+        }
       }
     } else if (item.endsWith('.js')) {
       // Поддержка устаревшей плоской структуры
@@ -59,6 +67,8 @@ function scanModules() {
     }
   }
   
+  // Сортируем для детерминированности (дополнительная функциональность)
+  modules.sort();
   console.log(`[ModuleIndexBuilder] Всего найдено модулей: ${modules.length}`);
   return modules;
 }
@@ -128,7 +138,7 @@ function generateIndexContent(modules) {
     generator: "Система сборки ProcessCraft",
     version: "2.0.0",
     structure: "на основе папок",
-    description: "Модули организованы в отдельные папки с .js и .meta.json файлами"
+    description: "Автогенерируемый список модулей (modules/index.json)"
   };
 }
 
