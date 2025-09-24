@@ -1,5 +1,5 @@
 
-// Извлечено из src/renderer/templates/model_settings.html
+// Извлечено из src/renderer/templates/model-settings.html
 // Обеспечивает инициализацию модального окна настроек (списки пользователей / модулей)
 import { generateAvatarHTML } from './utils/avatarUtils.js';
 

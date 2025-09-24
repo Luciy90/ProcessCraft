@@ -23,11 +23,11 @@ class ProcessCraftApp {
         // Инициализация модулей
     await this.initializeModules(); 
         
-    // Попытка подгрузить и вставить шаблон модального окна настроек (templates/model_settings.html)
+    // Попытка подгрузить и вставить шаблон модального окна настроек (templates/model-settings.html)
     // Защищённо: если fetch или вставка неудачны — продолжаем без фатальной ошибки.
     (async () => {
       try {
-        const tplPath = 'js/../templates/model_settings.html';
+        const tplPath = 'js/../templates/model-settings.html';
         const res = await fetch(tplPath, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Template fetch failed: ${res.status}`);
         const html = await res.text();
@@ -35,11 +35,11 @@ class ProcessCraftApp {
         const container = document.createElement('div');
         container.innerHTML = html;
         document.body.appendChild(container);
-        console.log('Template model_settings.html loaded and inserted');
+        console.log('Template model-settings.html loaded and inserted');
                 
         // Попытка импортировать ES-модуль и инициализировать
         try {
-          const mod = await import('./model_settings.js');
+          const mod = await import('./model-settings.js');
           if (mod && typeof mod.initModelSettings === 'function') {
             mod.initModelSettings();
             console.log('initModelSettings invoked');
@@ -47,14 +47,14 @@ class ProcessCraftApp {
             mod.default.initModelSettings();
             console.log('initModelSettings invoked from default export');
           } else {
-            console.warn('model_settings module loaded but initModelSettings not found');
+            console.warn('model-settings module loaded but initModelSettings not found');
           }
         } catch (e) {
-          console.warn('Failed to import or invoke model_settings module:', e);
+          console.warn('Failed to import or invoke model-settings module:', e);
         }
       } catch (e) {
         // Неприменимо в некоторых окружениях (CSP, file://, Electron packaging). Это не фатально.
-        console.warn('Could not load model_settings template:', e);
+        console.warn('Could not load model-settings template:', e);
       }
     })();
         
