@@ -61,6 +61,9 @@ class ModuleLoader {
                 this.setupHotReload();
             }
             
+            // Обновление файлов доступа к модулям для пользователей
+            await this.updateUserModuleAccess();
+            
             // Отправка события о завершении загрузки
             this.dispatchLoadEvent(loadResults);
             
@@ -810,6 +813,168 @@ class ModuleLoader {
         
         document.dispatchEvent(event);
         this.log('Событие modules:loaded отправлено');
+    }
+
+    /**
+     * Обновление файлов доступа к модулям для всех пользователей
+     * @returns {Promise<void>}
+     */
+    async updateUserModuleAccess() {
+        try {
+            // Только в Electron окружении
+            if (!this.isElectron) {
+                this.log('Обновление доступа к модулям доступно только в Electron окружении');
+                return;
+            }
+
+            // Получаем список модулей из index.json
+            const moduleIndex = await this.getModuleIndex();
+            const moduleIds = moduleIndex.modules.map(modulePath => {
+                // Извлекаем moduleId из пути к модулю
+                const parts = modulePath.split('/');
+                return parts.length > 1 ? parts[0] : modulePath.replace('.js', '');
+            });
+
+            this.log('Список модулей для проверки доступа:', moduleIds);
+
+            // Получаем список пользователей
+            const users = await this.getUserList();
+            this.log('Найдено пользователей:', users.length);
+
+            // Обновляем файлы доступа для каждого пользователя
+            for (const username of users) {
+                await this.updateUserAccessFile(username, moduleIds);
+            }
+
+            this.log('✓ Обновление файлов доступа к модулям завершено');
+        } catch (error) {
+            this.error('Ошибка при обновлении файлов доступа к модулям:', error);
+        }
+    }
+
+    /**
+     * Получение списка модулей из index.json
+     * @returns {Promise<Object>} Содержимое index.json
+     */
+    async getModuleIndex() {
+        try {
+            const indexUrl = `${this.options.path}/index.json`;
+            const response = await fetch(indexUrl);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            this.error('Ошибка загрузки modules/index.json:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Получение списка пользователей
+     * @returns {Promise<Array>} Список имен пользователей
+     */
+    async getUserList() {
+        try {
+            // В Electron окружении используем IPC
+            if (window.electronAPI && window.electronAPI.invoke) {
+                const result = await window.electronAPI.invoke('users:list');
+                if (result.ok) {
+                    return result.users.map(user => user.username);
+                } else {
+                    throw new Error(result.error);
+                }
+            }
+            
+            // Fallback - попытка получить список через fs (если доступно)
+            const fs = window.require('fs');
+            const path = window.require('path');
+            
+            const usersPath = path.join(process.cwd(), 'Server', 'users');
+            if (fs.existsSync(usersPath)) {
+                const entries = fs.readdirSync(usersPath, { withFileTypes: true });
+                return entries
+                    .filter(entry => entry.isDirectory())
+                    .map(entry => entry.name);
+            }
+            
+            return [];
+        } catch (error) {
+            this.error('Ошибка получения списка пользователей:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Обновление файла доступа к модулям для конкретного пользователя
+     * @param {string} username Имя пользователя
+     * @param {Array} moduleIds Список всех доступных модулей
+     * @returns {Promise<void>}
+     */
+    async updateUserAccessFile(username, moduleIds) {
+        try {
+            this.log(`Обновление файла доступа для пользователя: ${username}`);
+            
+            // Путь к файлу доступа
+            const fs = window.require('fs');
+            const path = window.require('path');
+            
+            const userDir = path.join(process.cwd(), 'Server', 'users', username);
+            const accessFile = path.join(userDir, 'accessToModules.json');
+            
+            // Создаем директорию пользователя если её нет
+            if (!fs.existsSync(userDir)) {
+                fs.mkdirSync(userDir, { recursive: true });
+            }
+            
+            let accessData = {};
+            
+            // Читаем существующий файл доступа, если он есть
+            if (fs.existsSync(accessFile)) {
+                try {
+                    const rawData = fs.readFileSync(accessFile, 'utf-8');
+                    accessData = JSON.parse(rawData);
+                } catch (readError) {
+                    this.warn(`Ошибка чтения файла доступа для ${username}, будет создан новый:`, readError);
+                    accessData = {};
+                }
+            }
+            
+            // Создаем копию существующих данных для сравнения
+            const originalAccessData = { ...accessData };
+            
+            // Проверяем каждый модуль из списка
+            for (const moduleId of moduleIds) {
+                // Если модуль отсутствует в файле доступа, добавляем его с параметрами по умолчанию
+                if (!accessData[moduleId]) {
+                    accessData[moduleId] = {
+                        visible: false,
+                        lock: true
+                    };
+                }
+            }
+            
+            // Удаляем модули, которых больше нет в списке
+            const currentModules = Object.keys(accessData);
+            for (const moduleId of currentModules) {
+                if (!moduleIds.includes(moduleId)) {
+                    delete accessData[moduleId];
+                    this.log(`Удален модуль ${moduleId} из файла доступа пользователя ${username} (больше не существует)`);
+                }
+            }
+            
+            // Сохраняем файл, только если были изменения
+            if (JSON.stringify(accessData) !== JSON.stringify(originalAccessData)) {
+                fs.writeFileSync(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
+                this.log(`Файл доступа обновлен для пользователя: ${username}`);
+            } else {
+                this.log(`Файл доступа для пользователя ${username} не требует обновления`);
+            }
+        } catch (error) {
+            this.error(`Ошибка обновления файла доступа для пользователя ${username}:`, error);
+        }
     }
 
     // ===== ПУБЛИЧНОЕ API =====

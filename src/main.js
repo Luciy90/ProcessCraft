@@ -370,6 +370,10 @@ ipcMain.handle('users:create', async (event, payload) => {
     fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
     writeJsonSafe(getUserFile(username), userData);
     ensureUserSectionFiles(username);
+    
+    // Создаем файл доступа к модулям для нового пользователя
+    await createAccessToModulesFile(username);
+    
     return { ok: true, user: userData };
   } catch (e) {
     return { ok: false, error: String(e) };
@@ -736,3 +740,47 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
   }
 });
 
+// Функция для создания файла доступа к модулям для пользователя
+async function createAccessToModulesFile(username) {
+  try {
+    const userDir = getUserDir(username);
+    const accessFile = path.join(userDir, 'accessToModules.json');
+    
+    // Создаем директорию пользователя если её нет
+    if (!fs.existsSync(userDir)) {
+      fs.mkdirSync(userDir, { recursive: true });
+    }
+    
+    // Получаем список модулей из index.json
+    const modulesIndexPath = path.join(__dirname, 'renderer', 'js', 'modules', 'index.json');
+    let moduleIds = [];
+    
+    if (fs.existsSync(modulesIndexPath)) {
+      try {
+        const modulesData = JSON.parse(fs.readFileSync(modulesIndexPath, 'utf-8'));
+        moduleIds = modulesData.modules.map(modulePath => {
+          // Извлекаем moduleId из пути к модулю
+          const parts = modulePath.split('/');
+          return parts.length > 1 ? parts[0] : modulePath.replace('.js', '');
+        });
+      } catch (error) {
+        console.warn('Ошибка чтения modules/index.json:', error);
+      }
+    }
+    
+    // Создаем объект доступа с параметрами по умолчанию для каждого модуля
+    const accessData = {};
+    for (const moduleId of moduleIds) {
+      accessData[moduleId] = {
+        visible: false,
+        lock: true
+      };
+    }
+    
+    // Записываем файл доступа
+    fs.writeFileSync(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
+    console.log(`Файл доступа к модулям создан для пользователя: ${username}`);
+  } catch (error) {
+    console.error(`Ошибка создания файла доступа к модулям для пользователя ${username}:`, error);
+  }
+}
