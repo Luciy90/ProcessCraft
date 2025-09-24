@@ -4,7 +4,7 @@
   "displayName": "Administrator",
   "role": "SuperAdmin",
   "createdAt": "2025-08-29T07:40:10.518Z",
-  "lastLoginAt": "2025-09-23T11:55:56.986Z",
+  "lastLoginAt": "2025-09-24T06:37:16.155Z",
   "avatarPath": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\Server\\users\\Admin\\assets\\avatar.jpg",
   "stats": {},
   "updatedAt": "2025-09-01T09:56:58.835Z",
@@ -13,5 +13,9 @@
     "hue": 4,
     "saturation": 80,
     "brightness": 80
-  }
+  },
+  "phone": "+79617763377",
+  "email": "KodochigovV@ozo.ru",
+  "department": "ЧПУ и 3Д",
+  "position": "Мастер"
 }

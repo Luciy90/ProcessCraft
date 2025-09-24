@@ -1172,15 +1172,15 @@ class ProcessCraftApp {
         </div>`;
         this.showModal(html);
         document.getElementById('edit-user-cancel').addEventListener('click', () => { this.openAdminPanelModal(); });
-        // Загрузим текущий info.json пользователя и заполним поля
+        // Загрузим текущие данные пользователя и заполним поля
         (async () => {
             try {
-                const infoRes = await window.UserStore.getSection(user.username, 'info');
-                const info = infoRes?.ok ? (infoRes.data || {}) : {};
-                const emailEl = document.getElementById('eu-email'); if (emailEl) emailEl.value = info.email || '';
-                const phoneEl = document.getElementById('eu-phone'); if (phoneEl) phoneEl.value = info.phone || '';
-                const depEl = document.getElementById('eu-department'); if (depEl) depEl.value = info.department || '';
-                const posEl = document.getElementById('eu-position'); if (posEl) posEl.value = info.position || '';
+                const userRes = await window.UserStore.getUser(user.username);
+                const userInfo = userRes?.ok ? (userRes.user || {}) : {};
+                const emailEl = document.getElementById('eu-email'); if (emailEl) emailEl.value = userInfo.email || '';
+                const phoneEl = document.getElementById('eu-phone'); if (phoneEl) phoneEl.value = userInfo.phone || '';
+                const depEl = document.getElementById('eu-department'); if (depEl) depEl.value = userInfo.department || '';
+                const posEl = document.getElementById('eu-position'); if (posEl) posEl.value = userInfo.position || '';
             } catch (_) {}
         })();
         document.getElementById('edit-user-form').addEventListener('submit', async (e) => {
@@ -1193,7 +1193,7 @@ class ProcessCraftApp {
             const department = document.getElementById('eu-department').value.trim();
             const position = document.getElementById('eu-position').value.trim();
             const res = await window.UserStore.saveUser(username, { displayName, role });
-            const infoSave = await window.UserStore.saveSection(username, 'info', { email, phone, department, position });
+            const infoSave = await window.UserStore.saveUser(username, { email, phone, department, position });
             if (res?.ok) {
                 const current = window.UserStore.getCurrentUser();
                 if (current && current.username === username) {
@@ -1201,7 +1201,7 @@ class ProcessCraftApp {
                     window.UserStore.setCurrentUser({ ...current, displayName, role });
                     this.updateUserInterface().catch(console.warn);
                 }
-                if (infoSave?.ok) this.showMessage('Сохранено', 'success'); else this.showMessage('Данные сохранены, но info.json не обновлён', 'error');
+                if (infoSave?.ok) this.showMessage('Сохранено', 'success'); else this.showMessage('Данные сохранены, но данные пользователя не обновлены', 'error');
                 this.openAdminPanelModal();
             } else {
                 this.showMessage('Не удалось сохранить', 'error');
@@ -1262,18 +1262,18 @@ class ProcessCraftApp {
         
         // Загружаем текущие данные пользователя
         if (currentUser?.username) {
-            window.UserStore.getSection(currentUser.username, 'info').then(infoRes => {
-                if (infoRes?.ok && infoRes.data) {
-                    const info = infoRes.data;
+            window.UserStore.getUser(currentUser.username).then(userRes => {
+                if (userRes?.ok && userRes.user) {
+                    const userInfo = userRes.user;
                     const emailEl = document.getElementById('rc-email');
                     const phoneEl = document.getElementById('rc-phone');
                     const depEl = document.getElementById('rc-department');
                     const posEl = document.getElementById('rc-position');
                     
-                    if (emailEl) emailEl.value = info.email || '';
-                    if (phoneEl) phoneEl.value = info.phone || '';
-                    if (depEl) depEl.value = info.department || '';
-                    if (posEl) posEl.value = info.position || '';
+                    if (emailEl) emailEl.value = userInfo.email || '';
+                    if (phoneEl) phoneEl.value = userInfo.phone || '';
+                    if (depEl) depEl.value = userInfo.department || '';
+                    if (posEl) posEl.value = userInfo.position || '';
                 }
             });
         }
@@ -1354,10 +1354,8 @@ class ProcessCraftApp {
             const phone = document.getElementById('cu-phone').value.trim();
             const department = document.getElementById('cu-department').value.trim();
             const position = document.getElementById('cu-position').value.trim();
-            const res = await window.UserStore.createUser({ username, password, displayName, role });
+            const res = await window.UserStore.createUser({ username, password, displayName, role, email, phone, department, position });
             if (res?.ok) {
-                // Сохраняем info.json для пользователя
-                try { await window.UserStore.saveSection(username, 'info', { email, phone, department, position }); } catch (_) {}
                 this.showMessage('Пользователь создан', 'success');
                 this.openAdminPanelModal();
             } else {

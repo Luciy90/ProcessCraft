@@ -12,5 +12,9 @@
     "saturation": 80,
     "brightness": 80
   },
-  "updatedAt": "2025-09-24T05:13:56.209Z"
+  "updatedAt": "2025-09-24T05:13:56.209Z",
+  "phone": "",
+  "email": "",
+  "department": "",
+  "position": "Системный администратор"
 }

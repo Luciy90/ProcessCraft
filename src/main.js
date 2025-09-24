@@ -256,7 +256,6 @@ function ensureUserSectionFiles(username) {
   const dir = getUserDir(username);
   if (!fs.existsSync(dir)) return;
   const defaults = {
-    info: { phone: '', email: '', department: '', position: '' },
     visits: { total: 0, last: null, history: [] },
     tasks: { current: [], backlog: [] },
     activity: { items: [] }
@@ -349,7 +348,7 @@ ipcMain.handle('users:saveProfile', async (event, payload) => {
 // Создать пользователя
 ipcMain.handle('users:create', async (event, payload) => {
   try {
-    const { username, password, displayName, role } = payload || {};
+    const { username, password, displayName, role, email, phone, department, position } = payload || {};
     if (!username || !password) return { ok: false, error: 'username_password_required' };
     const dir = getUserDir(username);
     if (fs.existsSync(dir)) return { ok: false, error: 'user_exists' };
@@ -358,6 +357,10 @@ ipcMain.handle('users:create', async (event, payload) => {
       password, // ПРИМЕЧАНИЕ: для минимальной версии продукта хранение в открытом виде. Заменить на хэш позже.
       displayName: displayName || username,
       role: role || 'User',
+      email: email || '',
+      phone: phone || '',
+      department: department || '',
+      position: position || '',
       createdAt: new Date().toISOString(),
       lastLoginAt: null,
       avatarPath: null,

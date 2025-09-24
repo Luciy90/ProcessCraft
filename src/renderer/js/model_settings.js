@@ -44,7 +44,7 @@ export function initModelSettings() {
             } catch (_) {}
 
             try {
-              const i = fs.readFileSync(path.join(folder, 'info.json'), 'utf8');
+              const i = fs.readFileSync(path.join(folder, 'user.json'), 'utf8');
               infoJson = JSON.parse(i);
             } catch (_) {}
 
@@ -74,7 +74,7 @@ export function initModelSettings() {
                   try {
                     const [uRes, iRes] = await Promise.all([
                       fetch(`/Server/users/${name}/user.json`),
-                      fetch(`/Server/users/${name}/info.json`)
+                      fetch(`/Server/users/${name}/user.json`)
                     ]);
                     const u = uRes.ok ? await uRes.json() : {};
                     const ii = iRes.ok ? await iRes.json() : {};

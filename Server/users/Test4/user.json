@@ -1,0 +1,20 @@
+{
+  "username": "Test4",
+  "password": "1111",
+  "displayName": "Павел Васильевич",
+  "role": "User",
+  "email": "",
+  "phone": "",
+  "department": "",
+  "position": "Просто Павел",
+  "createdAt": "2025-09-24T06:37:44.897Z",
+  "lastLoginAt": null,
+  "avatarPath": null,
+  "stats": {},
+  "avatarColor": {
+    "hue": 271,
+    "saturation": 80,
+    "brightness": 80
+  },
+  "updatedAt": "2025-09-24T06:37:44.908Z"
+}

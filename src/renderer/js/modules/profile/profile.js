@@ -23,7 +23,7 @@ class ProfileModule {
       user?.username ? window.UserStore.getSection(user.username, 'visits') : Promise.resolve({ ok: true, data: { total: 0, last: null, history: [] } }),
       user?.username ? window.UserStore.getSection(user.username, 'tasks') : Promise.resolve({ ok: true, data: { current: [], backlog: [] } }),
       user?.username ? window.UserStore.getSection(user.username, 'activity') : Promise.resolve({ ok: true, data: { items: [] } }),
-      user?.username ? window.UserStore.getSection(user.username, 'info') : Promise.resolve({ ok: true, data: { phone: '', email: '', department: '', position: '' } })
+      user?.username ? window.UserStore.getUser(user.username).then(res => ({ ok: res.ok, data: res.user || {} })) : Promise.resolve({ ok: true, data: { phone: '', email: '', department: '', position: '' } })
     ]).then(async ([html, visitsRes, tasksRes, activityRes, infoRes]) => {
   // Generate avatar using centralized logic (module import)
   const avatar = await generateAvatarHTML(user, { size: 'lg' });
@@ -80,7 +80,7 @@ class ProfileModule {
         }, 10);
 
         // Заполним info
-        const info = infoRes?.ok ? (infoRes.data || {}) : {};
+        const info = infoRes?.ok ? (infoRes.user || infoRes.data || {}) : {};
         const emailEl = document.getElementById('info-email'); if (emailEl) emailEl.textContent = info.email || '—';
         const phoneEl = document.getElementById('info-phone'); if (phoneEl) phoneEl.textContent = info.phone || '—';
         const depEl = document.getElementById('info-department'); if (depEl) depEl.textContent = info.department || '—';

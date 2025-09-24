@@ -2,15 +2,19 @@
   "username": "test2",
   "password": "1111",
   "displayName": "Марина",
-  "role": "User",
+  "role": "SuperAdmin",
   "createdAt": "2025-08-29T08:10:42.217Z",
-  "lastLoginAt": "2025-09-23T11:51:57.271Z",
-  "avatarPath": null,
+  "lastLoginAt": "2025-09-24T06:25:10.033Z",
+  "avatarPath": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\Server\\users\\test2\\assets\\avatar.jpg",
   "stats": {},
-  "updatedAt": "2025-09-01T05:04:50.507Z",
+  "updatedAt": "2025-09-24T06:25:49.115Z",
   "avatarColor": {
     "hue": 313,
     "saturation": 80,
     "brightness": 80
-  }
+  },
+  "phone": "",
+  "email": "",
+  "department": "",
+  "position": "Секретарь"
 }
