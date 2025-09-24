@@ -38,7 +38,8 @@ function scanModules(dir) {
 
 function buildIndex() {
   if (!fs.existsSync(MODULES_DIR)) {
-    console.error('Modules directory not found:', MODULES_DIR);
+    // Директория модулей не найдена
+    console.error('Директория модулей не найдена:', MODULES_DIR);
     process.exit(1);
   }
 
@@ -47,9 +48,9 @@ function buildIndex() {
   const payload = {
     modules,
     generated_at: new Date().toISOString(),
-    generator: 'ProcessCraft Build System',
+    generator: 'Система сборки ProcessCraft',
     version: '2.0.0',
-    structure: 'folder-based',
+    structure: 'на основе папок',
     description: 'Автогенерируемый список модулей (modules/index.json)'
   };
 
@@ -62,7 +63,8 @@ if (require.main === module) {
     buildIndex();
     process.exit(0);
   } catch (e) {
-    console.error('Failed to build modules index:', e);
+    // Не удалось построить индекс модулей
+    console.error('Не удалось построить индекс модулей:', e);
     process.exit(2);
   }
 }

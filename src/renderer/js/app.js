@@ -915,7 +915,7 @@ class ProcessCraftApp {
             return;
         }
         this.switchModule('profile').catch(error => console.error('Error switching to profile:', error));
-        // Always re-initialize profile to ensure fresh data (including cover images)
+        // Всегда повторно инициализируйте профиль, чтобы получить свежие данные (включая изображения обложек).
         this.modules.profile.init();
         const currentModuleEl = document.getElementById('current-module');
         if (currentModuleEl) currentModuleEl.textContent = window.UI_CONFIG?.texts?.user_management?.profile?.user_profile_title || 'Профиль пользователя';
@@ -928,7 +928,7 @@ class ProcessCraftApp {
         if (!res?.ok) { this.showMessage(t.messages?.get_users_error || 'Не удалось получить список пользователей', 'error'); return; }
         const users = res.users || [];
         
-        // Generate avatar HTML for all users
+        // Сгенерируйте HTML-аватар для всех пользователей
         const usersWithAvatars = await Promise.all(users.map(async u => {
           const avatarHtml = await window.AvatarUtils.generateAvatarHTML(u, { size: 'sm', checkFileExists: false });
           return { ...u, avatarHtml };

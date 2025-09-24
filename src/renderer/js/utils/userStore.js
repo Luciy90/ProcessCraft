@@ -1,4 +1,5 @@
 // Simple renderer-side user store with IPC calls
+// Простое хранилище пользователей на стороне рендерера с IPC вызовами
 const { ipcRenderer } = require('electron');
 
 const SESSION_KEY = 'pc_current_user';
@@ -74,10 +75,12 @@ async function uploadAvatar(username, fileData) {
 }
 
 // Generate avatar color based on username
+// Генерация цвета аватара на основе имени пользователя
 function generateAvatarColor(username) {
   if (!username) return { hue: 0, saturation: 80, brightness: 80 };
   
   // Convert username to number (1-354 for hue)
+  // Преобразование имени пользователя в число (1-354 для оттенка)
   let hash = 0;
   for (let i = 0; i < username.length; i++) {
     hash = username.charCodeAt(i) + ((hash << 5) - hash);
@@ -88,6 +91,7 @@ function generateAvatarColor(username) {
 }
 
 // Get or generate avatar color for user
+// Получение или генерация цвета аватара для пользователя
 async function getAvatarColor(username) {
   try {
     const userData = await getUser(username);
@@ -96,9 +100,11 @@ async function getAvatarColor(username) {
     }
     
     // Generate new color if not exists
+    // Генерация нового цвета, если он не существует
     const color = generateAvatarColor(username);
     
     // Save to user.json
+    // Сохранение в user.json
     if (userData?.ok) {
       await saveUser(username, { avatarColor: color });
     }
@@ -111,6 +117,7 @@ async function getAvatarColor(username) {
 }
 
 // Check if avatar file exists
+// Проверка существования файла аватара
 async function checkAvatarFileExists(avatarPath) {
   if (!avatarPath) return false;
   try {

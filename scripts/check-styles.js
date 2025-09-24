@@ -25,7 +25,7 @@ function walk(dir) {
   for (const e of entries) {
     const full = path.join(dir, e.name);
     if (e.isDirectory()) {
-      // skip node_modules and .git
+      // пропустить node_modules и .git
       if (e.name === 'node_modules' || e.name === '.git') continue;
       walk(full);
     } else {
@@ -33,10 +33,10 @@ function walk(dir) {
       if (!/\.(html|js|htm|jsx|ts|tsx)$/.test(e.name)) continue;
       const content = fs.readFileSync(full, 'utf8');
       if (/<style[\s>]/i.test(content)) {
-        matches.push({ file: full, reason: '<style> tag found' });
+        matches.push({ file: full, reason: 'найден тег <style>' });
       }
       if (/style=\"[^\"]*animation:/i.test(content)) {
-        matches.push({ file: full, reason: 'inline animation style found' });
+        matches.push({ file: full, reason: 'найден встроенный стиль анимации' });
       }
     }
   }
@@ -45,10 +45,10 @@ function walk(dir) {
 walk(root);
 
 if (matches.length === 0) {
-  console.log('PASS: No <style> tags or inline animation styles found outside modules/design.');
+  console.log('ПРОЙДЕНО: Не найдено тегов <style> или встроенных стилей анимации вне модулей/дизайна.');
   process.exit(0);
 } else {
-  console.log('FOUND issues:');
+  console.log('НАЙДЕНЫ проблемы:');
   for (const m of matches) console.log(m.file + ' -> ' + m.reason);
   process.exit(2);
 }

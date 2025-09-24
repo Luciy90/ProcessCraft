@@ -11,9 +11,9 @@
     "technology/technology.js",
     "warehouse/warehouse.js"
   ],
-  "generated_at": "2025-09-23T11:30:06.509Z",
-  "generator": "ProcessCraft Build System",
+  "generated_at": "2025-09-24T05:23:57.465Z",
+  "generator": "Система сборки ProcessCraft",
   "version": "2.0.0",
-  "structure": "folder-based",
+  "structure": "на основе папок",
   "description": "Автогенерируемый список модулей (modules/index.json)"
 }

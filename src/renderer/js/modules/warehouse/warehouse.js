@@ -1,4 +1,4 @@
-// Складской модуль
+// Warehouse module
 
 class WarehouseModule {
     constructor(options = {}) {
@@ -10,14 +10,14 @@ class WarehouseModule {
         this.currentItem = null;
         this._initialized = false;
         
-        console.log(`[${this.moduleId}] Конструктор модуля выполнен`);
+        console.log(`[${this.moduleId}] Module constructor executed`);
     }
 
     async init() {
         if (this._initialized) return;
         
         try {
-            console.log(`[${this.moduleId}] Начало инициализации модуля`);
+            console.log(`[${this.moduleId}] Starting module initialization`);
             
             await this.initDatabase();
             this.render();
@@ -25,29 +25,29 @@ class WarehouseModule {
             await this.loadInventory();
             
             this._initialized = true;
-            console.log(`[${this.moduleId}] Модуль успешно инициализирован`);
+            console.log(`[${this.moduleId}] Module successfully initialized`);
         } catch (error) {
-            console.error(`[${this.moduleId}] Ошибка инициализации:`, error);
+            console.error(`[${this.moduleId}] Initialization error:`, error);
             throw error;
         }
     }
 
     async initDatabase() {
         try {
-            // Проверяем наличие глобального экземпляра Database
+            // Check for global Database instance
             if (window.Database) {
                 this.db = new window.Database();
             } else {
-                // Fallback: импорт Database если доступен
+                // Fallback: import Database if available
                 const { Database } = await import('../../utils/database.js');
                 this.db = new Database();
             }
             
-            console.log(`[${this.moduleId}] База данных инициализирована`);
+            console.log(`[${this.moduleId}] Database initialized`);
             
         } catch (error) {
-            console.warn(`[${this.moduleId}] Ошибка инициализации БД:`, error);
-            // Создаем заглушку для работы без БД
+            console.warn(`[${this.moduleId}] Database initialization error:`, error);
+            // Create a stub for working without DB
             this.db = {
                 getInventory: () => Promise.resolve([]),
                 addInventoryItem: () => Promise.resolve({ success: true }),
@@ -63,15 +63,15 @@ class WarehouseModule {
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl font-semibold text-white">Складской модуль</h1>
-                        <p class="text-white/60">Учет материалов, остатки, накладные</p>
+                        <h1 class="text-2xl font-semibold text-white">Warehouse Module</h1>
+                        <p class="text-white/60">Material accounting, balances, invoices</p>
                     </div>
                     <div class="flex gap-2">
                         <button id="add-inventory-btn" class="h-9 px-4 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">
-                            + Поступление
+                            + Receipt
                         </button>
                         <button id="create-invoice-btn" class="h-9 px-4 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">
-                            + Накладная
+                            + Invoice
                         </button>
                     </div>
                 </div>
@@ -79,19 +79,19 @@ class WarehouseModule {
                 <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                        <div class="text-sm text-white/60">Всего позиций</div>
+                        <div class="text-sm text-white/60">Total positions</div>
                         <div class="mt-2 text-2xl font-semibold text-white" id="total-items">0</div>
                     </div>
                     <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                        <div class="text-sm text-white/60">Критический остаток</div>
+                        <div class="text-sm text-white/60">Critical balance</div>
                         <div class="mt-2 text-2xl font-semibold text-red-400" id="critical-items">0</div>
                     </div>
                     <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                        <div class="text-sm text-white/60">Ожидается поставка</div>
+                        <div class="text-sm text-white/60">Expected delivery</div>
                         <div class="mt-2 text-2xl font-semibold text-amber-400" id="pending-delivery">0</div>
                     </div>
                     <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                        <div class="text-sm text-white/60">Складская стоимость</div>
+                        <div class="text-sm text-white/60">Warehouse value</div>
                         <div class="mt-2 text-2xl font-semibold text-green-400" id="total-value">₽0</div>
                     </div>
                 </div>
@@ -102,8 +102,8 @@ class WarehouseModule {
                     <div class="lg:col-span-1">
                         <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-medium text-white">Складские позиции</h3>
-                                <input type="text" id="inventory-search" placeholder="Поиск..." 
+                                <h3 class="text-lg font-medium text-white">Warehouse positions</h3>
+                                <input type="text" id="inventory-search" placeholder="Search..." 
                                        class="h-8 px-3 rounded-lg border border-white/10 bg-white/5 text-sm text-white placeholder-white/40">
                             </div>
                             <div id="inventory-list" class="space-y-2 max-h-96 overflow-y-auto">
@@ -116,7 +116,7 @@ class WarehouseModule {
                     <div class="lg:col-span-2">
                         <div id="item-details" class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
                             <div class="text-center text-white/40 py-8">
-                                Выберите позицию для просмотра деталей
+                                Select a position to view details
                             </div>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ class WarehouseModule {
 
                 <!-- Recent Transactions -->
                 <div class="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                    <h3 class="text-lg font-medium text-white mb-4">Последние операции</h3>
+                    <h3 class="text-lg font-medium text-white mb-4">Recent transactions</h3>
                     <div id="transactions-list" class="space-y-3">
                         <!-- Transactions will be loaded here -->
                     </div>
@@ -156,7 +156,7 @@ class WarehouseModule {
             this.renderInventoryList(inventory);
             this.updateStatistics(inventory);
         } catch (error) {
-            console.error('Ошибка загрузки складских данных:', error);
+            console.error('Error loading warehouse data:', error);
         }
     }
 
@@ -165,7 +165,7 @@ class WarehouseModule {
         if (!listElement) return;
 
         if (inventory.length === 0) {
-            listElement.innerHTML = '<div class="text-center text-white/40 py-4">Нет складских позиций</div>';
+            listElement.innerHTML = '<div class="text-center text-white/40 py-4">No warehouse positions</div>';
             return;
         }
 
@@ -230,7 +230,7 @@ class WarehouseModule {
             });
             document.querySelector(`[data-item-id="${itemId}"]`)?.classList.add('border-white/20', 'bg-white/10');
         } catch (error) {
-            console.error('Ошибка загрузки позиции:', error);
+            console.error('Error loading position:', error);
         }
     }
 
@@ -249,11 +249,11 @@ class WarehouseModule {
                     <div class="flex gap-2">
                         <button onclick="window.app.modules.warehouse.adjustStock('${item.id}')" 
                                 class="h-8 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">
-                            Корректировка
+                            Adjustment
                         </button>
                         <button onclick="window.app.modules.warehouse.deleteItem('${item.id}')" 
                                 class="h-8 px-3 rounded-lg border border-red-500/20 hover:border-red-500/40 bg-red-500/10 text-sm text-red-400">
-                            Удалить
+                            Delete
                         </button>
                     </div>
                 </div>
@@ -280,23 +280,23 @@ class WarehouseModule {
                         <div class="text-white">₽${item.price?.toLocaleString() || '0'}</div>
                     </div>
                     <div>
-                        <label class="text-sm text-white/60">Общая стоимость</label>
+                        <label class="text-sm text-white/60">Total cost</label>
                         <div class="text-white">₽${(item.quantity * (item.price || 0)).toLocaleString()}</div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-sm text-white/60">Описание</label>
-                    <div class="text-white mt-1">${item.description || 'Описание отсутствует'}</div>
+                    <label class="text-sm text-white/60">Description</label>
+                    <div class="text-white mt-1">${item.description || 'No description'}</div>
                 </div>
 
                 <div>
-                    <label class="text-sm text-white/60">Местоположение на складе</label>
-                    <div class="text-white mt-1">${item.location || 'Не указано'}</div>
+                    <label class="text-sm text-white/60">Warehouse location</label>
+                    <div class="text-white mt-1">${item.location || 'Not specified'}</div>
                 </div>
 
                 <div>
-                    <label class="text-sm text-white/60">История операций</label>
+                    <label class="text-sm text-white/60">Transaction history</label>
                     <div class="mt-2 space-y-2">
                         ${this.renderTransactionHistory(item.transactions)}
                     </div>
@@ -307,13 +307,13 @@ class WarehouseModule {
 
     renderTransactionHistory(transactions) {
         if (!transactions || transactions.length === 0) {
-            return '<div class="text-white/40">История операций отсутствует</div>';
+            return '<div class="text-white/40">No transaction history</div>';
         }
 
         return transactions.slice(0, 5).map(transaction => `
             <div class="flex justify-between items-center p-2 rounded-lg border border-white/5">
                 <div>
-                    <span class="text-white">${transaction.type === 'in' ? 'Поступление' : 'Расход'}</span>
+                    <span class="text-white">${transaction.type === 'in' ? 'Receipt' : 'Expense'}</span>
                     <span class="text-white/60 text-sm ml-2">${transaction.quantity} ${transaction.unit}</span>
                 </div>
                 <div class="text-white/40 text-sm">${new Date(transaction.date).toLocaleDateString()}</div>
@@ -335,10 +335,10 @@ class WarehouseModule {
     showAddInventoryModal() {
         const modalContent = `
             <div class="space-y-4">
-                <h3 class="text-lg font-semibold text-white">Поступление на склад</h3>
+                <h3 class="text-lg font-semibold text-white">Warehouse Receipt</h3>
                 <form id="add-inventory-form" class="space-y-3">
                     <div>
-                        <label class="text-sm text-white/60">Наименование</label>
+                        <label class="text-sm text-white/60">Name</label>
                         <input type="text" name="name" required 
                                class="w-full h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-white">
                     </div>
@@ -354,16 +354,16 @@ class WarehouseModule {
                                    class="w-full h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-white">
                         </div>
                         <div>
-                            <label class="text-sm text-white/60">Единица измерения</label>
+                            <label class="text-sm text-white/60">Unit of measure</label>
                             <select name="unit" required 
                                     class="w-full h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-white">
-                                <option value="">Выберите</option>
-                                <option value="шт">шт</option>
-                                <option value="кг">кг</option>
-                                <option value="м">м</option>
-                                <option value="л">л</option>
-                                <option value="м²">м²</option>
-                                <option value="м³">м³</option>
+                                <option value="">Select</option>
+                                <option value="шт">pcs</option>
+                                <option value="кг">kg</option>
+                                <option value="м">m</option>
+                                <option value="л">l</option>
+                                <option value="м²">m²</option>
+                                <option value="м³">m³</option>
                             </select>
                         </div>
                     </div>
@@ -383,20 +383,20 @@ class WarehouseModule {
                         <label class="text-sm text-white/60">Категория</label>
                         <select name="category" required 
                                 class="w-full h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-white">
-                            <option value="">Выберите категорию</option>
-                            <option value="materials">Материалы</option>
-                            <option value="tools">Инструменты</option>
-                            <option value="equipment">Оборудование</option>
-                            <option value="consumables">Расходники</option>
+                            <option value="">Select category</option>
+                            <option value="materials">Materials</option>
+                            <option value="tools">Tools</option>
+                            <option value="equipment">Equipment</option>
+                            <option value="consumables">Consumables</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm text-white/60">Местоположение</label>
+                        <label class="text-sm text-white/60">Location</label>
                         <input type="text" name="location" 
                                class="w-full h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-white">
                     </div>
                     <div>
-                        <label class="text-sm text-white/60">Описание</label>
+                        <label class="text-sm text-white/60">Description</label>
                         <textarea name="description" rows="3" 
                                   class="w-full px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white"></textarea>
                     </div>
@@ -404,11 +404,11 @@ class WarehouseModule {
                 <div class="flex justify-end gap-2">
                     <button onclick="window.app.closeModal()" 
                             class="h-9 px-4 rounded-lg border border-white/10 hover:bg-white/5 text-sm">
-                        Отмена
+                        Cancel
                     </button>
                     <button onclick="window.app.modules.warehouse.saveInventory()" 
                             class="h-9 px-4 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">
-                        Сохранить
+                        Save
                     </button>
                 </div>
             </div>
@@ -437,7 +437,7 @@ class WarehouseModule {
                 quantity: parseFloat(formData.get('quantity')),
                 unit: formData.get('unit'),
                 date: new Date().toISOString(),
-                description: 'Первоначальное поступление'
+                description: 'Initial receipt'
             }]
         };
 
@@ -445,70 +445,70 @@ class WarehouseModule {
             await this.db.addInventoryItem(inventoryData);
             window.app.closeModal();
             this.loadInventory();
-            window.app.showMessage('Позиция успешно добавлена на склад', 'success');
+            window.app.showMessage('Position successfully added to warehouse', 'success');
         } catch (error) {
-            console.error('Ошибка сохранения позиции:', error);
-            window.app.showMessage('Ошибка при сохранении позиции', 'error');
+            console.error('Error saving position:', error);
+            window.app.showMessage('Error saving position', 'error');
         }
     }
 
     showCreateInvoiceModal() {
         // Implementation for creating warehouse invoices
-        console.log('Модальное окно создания накладной');
+        console.log('Create invoice modal window');
     }
 
     async adjustStock(itemId) {
         // Implementation for stock adjustment
-        console.log('Корректировка запаса для позиции:', itemId);
+        console.log('Stock adjustment for position:', itemId);
     }
 
     async deleteItem(itemId) {
-        if (confirm('Вы уверены, что хотите удалить эту позицию?')) {
+        if (confirm('Are you sure you want to delete this position?')) {
             try {
                 await this.db.deleteInventoryItem(itemId);
                 this.loadInventory();
                 document.getElementById('item-details').innerHTML = `
                     <div class="text-center text-white/40 py-8">
-                        Выберите позицию для просмотра деталей
+                        Select a position to view details
                     </div>
                 `;
-                window.app.showMessage('Позиция удалена', 'success');
+                window.app.showMessage('Position deleted', 'success');
             } catch (error) {
-                console.error('Ошибка удаления позиции:', error);
-                window.app.showMessage('Ошибка при удалении позиции', 'error');
+                console.error('Error deleting position:', error);
+                window.app.showMessage('Error deleting position', 'error');
             }
         }
     }
 
     async destroy() {
         try {
-            console.log(`[${this.moduleId}] Уничтожение модуля`);
+            console.log(`[${this.moduleId}] Module destruction`);
             
-            // Очистка обработчиков событий
-            // (в реальном приложении нужно сохранять ссылки на обработчики для их удаления)
+            // Cleaning up event handlers
+            // (in a real application, references to handlers should be saved for removal)
             
-            // Освобождение ресурсов
+            // Releasing resources
             this.db = null;
             this.currentItem = null;
             this._initialized = false;
             
-            console.log(`[${this.moduleId}] Модуль уничтожен`);
+            console.log(`[${this.moduleId}] Module destroyed`);
             
         } catch (error) {
-            console.error(`[${this.moduleId}] Ошибка при уничтожении модуля:`, error);
+            console.error(`[${this.moduleId}] Error during module destruction:`, error);
         }
     }
 
     /**
-     * Статические метаданные модуля (альтернатива .meta.json)
-     * Используется загрузчиком если нет .meta.json файла
+     * Static module metadata (alternative to .meta.json)
+     * Used by loader if no .meta.json file exists
      */
     static get meta() {
         return {
             moduleId: 'warehouse',
-            moduleName: 'Складской модуль',
+            moduleName: 'Warehouse Module',
             version: '1.0.0',
-            description: 'Модуль для управления складом и инвентаризацией',
+            description: 'Module for warehouse management and inventory',
             dependencies: ['database'],
             author: 'ProcessCraft Team',
             enabled: true
@@ -516,8 +516,8 @@ class WarehouseModule {
     }
 }
 
-// Экспорт модуля для ES6 import
+// Module export for ES6 import
 export default WarehouseModule;
 
-// Глобальная доступность для совместимости с существующим кодом
+// Global availability for compatibility with existing code
 window.WarehouseModule = WarehouseModule;

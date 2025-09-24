@@ -58,7 +58,7 @@ class ProfileModule {
 
         container.innerHTML = out;
         
-        // Ensure Lucide icons render after dynamic injection
+        // Обеспечить отображение иконок Lucide после динамической вставки
         // Use setTimeout to ensure DOM is fully updated
         setTimeout(() => {
           if (window.lucide && typeof window.lucide.createIcons === 'function') {

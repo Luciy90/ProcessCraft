@@ -125,9 +125,9 @@ function generateIndexContent(modules) {
   return {
     modules: modules,
     generated_at: new Date().toISOString(),
-    generator: "ProcessCraft Build System",
+    generator: "Система сборки ProcessCraft",
     version: "2.0.0",
-    structure: "folder-based",
+    structure: "на основе папок",
     description: "Модули организованы в отдельные папки с .js и .meta.json файлами"
   };
 }

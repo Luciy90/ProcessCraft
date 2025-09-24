@@ -1,13 +1,21 @@
 // Centralized avatar display logic
+// Централизованная логика отображения аватаров
 // This module provides consistent avatar rendering across the application
+// Этот модуль обеспечивает согласованное отображение аватаров в приложении
 
 /**
  * Generate avatar HTML based on user data and container size
+ * Генерация HTML аватара на основе данных пользователя и размера контейнера
  * @param {Object} user - User object with username, displayName, avatarPath
+ * @param {Object} user - Объект пользователя с username, displayName, avatarPath
  * @param {Object} options - Display options
+ * @param {Object} options - Параметры отображения
  * @param {string} options.size - Size class (sm, md, lg, xl)
+ * @param {string} options.size - Класс размера (sm, md, lg, xl)
  * @param {boolean} options.checkFileExists - Whether to check if avatar file exists
+ * @param {boolean} options.checkFileExists - Проверять ли существование файла аватара
  * @returns {Promise<string>} HTML string for avatar
+ * @returns {Promise<string>} HTML строка для аватара
  */
 async function generateAvatarHTML(user, options = {}) {
   const {
@@ -20,6 +28,7 @@ async function generateAvatarHTML(user, options = {}) {
   }
 
   // Size mappings
+  // Соответствия размеров
   const sizeMap = {
     sm: { container: 'h-9 w-9', text: 'text-sm' },
     md: { container: 'h-16 w-16', text: 'text-2xl' },
@@ -30,6 +39,7 @@ async function generateAvatarHTML(user, options = {}) {
   const sizeConfig = sizeMap[size] || sizeMap.md;
 
   // Check if avatar file exists if path is provided
+  // Проверить существование файла аватара, если указан путь
   if (user.avatarPath && checkFileExists) {
     const fileExists = await window.UserStore.checkAvatarFileExists(user.avatarPath);
     if (fileExists) {
@@ -37,18 +47,24 @@ async function generateAvatarHTML(user, options = {}) {
     }
   } else if (user.avatarPath && !checkFileExists) {
     // Direct image without file check (for performance)
+    // Прямое изображение без проверки файла (для производительности)
     return `<img src="${user.avatarPath}" class="${sizeConfig.container} object-cover">`;
   }
 
   // Generate colored letter avatar
+  // Генерация цветного буквенного аватара
   return await generateColoredLetterAvatar(user, sizeConfig);
 }
 
 /**
  * Generate colored letter avatar
+ * Генерация цветного буквенного аватара
  * @param {Object} user - User object
+ * @param {Object} user - Объект пользователя
  * @param {Object} sizeConfig - Size configuration
+ * @param {Object} sizeConfig - Конфигурация размера
  * @returns {Promise<string>} HTML string for colored letter avatar
+ * @returns {Promise<string>} HTML строка для цветного буквенного аватара
  */
 async function generateColoredLetterAvatar(user, sizeConfig) {
   const firstLetter = (user.displayName || user.username || '?').charAt(0).toUpperCase();
@@ -66,9 +82,13 @@ async function generateColoredLetterAvatar(user, sizeConfig) {
 
 /**
  * Generate fallback avatar with default styling
+ * Генерация резервного аватара со стилем по умолчанию
  * @param {string} letter - Letter to display
+ * @param {string} letter - Буква для отображения
  * @param {Object|string} sizeConfig - Size configuration or size key
+ * @param {Object|string} sizeConfig - Конфигурация размера или ключ размера
  * @returns {string} HTML string for fallback avatar
+ * @returns {string} HTML строка для резервного аватара
  */
 function generateFallbackAvatar(letter, sizeConfig) {
   let config;
@@ -89,9 +109,13 @@ function generateFallbackAvatar(letter, sizeConfig) {
 
 /**
  * Update avatar in DOM element
+ * Обновление аватара в элементе DOM
  * @param {string} selector - CSS selector for avatar container
+ * @param {string} selector - CSS селектор для контейнера аватара
  * @param {Object} user - User object
+ * @param {Object} user - Объект пользователя
  * @param {Object} options - Display options
+ * @param {Object} options - Параметры отображения
  */
 async function updateAvatarInDOM(selector, user, options = {}) {
   const element = document.querySelector(selector);
@@ -111,8 +135,11 @@ async function updateAvatarInDOM(selector, user, options = {}) {
 
 /**
  * Generate avatar for top bar (optimized for performance)
+ * Генерация аватара для верхней панели (оптимизировано для производительности)
  * @param {Object} user - User object
+ * @param {Object} user - Объект пользователя
  * @returns {Promise<string>} HTML string for top bar avatar
+ * @returns {Promise<string>} HTML строка для аватара верхней панели
  */
 async function generateTopBarAvatar(user) {
   if (!user) {
@@ -123,10 +150,12 @@ async function generateTopBarAvatar(user) {
     const fileExists = await window.UserStore.checkAvatarFileExists(user.avatarPath);
     if (fileExists) {
       return user.avatarPath; // Return path for img.src
+      // Возвращаем путь для img.src
     }
   }
 
   // Generate colored letter
+  // Генерация цветной буквы
   const firstLetter = (user.displayName || user.username || '?').charAt(0).toUpperCase();
   try {
     const color = await window.UserStore.getAvatarColor(user.username);
@@ -144,6 +173,7 @@ async function generateTopBarAvatar(user) {
 }
 
 // Export functions
+// Экспорт функций
 window.AvatarUtils = {
   generateAvatarHTML,
   generateColoredLetterAvatar,

@@ -9,10 +9,12 @@ try {
     console.log('OK: model_settings.js exports initModelSettings');
     process.exit(0);
   } else {
-    console.error('FAIL: initModelSettings export not found in model_settings.js');
+    // ОШИБКА: Экспорт initModelSettings не найден в model_settings.js
+    console.error('ОШИБКА: Экспорт initModelSettings не найден в model_settings.js');
     process.exit(2);
   }
 } catch (e) {
-  console.error('ERROR reading file:', e.message);
+  // ОШИБКА чтения файла
+  console.error('ОШИБКА чтения файла:', e.message);
   process.exit(3);
 }

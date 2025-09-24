@@ -138,7 +138,7 @@ app.whenReady().then(() => {
     if (!fs.existsSync(adminFile)) {
       const userData = {
         username: 'Admin',
-        password: '1111', // NOTE: MVP, заменить на хэш позже
+        password: '1111', // ПРИМЕЧАНИЕ: минимальная версия продукта, заменить на хэш позже
         displayName: 'Администратор',
         role: 'SuperAdmin',
         createdAt: new Date().toISOString(),
@@ -223,7 +223,7 @@ function getUserDir(username) {
 function getUserFile(username) {
   return path.join(getUserDir(username), 'user.json');
 }
-// Section files helpers (per-user JSON sections)
+// Вспомогательные файлы разделов (JSON-файлы для каждого пользователя)
 function getUserSectionFile(username, section) {
   return path.join(getUserDir(username), `${section}.json`);
 }
@@ -251,7 +251,7 @@ function writeJsonSafe(filePath, data) {
 }
 
 ensureUsersDir();
-// Ensure per-user section files exist
+// Обеспечить существование файлов разделов для каждого пользователя
 function ensureUserSectionFiles(username) {
   const dir = getUserDir(username);
   if (!fs.existsSync(dir)) return;
@@ -299,7 +299,7 @@ ipcMain.handle('users:get', async (event, username) => {
   return { ok: true, user: data };
 });
 
-// Generic per-section getters/savers
+// Универсальные методы получения/сохранения для разделов
 ipcMain.handle('users:getSection', async (event, payload) => {
   try {
     const { username, section } = payload || {};
@@ -355,7 +355,7 @@ ipcMain.handle('users:create', async (event, payload) => {
     if (fs.existsSync(dir)) return { ok: false, error: 'user_exists' };
     const userData = {
       username,
-      password, // NOTE: для MVP хранение в открытом виде. Заменить на хэш позже.
+      password, // ПРИМЕЧАНИЕ: для минимальной версии продукта хранение в открытом виде. Заменить на хэш позже.
       displayName: displayName || username,
       role: role || 'User',
       createdAt: new Date().toISOString(),
@@ -417,11 +417,13 @@ ipcMain.handle('users:delete', async (event, username) => {
 });
 
 // Helper function to resolve cover path with fallback
+// Вспомогательная функция для определения пути к обложке с резервным вариантом
 function resolveCoverPath(username) {
   const userAssetsDir = path.join(__dirname, '../Server/users', username, 'assets');
   const coverExtensions = ['jpg', 'jpeg', 'png'];
   
   // Check for user-specific cover images
+  // Проверка наличия пользовательских изображений обложки
   for (const ext of coverExtensions) {
     const coverPath = path.join(userAssetsDir, `cover.${ext}`);
     if (fs.existsSync(coverPath)) {
@@ -430,6 +432,7 @@ function resolveCoverPath(username) {
   }
   
   // Return null if no user-specific cover found (will fallback to default in renderer)
+  // Возвращаем null, если пользовательская обложка не найдена (будет использован вариант по умолчанию в рендерере)
   return null;
 }
 
@@ -443,14 +446,17 @@ ipcMain.handle('auth:login', async (event, credentials) => {
     if (data.password !== password) return { ok: false, error: 'invalid_password' };
     
     // Update last login time
+    // Обновление времени последнего входа
     data.lastLoginAt = new Date().toISOString();
     writeJsonSafe(getUserFile(username), data);
     
     // Resolve cover path with fallback logic
+    // Определение пути к обложке с резервной логикой
     let coverPath = data.coverPath;
     if (!coverPath || !fs.existsSync(coverPath)) {
       coverPath = resolveCoverPath(username);
       // Update user data with resolved cover path if found
+      // Обновление данных пользователя с найденным путем к обложке
       if (coverPath && coverPath !== data.coverPath) {
         data.coverPath = coverPath;
         writeJsonSafe(getUserFile(username), data);
@@ -477,6 +483,7 @@ ipcMain.handle('auth:login', async (event, credentials) => {
 ipcMain.handle('auth:logout', async () => ({ ok: true }));
 
 // Check if file exists
+// Проверка существования файла
 ipcMain.handle('file:exists', async (event, filePath) => {
   try {
     if (!filePath) return { exists: false };
@@ -489,9 +496,11 @@ ipcMain.handle('file:exists', async (event, filePath) => {
 });
 
 // File upload handlers
+// Обработчики загрузки файлов
 ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) => {
   try {
     // Validate file type
+    // Проверка типа файла
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(fileData.type)) {
       return {
@@ -502,6 +511,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     }
 
     // Create user assets directory if it doesn't exist
+    // Создание директории для пользовательских ресурсов, если она не существует
     const userAssetsDir = path.join(__dirname, '../Server/users', username, 'assets');
     if (!fs.existsSync(userAssetsDir)) {
       try {
@@ -516,6 +526,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     }
 
     // Determine extension from MIME type
+    // Определение расширения по MIME-типу
     let extension = 'jpg';
     if (fileData.type === 'image/png') {
       extension = 'png';
@@ -524,6 +535,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     }
 
     // Remove old cover files with different extensions
+    // Удаление старых файлов обложек с различными расширениями
     const oldFiles = ['cover.jpg', 'cover.jpeg', 'cover.png'];
     oldFiles.forEach(oldFile => {
       const oldFilePath = path.join(userAssetsDir, oldFile);
@@ -538,21 +550,27 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     });
 
     // Create new filename with fixed name
+    // Создание нового имени файла с фиксированным именем
     const newFileName = `cover.${extension}`;
     const filePath = path.join(userAssetsDir, newFileName);
 
     // Save file
+    // Сохранение файла
     try {
       // Handle both base64 string and buffer data
+      // Обработка как строки base64, так и буфера данных
       let buffer;
       if (typeof fileData.data === 'string') {
         // If it's a base64 string, convert to buffer
+        // Если это строка base64, преобразуем в буфер
         buffer = Buffer.from(fileData.data, 'base64');
       } else if (Buffer.isBuffer(fileData.data)) {
         // If it's already a buffer, use it directly
+        // Если это уже буфер, используем его напрямую
         buffer = fileData.data;
       } else {
         // If it's an array or other format, try to convert
+        // Если это массив или другой формат, пытаемся преобразовать
         buffer = Buffer.from(fileData.data);
       }
       
@@ -567,6 +585,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     }
 
     // Update user.json with new cover path
+    // Обновление user.json с новым путем к обложке
     try {
       const userJsonPath = path.join(__dirname, '../Server/users', username, 'user.json');
       if (fs.existsSync(userJsonPath)) {
@@ -578,6 +597,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
     } catch (err) {
       console.warn('Failed to update user.json with cover path:', err);
       // Continue anyway as file was saved successfully
+      // Продолжаем, так как файл был успешно сохранен
     }
 
     return {
@@ -598,6 +618,7 @@ ipcMain.handle('upload:cover', async (event, { username, fileData, fileName }) =
 ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) => {
   try {
     // Validate file type
+    // Проверка типа файла
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(fileData.type)) {
       return {
@@ -608,6 +629,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     }
 
     // Create user assets directory if it doesn't exist
+    // Создание директории для пользовательских ресурсов, если она не существует
     const userAssetsDir = path.join(__dirname, '../Server/users', username, 'assets');
     if (!fs.existsSync(userAssetsDir)) {
       try {
@@ -622,6 +644,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     }
 
     // Determine extension from MIME type
+    // Определение расширения по MIME-типу
     let extension = 'jpg';
     if (fileData.type === 'image/png') {
       extension = 'png';
@@ -630,6 +653,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     }
 
     // Remove old avatar files with different extensions
+    // Удаление старых файлов аватаров с различными расширениями
     const oldFiles = ['avatar.jpg', 'avatar.jpeg', 'avatar.png'];
     oldFiles.forEach(oldFile => {
       const oldFilePath = path.join(userAssetsDir, oldFile);
@@ -644,21 +668,27 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     });
 
     // Create new filename with fixed name
+    // Создание нового имени файла с фиксированным именем
     const newFileName = `avatar.${extension}`;
     const filePath = path.join(userAssetsDir, newFileName);
 
     // Save file
+    // Сохранение файла
     try {
       // Handle both base64 string and buffer data
+      // Обработка как строки base64, так и буфера данных
       let buffer;
       if (typeof fileData.data === 'string') {
         // If it's a base64 string, convert to buffer
+        // Если это строка base64, преобразуем в буфер
         buffer = Buffer.from(fileData.data, 'base64');
       } else if (Buffer.isBuffer(fileData.data)) {
         // If it's already a buffer, use it directly
+        // Если это уже буфер, используем его напрямую
         buffer = fileData.data;
       } else {
         // If it's an array or other format, try to convert
+        // Если это массив или другой формат, пытаемся преобразовать
         buffer = Buffer.from(fileData.data);
       }
       
@@ -673,6 +703,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     }
 
     // Update user.json with new avatar path
+    // Обновление user.json с новым путем к аватару
     try {
       const userJsonPath = path.join(__dirname, '../Server/users', username, 'user.json');
       if (fs.existsSync(userJsonPath)) {
@@ -684,6 +715,7 @@ ipcMain.handle('upload:avatar', async (event, { username, fileData, fileName }) 
     } catch (err) {
       console.warn('Failed to update user.json:', err);
       // Continue anyway as file was saved successfully
+      // Продолжаем, так как файл был успешно сохранен
     }
 
     return {
