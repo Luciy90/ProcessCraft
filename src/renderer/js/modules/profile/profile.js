@@ -125,7 +125,15 @@ class ProfileModule {
           if (requestBtn) requestBtn.addEventListener('click', () => window.app.openRequestChangesModal());
         }
         const logoutBtn = document.getElementById('profile-logout');
-        if (logoutBtn) logoutBtn.addEventListener('click', async () => { await window.UserStore.logout(); window.location.reload(); });
+        if (logoutBtn) logoutBtn.addEventListener('click', async () => { 
+            await window.UserStore.logout(); 
+            // Обрабатываем изменение состояния аутентификации
+            if (window.app && window.app.handleAuthStateChange) {
+                window.app.handleAuthStateChange(false);
+            }
+            // Перезагружаем страницу для обновления интерфейса
+            window.location.reload(); 
+        });
 
         const refreshBtn = document.getElementById('refresh-activity');
         if (refreshBtn && user?.username) {

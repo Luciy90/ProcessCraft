@@ -325,12 +325,20 @@ export function initModelSettings() {
 
         // Store temporary instruction when toggles change
         lockToggle.addEventListener('change', () => {
-          applyLockState();
-          storeTempInstruction(selectedUser, moduleName, 'lock', lockToggle.checked);
+          // Ensure we have a selected user, default to first user if none selected
+          const currentUser = selectedUser || (Object.keys(allUsersAccessData).length > 0 ? Object.keys(allUsersAccessData)[0] : null);
+          if (currentUser) {
+            applyLockState();
+            storeTempInstruction(currentUser, moduleName, 'lock', lockToggle.checked);
+          }
         });
         
         visibleToggle.addEventListener('change', () => {
-          storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
+          // Ensure we have a selected user, default to first user if none selected
+          const currentUser = selectedUser || (Object.keys(allUsersAccessData).length > 0 ? Object.keys(allUsersAccessData)[0] : null);
+          if (currentUser) {
+            storeTempInstruction(currentUser, moduleName, 'visible', visibleToggle.checked);
+          }
         });
 
         // Add event listener for enable toggle
@@ -665,7 +673,17 @@ export function initModelSettings() {
     applyBtn?.addEventListener('click', async () => {
       // Get currently selected user
       const selectedUserRow = usersScroll().querySelector('.user-row.selected-user');
-      const selectedUsername = selectedUserRow ? selectedUserRow.getAttribute('data-username') : null;
+      let selectedUsername = selectedUserRow ? selectedUserRow.getAttribute('data-username') : null;
+      
+      // If no user is explicitly selected, but we have temporary instructions, use the first user with instructions
+      if (!selectedUsername && Object.keys(tempInstructions).length > 0) {
+        selectedUsername = Object.keys(tempInstructions)[0];
+      }
+      
+      // If still no user selected, use the first user from allUsersAccessData
+      if (!selectedUsername && Object.keys(allUsersAccessData).length > 0) {
+        selectedUsername = Object.keys(allUsersAccessData)[0];
+      }
       
       if (!selectedUsername) {
         console.warn('No user selected');
