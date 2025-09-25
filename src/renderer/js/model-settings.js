@@ -371,8 +371,8 @@ export function initModelSettings() {
       // Get module states with temp instructions applied
       const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
       
-      // Update module toggles with the new user's access data
-      updateModuleToggles(currentUserAccess, moduleStatesWithTemp, moduleNames);
+      // Update module toggles with the new user's access data using the new handler
+      updateUserModuleToggles(currentUserAccess, moduleStatesWithTemp, moduleNames);
     };
 
     // Function to get current user access data with temp instructions applied
@@ -429,80 +429,85 @@ export function initModelSettings() {
       tempInstructions[username][moduleName][property] = value;
     };
 
-    // Function to update module toggles with user access data
-    const updateModuleToggles = (userAccessData, moduleStates, moduleNames) => {
-      // Get module states with temp instructions applied
-      const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
+    // New handler function to update module toggles with animation when switching users
+    const updateUserModuleToggles = (userAccessData, moduleStates, moduleNames) => {
+      // Get all module rows
+      const moduleRows = modulesScroll().querySelectorAll('.module-row');
       
-      modulesScroll().innerHTML = moduleNames.map((moduleName) => {
-        // Get enable state for this module
-        const isEnabled = moduleStatesWithTemp[moduleName] !== undefined ? moduleStatesWithTemp[moduleName] : true;
-        
-        // Get access data for this module for the selected user
-        const moduleAccess = userAccessData[moduleName] || { visible: true, lock: false };
-        
-        return moduleToggleGroup(moduleName, moduleAccess.lock, isEnabled, moduleAccess.visible);
-      }).join('');
-      
-      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
-      
-      // Re-attach event listeners for toggles
-      modulesScroll().querySelectorAll('.module-row').forEach(row => {
-        const lockToggle = row.querySelector('input.toggle-lock');
-        const visibleToggle = row.querySelector('input.toggle-visible');
-        const enableToggle = row.querySelector('input.toggle-enable'); // Add this line
+      // Process each module row sequentially
+      moduleRows.forEach((row, index) => {
         const moduleNameElement = row.querySelector('span.truncate');
-        
-        if (!lockToggle || !visibleToggle || !moduleNameElement) return;
+        if (!moduleNameElement) return;
         
         const moduleName = moduleNameElement.textContent;
-
-        // Lock toggle handler
-        const lockIcon = row.querySelector('.lock-indicator');
-        const applyLockState = () => {
-          if (lockToggle.checked) {
-            lockIcon.setAttribute('data-lucide', 'lock');
-            lockIcon.classList.remove('text-white/60');
-            lockIcon.classList.add('text-orange-400');
-          } else {
-            lockIcon.setAttribute('data-lucide', 'unlock');
-            lockIcon.classList.remove('text-orange-400');
-            lockIcon.classList.add('text-white/60');
-          }
-          lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
-        };
-
-        // Store temporary instruction when toggles change
-        lockToggle.addEventListener('change', () => {
-          applyLockState();
-          storeTempInstruction(selectedUser, moduleName, 'lock', lockToggle.checked);
-        });
         
-        visibleToggle.addEventListener('change', () => {
-          storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
-        });
-
-        // Add event listener for enable toggle
-        if (enableToggle) {
-          enableToggle.addEventListener('change', () => {
-            // For enable toggle, we store the instruction for all users since it's a global setting
-            // Get all usernames from allUsersAccessData
-            const allUsernames = Object.keys(allUsersAccessData);
-            
-            // Store the instruction for all users
-            allUsernames.forEach(username => {
-              storeTempInstruction(username, moduleName, 'enable', enableToggle.checked);
-            });
-            
-            // Also update the global moduleStates object directly
-            if (moduleStates && moduleStates.hasOwnProperty(moduleName)) {
-              moduleStates[moduleName] = enableToggle.checked;
+        // Get the toggle elements
+        const visibleToggle = row.querySelector('input.toggle-visible');
+        const lockToggle = row.querySelector('input.toggle-lock');
+        const enableToggle = row.querySelector('input.toggle-enable');
+        
+        if (!visibleToggle || !lockToggle || !enableToggle) return;
+        
+        // Get target states for this module
+        const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
+        const moduleAccess = userAccessData[moduleName] || { visible: true, lock: false };
+        const targetVisible = moduleAccess.visible;
+        const targetLock = moduleAccess.lock;
+        const targetEnable = isEnabled;
+        
+        // Schedule the updates with a delay to create sequential effect
+        setTimeout(() => {
+          // Update visible toggle with animation
+          updateToggleWithAnimation(visibleToggle, targetVisible, 'user-switch-animation');
+          
+          // Update lock toggle with animation
+          updateToggleWithAnimation(lockToggle, targetLock, 'user-switch-animation-lock');
+          
+          // Update enable toggle with animation
+          updateToggleWithAnimation(enableToggle, targetEnable, 'user-switch-animation-enable');
+          
+          // Update lock icon
+          const lockIcon = row.querySelector('.lock-indicator');
+          if (lockIcon) {
+            if (targetLock) {
+              lockIcon.setAttribute('data-lucide', 'lock');
+              lockIcon.classList.remove('text-white/60');
+              lockIcon.classList.add('text-orange-400');
+            } else {
+              lockIcon.setAttribute('data-lucide', 'unlock');
+              lockIcon.classList.remove('text-orange-400');
+              lockIcon.classList.add('text-white/60');
             }
-          });
-        }
-
-        applyLockState();
+            lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+          }
+        }, index * 50); // 50ms delay between each module for sequential effect
       });
+    };
+
+    // Helper function to update toggle state with animation
+    const updateToggleWithAnimation = (toggle, targetState, animationClass) => {
+      // Only proceed if the state needs to change
+      if (toggle.checked !== targetState) {
+        // Add animation class to the parent switch element
+        const switchElement = toggle.closest('.model-settings-switch');
+        if (switchElement) {
+          switchElement.classList.add(animationClass);
+          
+          // Remove animation class after animation completes
+          setTimeout(() => {
+            switchElement.classList.remove(animationClass);
+          }, 400); // Match the animation duration in CSS
+        }
+        
+        // Update the toggle state after a small delay to ensure animation starts
+        setTimeout(() => {
+          toggle.checked = targetState;
+          
+          // Trigger change event to ensure UI updates properly and store temp instructions
+          const event = new Event('change', { bubbles: true });
+          toggle.dispatchEvent(event);
+        }, 10);
+      }
     };
 
     // Function to read user access data from accessToModules.json
