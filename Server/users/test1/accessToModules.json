@@ -1,15 +1,15 @@
 {
   "analytics": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "dashboard": {
     "visible": true,
-    "lock": false
+    "lock": true
   },
   "design": {
-    "visible": false,
-    "lock": false
+    "visible": true,
+    "lock": true
   },
   "maintenance": {
     "visible": false,

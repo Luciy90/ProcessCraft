@@ -1,18 +1,18 @@
 {
   "analytics": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "dashboard": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "design": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "maintenance": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "molds": {

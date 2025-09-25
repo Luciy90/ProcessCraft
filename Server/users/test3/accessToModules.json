@@ -17,11 +17,11 @@
   },
   "molds": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "orders": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "profile": {
     "visible": false,

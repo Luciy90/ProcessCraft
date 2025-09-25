@@ -257,11 +257,14 @@ export function initModelSettings() {
 
       // Get current user access data (with temp instructions applied)
       const currentUserAccess = getCurrentUserAccessData(selectedUser, indexModuleNames);
+      
+      // Get module states with temp instructions applied
+      const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
 
       // modules: заблокируем несколько (оранжевый zamок) — если модулей нет, оставим список пустым
       modulesScroll().innerHTML = indexModuleNames.map((moduleName) => {
         // Get enable state for this module
-        const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
+        const isEnabled = moduleStatesWithTemp[moduleName] !== undefined ? moduleStatesWithTemp[moduleName] : true;
         
         // Get access data for this module for the selected user
         const moduleAccess = currentUserAccess[moduleName] || { visible: true, lock: false };
@@ -298,6 +301,7 @@ export function initModelSettings() {
       modulesScroll().querySelectorAll('.module-row').forEach(row => {
         const lockToggle = row.querySelector('input.toggle-lock');
         const visibleToggle = row.querySelector('input.toggle-visible');
+        const enableToggle = row.querySelector('input.toggle-enable'); // Add this line
         const moduleNameElement = row.querySelector('span.truncate');
         
         if (!lockToggle || !visibleToggle || !moduleNameElement) return;
@@ -329,6 +333,25 @@ export function initModelSettings() {
           storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
         });
 
+        // Add event listener for enable toggle
+        if (enableToggle) {
+          enableToggle.addEventListener('change', () => {
+            // For enable toggle, we store the instruction for all users since it's a global setting
+            // Get all usernames from allUsersAccessData
+            const allUsernames = Object.keys(allUsersAccessData);
+            
+            // Store the instruction for all users
+            allUsernames.forEach(username => {
+              storeTempInstruction(username, moduleName, 'enable', enableToggle.checked);
+            });
+            
+            // Also update the global moduleStates object directly
+            if (moduleStates && moduleStates.hasOwnProperty(moduleName)) {
+              moduleStates[moduleName] = enableToggle.checked;
+            }
+          });
+        }
+
         // инициализация и прослушивание
         applyLockState();
       });
@@ -345,8 +368,11 @@ export function initModelSettings() {
       // Get current user access data (with temp instructions applied)
       const currentUserAccess = getCurrentUserAccessData(selectedUser, moduleNames);
       
+      // Get module states with temp instructions applied
+      const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
+      
       // Update module toggles with the new user's access data
-      updateModuleToggles(currentUserAccess, moduleStates, moduleNames);
+      updateModuleToggles(currentUserAccess, moduleStatesWithTemp, moduleNames);
     };
 
     // Function to get current user access data with temp instructions applied
@@ -374,6 +400,24 @@ export function initModelSettings() {
       return result;
     };
 
+    // Function to get module states with temp instructions applied
+    const getModuleStatesWithTempInstructions = (username, moduleStates) => {
+      // Start with the actual module states
+      const result = { ...moduleStates };
+      
+      // Apply temporary instructions for enable property
+      if (tempInstructions[username]) {
+        for (const moduleName in tempInstructions[username]) {
+          const instructions = tempInstructions[username][moduleName];
+          if (instructions.hasOwnProperty('enable')) {
+            result[moduleName] = instructions.enable;
+          }
+        }
+      }
+      
+      return result;
+    };
+
     // Function to store temporary instruction
     const storeTempInstruction = (username, moduleName, property, value) => {
       if (!tempInstructions[username]) {
@@ -387,9 +431,12 @@ export function initModelSettings() {
 
     // Function to update module toggles with user access data
     const updateModuleToggles = (userAccessData, moduleStates, moduleNames) => {
+      // Get module states with temp instructions applied
+      const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
+      
       modulesScroll().innerHTML = moduleNames.map((moduleName) => {
         // Get enable state for this module
-        const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
+        const isEnabled = moduleStatesWithTemp[moduleName] !== undefined ? moduleStatesWithTemp[moduleName] : true;
         
         // Get access data for this module for the selected user
         const moduleAccess = userAccessData[moduleName] || { visible: true, lock: false };
@@ -403,6 +450,7 @@ export function initModelSettings() {
       modulesScroll().querySelectorAll('.module-row').forEach(row => {
         const lockToggle = row.querySelector('input.toggle-lock');
         const visibleToggle = row.querySelector('input.toggle-visible');
+        const enableToggle = row.querySelector('input.toggle-enable'); // Add this line
         const moduleNameElement = row.querySelector('span.truncate');
         
         if (!lockToggle || !visibleToggle || !moduleNameElement) return;
@@ -433,6 +481,25 @@ export function initModelSettings() {
         visibleToggle.addEventListener('change', () => {
           storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
         });
+
+        // Add event listener for enable toggle
+        if (enableToggle) {
+          enableToggle.addEventListener('change', () => {
+            // For enable toggle, we store the instruction for all users since it's a global setting
+            // Get all usernames from allUsersAccessData
+            const allUsernames = Object.keys(allUsersAccessData);
+            
+            // Store the instruction for all users
+            allUsernames.forEach(username => {
+              storeTempInstruction(username, moduleName, 'enable', enableToggle.checked);
+            });
+            
+            // Also update the global moduleStates object directly
+            if (moduleStates && moduleStates.hasOwnProperty(moduleName)) {
+              moduleStates[moduleName] = enableToggle.checked;
+            }
+          });
+        }
 
         applyLockState();
       });
@@ -661,6 +728,14 @@ export function initModelSettings() {
             if (instructions.hasOwnProperty('lock')) {
               userData[moduleName].lock = instructions.lock;
             }
+            // Handle enable property if it exists in temp instructions
+            if (instructions.hasOwnProperty('enable')) {
+              // For enable property, we need to update the moduleStates object
+              // which will be saved to index.json
+              if (moduleStates.hasOwnProperty(moduleName)) {
+                moduleStates[moduleName] = instructions.enable;
+              }
+            }
           }
         }
         
@@ -669,6 +744,12 @@ export function initModelSettings() {
         if (!accessSuccess) {
           allSuccess = false;
         }
+      }
+      
+      // Also save updated module states to index.json
+      const moduleSuccess2 = await saveModuleStates(moduleStates);
+      if (!moduleSuccess2) {
+        allSuccess = false;
       }
       
       if (allSuccess) {
