@@ -4,12 +4,12 @@
     "lock": true
   },
   "dashboard": {
-    "visible": false,
-    "lock": true
+    "visible": true,
+    "lock": false
   },
   "design": {
     "visible": false,
-    "lock": true
+    "lock": false
   },
   "maintenance": {
     "visible": false,
@@ -20,7 +20,7 @@
     "lock": true
   },
   "orders": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "profile": {

@@ -14,6 +14,15 @@ export function initModelSettings() {
     const usersScroll   = () => overlay.querySelector('.model-settings-users-list-scroll');
     const modulesScroll = () => overlay.querySelector('.model-settings-modules-list-scroll');
 
+    // Temporary instructions storage
+    let tempInstructions = {};
+    
+    // Currently selected user
+    let selectedUser = null;
+    
+    // All users access data
+    let allUsersAccessData = {};
+
     // Read users from local Server/users directory (Electron) or via fetch fallback (browser).
     // Чтение пользователей из локальной директории Server/users (Electron) или через fetch fallback (браузер).
     const readUsersFromServer = async () => {
@@ -153,6 +162,8 @@ export function initModelSettings() {
     const closeModal = () => {
       overlay.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
+      // Clear temporary instructions when closing modal
+      tempInstructions = {};
     };
 
     const initials = (name) => {
@@ -175,8 +186,8 @@ export function initModelSettings() {
       </label>
     `;
 
-    // Модуль: один ряд (имя + 3 тумблера) в гриде для выравнивания под маркеры
-    const moduleToggleGroup = (m, locked = false) => {
+    // Update the moduleToggleGroup function to accept visible state
+    const moduleToggleGroup = (m, locked = false, enabled = true, visible = true) => {
       return `
         <div class="module-row p-4 hover:bg-white/5 transition-colors"
               style="display:grid; grid-template-columns: minmax(0,1fr) auto auto auto; column-gap: 1.5rem; align-items:center;">
@@ -186,13 +197,13 @@ export function initModelSettings() {
             <span class="text-sm truncate">${m}</span>
           </div>
           <div class="flex justify-center">
-            ${buildToggle({ checked: true,  inputClasses: 'toggle-visible' })}
+            ${buildToggle({ checked: visible,  inputClasses: 'toggle-visible' })}
           </div>
           <div class="flex justify-center">
             ${buildToggle({ checked: locked, inputClasses: 'toggle-lock' })}
           </div>
           <div class="flex justify-center">
-            ${buildToggle({ checked: true,  inputClasses: 'toggle-enable' })}
+            ${buildToggle({ checked: enabled,  inputClasses: 'toggle-enable' })}
           </div>
         </div>
       `;
@@ -208,7 +219,7 @@ export function initModelSettings() {
         const avatarHtml = await generateAvatarHTML({ username: u.username, displayName: u.name, avatarPath: u.avatarPath }, { size: 'sm' });
 
         return `
-        <button class="user-row group w-full text-left p-3 flex items-center gap-3 transition-all duration-300 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 active:scale-[0.99]">
+        <button class="user-row group w-full text-left p-3 flex items-center gap-3 transition-all duration-300 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 active:scale-[0.99]" data-username="${u.username}">
           <div class="h-9 w-9 rounded-lg overflow-hidden border border-white/10 hover:border-white/20 hover:bg-white/5 grid place-items-center">
             ${avatarHtml}
           </div>
@@ -227,9 +238,36 @@ export function initModelSettings() {
 
       usersScroll().innerHTML = userNodes.join('');
 
-  // modules: заблокируем несколько (оранжевый замок) — если модулей нет, оставим список пустым
-  const lockedSet = new Set([1, 3]); // индексы заблокированных по умолчанию
-  modulesScroll().innerHTML = (modules || []).map((m, i) => moduleToggleGroup(m, lockedSet.has(i))).join('');
+      // Read module enable states from index.json
+      const moduleStates = await getModuleStates();
+
+      // Get module names from index.json to ensure correct mapping
+      const indexModuleNames = Object.keys(moduleStates);
+
+      // Load access data for all users
+      allUsersAccessData = {};
+      for (const user of users) {
+        allUsersAccessData[user.username] = await getUserAccessData(user.username);
+      }
+
+      // Select first user by default
+      if (users.length > 0) {
+        selectedUser = users[0].username;
+      }
+
+      // Get current user access data (with temp instructions applied)
+      const currentUserAccess = getCurrentUserAccessData(selectedUser, indexModuleNames);
+
+      // modules: заблокируем несколько (оранжевый zamок) — если модулей нет, оставим список пустым
+      modulesScroll().innerHTML = indexModuleNames.map((moduleName) => {
+        // Get enable state for this module
+        const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
+        
+        // Get access data for this module for the selected user
+        const moduleAccess = currentUserAccess[moduleName] || { visible: true, lock: false };
+        
+        return moduleToggleGroup(moduleName, moduleAccess.lock, isEnabled, moduleAccess.visible);
+      }).join('');
 
       lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
 
@@ -238,37 +276,36 @@ export function initModelSettings() {
       let currentSelected = null;
 
       userRows.forEach(row => {
-        row.addEventListener('click', () => {
+        row.addEventListener('click', async () => {
+          // Get username from data attribute
+          const username = row.getAttribute('data-username');
+          
+          if (!username) return;
+          
           if (currentSelected) {
-            currentSelected.classList.remove(
-              'bg-emerald-500/10',
-              'ring-1',
-              'ring-emerald-400/30',
-              'border-emerald-400/40',
-              'shadow-[0_0_0_3px_rgba(16,185,129,0.15)_inset]'
-            );
+            currentSelected.classList.remove('selected-user');
           }
-          row.classList.add(
-            'bg-emerald-500/10',
-            'ring-1',
-            'ring-emerald-400/30',
-            'border-emerald-400/40',
-            'shadow-[0_0_0_3px_rgba(16,185,129,0.15)_inset]'
-          );
-          row.animate(
-            [{ transform: 'scale(1)' }, { transform: 'scale(1.01)' }, { transform: 'scale(1)' }],
-            { duration: 160, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
-          );
+          row.classList.add('selected-user');
           currentSelected = row;
           userRows.forEach(r => r.setAttribute('aria-selected', r === row ? 'true' : 'false'));
+          
+          // Switch to the selected user
+          await switchUser(username, moduleStates, indexModuleNames);
         });
       });
 
       // Реакция иконки блокировки (оранжевая при блокировке)
       modulesScroll().querySelectorAll('.module-row').forEach(row => {
         const lockToggle = row.querySelector('input.toggle-lock');
-        const lockIcon   = row.querySelector('.lock-indicator');
+        const visibleToggle = row.querySelector('input.toggle-visible');
+        const moduleNameElement = row.querySelector('span.truncate');
+        
+        if (!lockToggle || !visibleToggle || !moduleNameElement) return;
+        
+        const moduleName = moduleNameElement.textContent;
 
+        // Lock toggle handler
+        const lockIcon = row.querySelector('.lock-indicator');
         const applyLockState = () => {
           if (lockToggle.checked) {
             lockIcon.setAttribute('data-lucide', 'lock');
@@ -282,19 +319,389 @@ export function initModelSettings() {
           lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
         };
 
+        // Store temporary instruction when toggles change
+        lockToggle.addEventListener('change', () => {
+          applyLockState();
+          storeTempInstruction(selectedUser, moduleName, 'lock', lockToggle.checked);
+        });
+        
+        visibleToggle.addEventListener('change', () => {
+          storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
+        });
+
         // инициализация и прослушивание
         applyLockState();
-        lockToggle.addEventListener('change', applyLockState);
       });
+    };
+
+    // Function to switch to a different user
+    const switchUser = async (username, moduleStates, moduleNames) => {
+      // Save current user's temporary instructions
+      // (They're already stored in tempInstructions)
+      
+      // Switch to new user
+      selectedUser = username;
+      
+      // Get current user access data (with temp instructions applied)
+      const currentUserAccess = getCurrentUserAccessData(selectedUser, moduleNames);
+      
+      // Update module toggles with the new user's access data
+      updateModuleToggles(currentUserAccess, moduleStates, moduleNames);
+    };
+
+    // Function to get current user access data with temp instructions applied
+    const getCurrentUserAccessData = (username, moduleNames) => {
+      // Start with the user's actual access data
+      const userData = allUsersAccessData[username] || {};
+      
+      // Apply temporary instructions
+      const result = {};
+      for (const moduleName of moduleNames) {
+        result[moduleName] = userData[moduleName] || { visible: true, lock: false };
+        
+        // Check if there are temp instructions for this user/module
+        if (tempInstructions[username] && tempInstructions[username][moduleName]) {
+          const instructions = tempInstructions[username][moduleName];
+          if (instructions.hasOwnProperty('visible')) {
+            result[moduleName].visible = instructions.visible;
+          }
+          if (instructions.hasOwnProperty('lock')) {
+            result[moduleName].lock = instructions.lock;
+          }
+        }
+      }
+      
+      return result;
+    };
+
+    // Function to store temporary instruction
+    const storeTempInstruction = (username, moduleName, property, value) => {
+      if (!tempInstructions[username]) {
+        tempInstructions[username] = {};
+      }
+      if (!tempInstructions[username][moduleName]) {
+        tempInstructions[username][moduleName] = {};
+      }
+      tempInstructions[username][moduleName][property] = value;
+    };
+
+    // Function to update module toggles with user access data
+    const updateModuleToggles = (userAccessData, moduleStates, moduleNames) => {
+      modulesScroll().innerHTML = moduleNames.map((moduleName) => {
+        // Get enable state for this module
+        const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
+        
+        // Get access data for this module for the selected user
+        const moduleAccess = userAccessData[moduleName] || { visible: true, lock: false };
+        
+        return moduleToggleGroup(moduleName, moduleAccess.lock, isEnabled, moduleAccess.visible);
+      }).join('');
+      
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+      
+      // Re-attach event listeners for toggles
+      modulesScroll().querySelectorAll('.module-row').forEach(row => {
+        const lockToggle = row.querySelector('input.toggle-lock');
+        const visibleToggle = row.querySelector('input.toggle-visible');
+        const moduleNameElement = row.querySelector('span.truncate');
+        
+        if (!lockToggle || !visibleToggle || !moduleNameElement) return;
+        
+        const moduleName = moduleNameElement.textContent;
+
+        // Lock toggle handler
+        const lockIcon = row.querySelector('.lock-indicator');
+        const applyLockState = () => {
+          if (lockToggle.checked) {
+            lockIcon.setAttribute('data-lucide', 'lock');
+            lockIcon.classList.remove('text-white/60');
+            lockIcon.classList.add('text-orange-400');
+          } else {
+            lockIcon.setAttribute('data-lucide', 'unlock');
+            lockIcon.classList.remove('text-orange-400');
+            lockIcon.classList.add('text-white/60');
+          }
+          lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+        };
+
+        // Store temporary instruction when toggles change
+        lockToggle.addEventListener('change', () => {
+          applyLockState();
+          storeTempInstruction(selectedUser, moduleName, 'lock', lockToggle.checked);
+        });
+        
+        visibleToggle.addEventListener('change', () => {
+          storeTempInstruction(selectedUser, moduleName, 'visible', visibleToggle.checked);
+        });
+
+        applyLockState();
+      });
+    };
+
+    // Function to read user access data from accessToModules.json
+    const getUserAccessData = async (username) => {
+      try {
+        const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
+        if (isElectron) {
+          const fs = window.require('fs');
+          const path = window.require('path');
+          const accessPath = path.join(process.cwd(), 'Server', 'users', username, 'accessToModules.json');
+          
+          if (fs.existsSync(accessPath)) {
+            const data = fs.readFileSync(accessPath, 'utf8');
+            return JSON.parse(data);
+          }
+        } else {
+          // Browser fallback
+          try {
+            const response = await fetch(`/Server/users/${username}/accessToModules.json`);
+            if (response.ok) {
+              return await response.json();
+            }
+          } catch (_) {}
+        }
+      } catch (e) {
+        console.warn(`getUserAccessData error for user ${username}:`, e);
+      }
+      
+      // Default to empty object if we can't read the file
+      return {};
+    };
+
+    // Function to save user access data to accessToModules.json
+    const saveUserAccessData = async (username, accessData) => {
+      try {
+        const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
+        if (isElectron) {
+          const fs = window.require('fs');
+          const path = window.require('path');
+          const accessPath = path.join(process.cwd(), 'Server', 'users', username, 'accessToModules.json');
+          
+          // Write to file
+          fs.writeFileSync(accessPath, JSON.stringify(accessData, null, 2), 'utf8');
+          return true;
+        } else {
+          // Browser fallback - in a real implementation, this would use a backend API
+          console.warn('Saving user access data in browser environment not implemented');
+          return false;
+        }
+      } catch (e) {
+        console.error(`saveUserAccessData error for user ${username}:`, e);
+        return false;
+      }
+    };
+
+    // Function to read module states from index.json
+    const getModuleStates = async () => {
+      try {
+        const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
+        if (isElectron) {
+          const fs = window.require('fs');
+          const path = window.require('path');
+          const indexPath = path.join(process.cwd(), 'src/renderer/js/modules/index.json');
+          
+          if (fs.existsSync(indexPath)) {
+            const data = fs.readFileSync(indexPath, 'utf8');
+            const index = JSON.parse(data);
+            const states = {};
+            
+            if (index.modules && typeof index.modules === 'object') {
+              for (const [moduleName, moduleConfig] of Object.entries(index.modules)) {
+                states[moduleName] = moduleConfig.enable !== false; // default to true if not specified
+              }
+            }
+            
+            return states;
+          }
+        } else {
+          // Browser fallback
+          try {
+            const response = await fetch('/src/renderer/js/modules/index.json');
+            if (response.ok) {
+              const index = await response.json();
+              const states = {};
+              
+              if (index.modules && typeof index.modules === 'object') {
+                for (const [moduleName, moduleConfig] of Object.entries(index.modules)) {
+                  states[moduleName] = moduleConfig.enable !== false;
+                }
+              }
+              
+              return states;
+            }
+          } catch (_) {}
+        }
+      } catch (e) {
+        console.warn('getModuleStates error:', e);
+      }
+      
+      // Default to all modules enabled if we can't read the file
+      return {};
+    };
+
+    // Function to save module states to index.json
+    const saveModuleStates = async (states) => {
+      try {
+        const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
+        if (isElectron) {
+          const fs = window.require('fs');
+          const path = window.require('path');
+          const indexPath = path.join(process.cwd(), 'src/renderer/js/modules/index.json');
+          
+          if (fs.existsSync(indexPath)) {
+            const data = fs.readFileSync(indexPath, 'utf8');
+            const index = JSON.parse(data);
+            
+            // Update enable states
+            if (index.modules && typeof index.modules === 'object') {
+              for (const [moduleName, enableState] of Object.entries(states)) {
+                if (index.modules[moduleName]) {
+                  index.modules[moduleName].enable = enableState;
+                }
+              }
+            }
+            
+            // Write back to file
+            fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf8');
+            return true;
+          }
+        } else {
+          // Browser fallback - in a real implementation, this would use a backend API
+          console.warn('Saving module states in browser environment not implemented');
+          return false;
+        }
+      } catch (e) {
+        console.error('saveModuleStates error:', e);
+        return false;
+      }
     };
 
     // слушатели
     openBtn?.addEventListener('click', openModal);
     closeBtn?.addEventListener && closeBtn?.addEventListener('click', closeModal);
-    cancelBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', () => {
+      // Clear temporary instructions when canceling
+      tempInstructions = {};
+      closeModal();
+    });
 
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal(); });
+
+    // Add event listener for the Apply button
+    const applyBtn = document.getElementById('apply');
+    applyBtn?.addEventListener('click', async () => {
+      // Get currently selected user
+      const selectedUserRow = usersScroll().querySelector('.user-row.selected-user');
+      const selectedUsername = selectedUserRow ? selectedUserRow.getAttribute('data-username') : null;
+      
+      if (!selectedUsername) {
+        console.warn('No user selected');
+        return;
+      }
+      
+      // Collect enable states from toggle switches
+      const moduleRows = modulesScroll().querySelectorAll('.module-row');
+      const moduleStates = {};
+      const userAccessData = {};
+      
+      moduleRows.forEach(row => {
+        const moduleNameElement = row.querySelector('span.truncate');
+        const enableToggle = row.querySelector('input.toggle-enable');
+        const visibleToggle = row.querySelector('input.toggle-visible');
+        const lockToggle = row.querySelector('input.toggle-lock');
+        
+        if (moduleNameElement && enableToggle && visibleToggle && lockToggle) {
+          const moduleName = moduleNameElement.textContent;
+          const enableState = enableToggle.checked;
+          const visibleState = visibleToggle.checked;
+          const lockState = lockToggle.checked;
+          
+          moduleStates[moduleName] = enableState;
+          userAccessData[moduleName] = {
+            visible: visibleState,
+            lock: lockState
+          };
+        }
+      });
+      
+      // Apply temporary instructions to all users
+      const usersToUpdate = new Set([selectedUsername]); // Start with selected user
+      
+      // Add all users with temp instructions
+      for (const username in tempInstructions) {
+        usersToUpdate.add(username);
+      }
+      
+      // Save changes for all affected users
+      let allSuccess = true;
+      
+      // Save module states to index.json
+      const moduleSuccess = await saveModuleStates(moduleStates);
+      if (!moduleSuccess) {
+        allSuccess = false;
+      }
+      
+      // Save access data for each affected user
+      for (const username of usersToUpdate) {
+        // Get the user's current access data
+        let userData = allUsersAccessData[username] || {};
+        
+        // Apply temp instructions for this user
+        if (tempInstructions[username]) {
+          for (const moduleName in tempInstructions[username]) {
+            if (!userData[moduleName]) {
+              userData[moduleName] = { visible: true, lock: false };
+            }
+            
+            const instructions = tempInstructions[username][moduleName];
+            if (instructions.hasOwnProperty('visible')) {
+              userData[moduleName].visible = instructions.visible;
+            }
+            if (instructions.hasOwnProperty('lock')) {
+              userData[moduleName].lock = instructions.lock;
+            }
+          }
+        }
+        
+        // Save to file
+        const accessSuccess = await saveUserAccessData(username, userData);
+        if (!accessSuccess) {
+          allSuccess = false;
+        }
+      }
+      
+      if (allSuccess) {
+        // Clear temporary instructions after successful save
+        tempInstructions = {};
+        
+        // Close modal after successful save
+        closeModal();
+        
+        // Show success notification
+        if (window.notificationManager) {
+          window.notificationManager.createNotification({
+            title: 'Настройки модулей',
+            message: 'Настройки модулей успешно сохранены',
+            type: 'success'
+          });
+        }
+        
+        // Reload modules to apply changes
+        if (typeof window.loadModules === 'function') {
+          window.loadModules({ dev: true });
+        }
+      } else {
+        // Show error notification
+        if (window.notificationManager) {
+          window.notificationManager.createNotification({
+            title: 'Ошибка',
+            message: 'Ошибка сохранения настроек модулей',
+            type: 'error'
+          });
+        }
+      }
+    });
 
     // первоначальный рендер иконок
     if (document.readyState === 'loading') {

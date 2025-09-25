@@ -1,41 +1,41 @@
 {
   "analytics": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "dashboard": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "design": {
-    "visible": false,
-    "lock": true
+    "visible": true,
+    "lock": false
   },
   "maintenance": {
-    "visible": false,
-    "lock": true
+    "visible": true,
+    "lock": false
   },
   "molds": {
-    "visible": false,
+    "visible": true,
     "lock": true
   },
   "orders": {
-    "visible": false,
+    "visible": true,
+    "lock": false
+  },
+  "production": {
+    "visible": true,
     "lock": true
   },
   "profile": {
+    "visible": true,
+    "lock": true
+  },
+  "technology": {
     "visible": false,
     "lock": true
   },
   "warehouse": {
-    "visible": false,
-    "lock": true
-  },
-  "production": {
-    "visible": false,
-    "lock": true
-  },
-  "technology": {
     "visible": false,
     "lock": true
   }
