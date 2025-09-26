@@ -2,9 +2,9 @@
   "username": "test3",
   "password": "1111",
   "displayName": "Пашп",
-  "role": "SuperAdmin",
+  "role": "User",
   "createdAt": "2025-09-01T08:51:55.525Z",
-  "lastLoginAt": "2025-09-01T08:52:13.028Z",
+  "lastLoginAt": "2025-09-25T11:59:19.584Z",
   "avatarPath": null,
   "stats": {},
   "avatarColor": {
@@ -12,7 +12,7 @@
     "saturation": 80,
     "brightness": 80
   },
-  "updatedAt": "2025-09-24T05:13:56.209Z",
+  "updatedAt": "2025-09-25T11:59:07.824Z",
   "phone": "",
   "email": "",
   "department": "",

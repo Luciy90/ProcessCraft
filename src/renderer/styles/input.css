@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for ProcessCraft */
+/* Пользовательские стили для ProcessCraft */
 @layer components {
   .module-content { 
     display: none; 
@@ -17,7 +17,6 @@
     background-color: rgba(255, 255, 255, 0.1); 
   }
   
-  /* Dark theme scrollbar - scoped to dark theme */
   [data-theme="dark"] ::-webkit-scrollbar {
     width: 6px;
   }

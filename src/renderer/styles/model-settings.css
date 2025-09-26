@@ -1,7 +1,7 @@
 
 :root { color-scheme: dark; }
 
-/* Custom toggle */
+/* Пользовательский переключатель */
 .pr-18 {padding-right: 1.8rem;}
 .model-settings-switch {
   --switch-width: 46px;
@@ -92,7 +92,7 @@
 .model-settings-switch input.toggle-lock:not(:checked) + .model-settings-slider { --switch-bg: rgb(251, 146, 60); background: var(--switch-bg); }
 .model-settings-switch input.toggle-enable:not(:checked) + .model-settings-slider { --switch-bg: rgb(239, 68, 68); background: var(--switch-bg); }
 
-/* Stylish scrollbars for lists */
+/* Стильные полосы прокрутки для списков */
 .model-settings-users-list-scroll,
 .model-settings-modules-list-scroll {
   scrollbar-width: thin;
@@ -114,7 +114,7 @@
 .model-settings-users-list-scroll::-webkit-scrollbar-corner,
 .model-settings-modules-list-scroll::-webkit-scrollbar-corner { background: transparent; }
 
-/* Animation for toggle switches when switching users */
+/* Анимация для переключателей при смене пользователей */
 .model-settings-switch.user-switch-animation .model-settings-slider,
 .model-settings-switch.user-switch-animation-enable .model-settings-slider,
 .model-settings-switch.user-switch-animation-lock .model-settings-slider {
@@ -193,7 +193,7 @@
   }
 }
 
-/* Overlay animation for user switching */
+/* Анимация оверлея при смене пользователей */
 .user-switch-animation-overlay {
   animation: user-switch-overlay 0.4s ease-in-out;
   background: rgba(16, 185, 129, 0.1);

@@ -6,7 +6,7 @@ import { generateAvatarHTML } from './utils/avatarUtils.js';
 export function initModelSettings() {
   try {
     const overlay       = document.getElementById('settingsModal');
-    if (!overlay) return; // nothing to do if template not present
+    if (!overlay) return; // ничего не делать, если шаблон отсутствует
     // ничего не делать, если шаблон отсутствует
     const openBtn       = document.getElementById('sidebar-settings');
     const closeBtn      = document.getElementById('closeModal'); // может отсутствовать
@@ -14,16 +14,16 @@ export function initModelSettings() {
     const usersScroll   = () => overlay.querySelector('.model-settings-users-list-scroll');
     const modulesScroll = () => overlay.querySelector('.model-settings-modules-list-scroll');
 
-    // Temporary instructions storage
+    // Временное хранение инструкций
     let tempInstructions = {};
     
-    // Currently selected user
+    // Текущий выбранный пользователь
     let selectedUser = null;
     
-    // All users access data
+    // Данные доступа всех пользователей
     let allUsersAccessData = {};
 
-    // Read users from local Server/users directory (Electron) or via fetch fallback (browser).
+    // Чтение пользователей из локальной директории Server/users (Electron) или через fetch fallback (браузер).
     // Чтение пользователей из локальной директории Server/users (Electron) или через fetch fallback (браузер).
     const readUsersFromServer = async () => {
       try {
@@ -39,7 +39,7 @@ export function initModelSettings() {
           for (const e of entries) {
             if (!e.isDirectory()) continue;
             const name = e.name;
-            // skip obvious temp/template folders
+            // пропустить очевидные временные/шаблонные папки
             // пропустить очевидные временные/шаблонные папки
             if (name.startsWith('.') || name.startsWith('_') || /template|temp|backup/i.test(name)) continue;
 
@@ -60,7 +60,7 @@ export function initModelSettings() {
             const displayName = userJson.displayName || userJson.username || name;
             const position = infoJson.position || infoJson.role || '';
 
-            // Include avatarPath in user data
+            // Включаем avatarPath в данные пользователя
             // Включаем avatarPath в данные пользователя
             users.push({ 
               name: displayName, 
@@ -72,7 +72,7 @@ export function initModelSettings() {
 
           return users;
         } else {
-          // Browser fallback - try to fetch index or each folder (best-effort)
+          // Резервный вариант для браузера - попытка получить индекс или каждую папку (наилучшие усилия)
           // Резервный вариант для браузера - попытка получить индекс или каждую папку (наилучшие усилия)
           try {
             const resp = await fetch('/Server/users/index.json');
@@ -162,7 +162,7 @@ export function initModelSettings() {
     const closeModal = () => {
       overlay.classList.add('hidden');
       document.body.classList.remove('overflow-hidden');
-      // Clear temporary instructions when closing modal
+      // Очистка временных инструкций при закрытии модального окна
       tempInstructions = {};
     };
 
@@ -186,7 +186,7 @@ export function initModelSettings() {
       </label>
     `;
 
-    // Update the moduleToggleGroup function to accept visible state
+    // Обновить функцию moduleToggleGroup для принятия состояния видимости
     const moduleToggleGroup = (m, locked = false, enabled = true, visible = true) => {
       return `
         <div class="module-row p-4 hover:bg-white/5 transition-colors"
@@ -212,10 +212,10 @@ export function initModelSettings() {
     const loadData = async () => {
       const { users, modules } = await fetchData();
 
-      // users — рендерим асинхронно используя centralized avatar utils
+      // пользователи — рендерим асинхронно используя централизованные утилиты аватаров
       // пользователи
       const userNodes = await Promise.all(users.map(async u => {
-        // generate avatar HTML (uses UserStore checks internally)
+        // генерировать HTML аватара (внутренне использует проверки UserStore)
         const avatarHtml = await generateAvatarHTML({ username: u.username, displayName: u.name, avatarPath: u.avatarPath }, { size: 'sm' });
 
         return `
@@ -238,35 +238,35 @@ export function initModelSettings() {
 
       usersScroll().innerHTML = userNodes.join('');
 
-      // Read module enable states from index.json
+      // Чтение состояний включения модулей из index.json
       const moduleStates = await getModuleStates();
 
-      // Get module names from index.json to ensure correct mapping
+      // Получение имен модулей из index.json для обеспечения правильного сопоставления
       const indexModuleNames = Object.keys(moduleStates);
 
-      // Load access data for all users
+      // Загрузка данных доступа для всех пользователей
       allUsersAccessData = {};
       for (const user of users) {
         allUsersAccessData[user.username] = await getUserAccessData(user.username);
       }
 
-      // Select first user by default
+      // Выбор первого пользователя по умолчанию
       if (users.length > 0) {
         selectedUser = users[0].username;
       }
 
-      // Get current user access data (with temp instructions applied)
+      // Получение данных доступа текущего пользователя (с примененными временными инструкциями)
       const currentUserAccess = getCurrentUserAccessData(selectedUser, indexModuleNames);
       
-      // Get module states with temp instructions applied
+      // Получение состояний модулей с примененными временными инструкциями
       const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
 
-      // modules: заблокируем несколько (оранжевый zamок) — если модулей нет, оставим список пустым
+      // модули: заблокируем несколько (оранжевый замок) — если модулей нет, оставим список пустым
       modulesScroll().innerHTML = indexModuleNames.map((moduleName) => {
-        // Get enable state for this module
+        // Получение состояния включения для этого модуля
         const isEnabled = moduleStatesWithTemp[moduleName] !== undefined ? moduleStatesWithTemp[moduleName] : true;
         
-        // Get access data for this module for the selected user
+        // Получение данных доступа для этого модуля для выбранного пользователя
         const moduleAccess = currentUserAccess[moduleName] || { visible: true, lock: false };
         
         return moduleToggleGroup(moduleName, moduleAccess.lock, isEnabled, moduleAccess.visible);
@@ -280,7 +280,7 @@ export function initModelSettings() {
 
       userRows.forEach(row => {
         row.addEventListener('click', async () => {
-          // Get username from data attribute
+          // Получение имени пользователя из атрибута данных
           const username = row.getAttribute('data-username');
           
           if (!username) return;
@@ -292,7 +292,7 @@ export function initModelSettings() {
           currentSelected = row;
           userRows.forEach(r => r.setAttribute('aria-selected', r === row ? 'true' : 'false'));
           
-          // Switch to the selected user
+          // Переключение на выбранного пользователя
           await switchUser(username, moduleStates, indexModuleNames);
         });
       });
@@ -301,14 +301,14 @@ export function initModelSettings() {
       modulesScroll().querySelectorAll('.module-row').forEach(row => {
         const lockToggle = row.querySelector('input.toggle-lock');
         const visibleToggle = row.querySelector('input.toggle-visible');
-        const enableToggle = row.querySelector('input.toggle-enable'); // Add this line
+        const enableToggle = row.querySelector('input.toggle-enable'); // Добавить эту строку
         const moduleNameElement = row.querySelector('span.truncate');
         
         if (!lockToggle || !visibleToggle || !moduleNameElement) return;
         
         const moduleName = moduleNameElement.textContent;
 
-        // Lock toggle handler
+        // Реакция иконки блокировки (оранжевая при блокировке)
         const lockIcon = row.querySelector('.lock-indicator');
         const applyLockState = () => {
           if (lockToggle.checked) {
@@ -323,9 +323,9 @@ export function initModelSettings() {
           lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
         };
 
-        // Store temporary instruction when toggles change
+        // Сохранение временной инструкции при изменении переключателей
         lockToggle.addEventListener('change', () => {
-          // Ensure we have a selected user, default to first user if none selected
+          // Убедиться, что у нас есть выбранный пользователь, по умолчанию первый пользователь, если никто не выбран
           const currentUser = selectedUser || (Object.keys(allUsersAccessData).length > 0 ? Object.keys(allUsersAccessData)[0] : null);
           if (currentUser) {
             applyLockState();
@@ -334,26 +334,26 @@ export function initModelSettings() {
         });
         
         visibleToggle.addEventListener('change', () => {
-          // Ensure we have a selected user, default to first user if none selected
+          // Убедиться, что у нас есть выбранный пользователь, по умолчанию первый пользователь, если никто не выбран
           const currentUser = selectedUser || (Object.keys(allUsersAccessData).length > 0 ? Object.keys(allUsersAccessData)[0] : null);
           if (currentUser) {
             storeTempInstruction(currentUser, moduleName, 'visible', visibleToggle.checked);
           }
         });
 
-        // Add event listener for enable toggle
+        // Добавить обработчик события для переключателя включения
         if (enableToggle) {
           enableToggle.addEventListener('change', () => {
-            // For enable toggle, we store the instruction for all users since it's a global setting
-            // Get all usernames from allUsersAccessData
+            // Для переключателя включения мы сохраняем инструкцию для всех пользователей, так как это глобальная настройка
+            // Получить все имена пользователей из allUsersAccessData
             const allUsernames = Object.keys(allUsersAccessData);
             
-            // Store the instruction for all users
+            // Сохранить инструкцию для всех пользователей
             allUsernames.forEach(username => {
               storeTempInstruction(username, moduleName, 'enable', enableToggle.checked);
             });
             
-            // Also update the global moduleStates object directly
+            // Также обновить глобальный объект moduleStates напрямую
             if (moduleStates && moduleStates.hasOwnProperty(moduleName)) {
               moduleStates[moduleName] = enableToggle.checked;
             }
@@ -365,35 +365,35 @@ export function initModelSettings() {
       });
     };
 
-    // Function to switch to a different user
+    // Функция для переключения на другого пользователя
     const switchUser = async (username, moduleStates, moduleNames) => {
-      // Save current user's temporary instructions
+      // Сохранение временных инструкций текущего пользователя
       // (They're already stored in tempInstructions)
       
-      // Switch to new user
+      // Переключиться на нового пользователя
       selectedUser = username;
       
-      // Get current user access data (with temp instructions applied)
+      // Получение данных доступа текущего пользователя (с примененными временными инструкциями)
       const currentUserAccess = getCurrentUserAccessData(selectedUser, moduleNames);
       
-      // Get module states with temp instructions applied
+      // Получение состояний модулей с примененными временными инструкциями
       const moduleStatesWithTemp = getModuleStatesWithTempInstructions(selectedUser, moduleStates);
       
-      // Update module toggles with the new user's access data using the new handler
+      // Обновление переключателей модулей с данными доступа нового пользователя с использованием нового обработчика
       updateUserModuleToggles(currentUserAccess, moduleStatesWithTemp, moduleNames);
     };
 
-    // Function to get current user access data with temp instructions applied
+    // Функция для получения данных доступа текущего пользователя с примененными временными инструкциями
     const getCurrentUserAccessData = (username, moduleNames) => {
-      // Start with the user's actual access data
+      // Начать с реальных данных доступа пользователя
       const userData = allUsersAccessData[username] || {};
       
-      // Apply temporary instructions
+      // Применить временные инструкции
       const result = {};
       for (const moduleName of moduleNames) {
         result[moduleName] = userData[moduleName] || { visible: true, lock: false };
         
-        // Check if there are temp instructions for this user/module
+        // Проверить, есть ли временные инструкции для этого пользователя/модуля
         if (tempInstructions[username] && tempInstructions[username][moduleName]) {
           const instructions = tempInstructions[username][moduleName];
           if (instructions.hasOwnProperty('visible')) {
@@ -408,12 +408,12 @@ export function initModelSettings() {
       return result;
     };
 
-    // Function to get module states with temp instructions applied
+    // Функция для получения состояний модулей с примененными временными инструкциями
     const getModuleStatesWithTempInstructions = (username, moduleStates) => {
-      // Start with the actual module states
+      // Начать с реальных состояний модулей
       const result = { ...moduleStates };
       
-      // Apply temporary instructions for enable property
+      // Применить временные инструкции для свойства включения
       if (tempInstructions[username]) {
         for (const moduleName in tempInstructions[username]) {
           const instructions = tempInstructions[username][moduleName];
@@ -426,7 +426,7 @@ export function initModelSettings() {
       return result;
     };
 
-    // Function to store temporary instruction
+    // Функция для сохранения временной инструкции
     const storeTempInstruction = (username, moduleName, property, value) => {
       if (!tempInstructions[username]) {
         tempInstructions[username] = {};
@@ -437,44 +437,44 @@ export function initModelSettings() {
       tempInstructions[username][moduleName][property] = value;
     };
 
-    // New handler function to update module toggles with animation when switching users
+    // Новая функция-обработчик для обновления переключателей модулей с анимацией при смене пользователей
     const updateUserModuleToggles = (userAccessData, moduleStates, moduleNames) => {
-      // Get all module rows
+      // Получить все строки модулей
       const moduleRows = modulesScroll().querySelectorAll('.module-row');
       
-      // Process each module row sequentially
+      // Обработать каждую строку модуля последовательно
       moduleRows.forEach((row, index) => {
         const moduleNameElement = row.querySelector('span.truncate');
         if (!moduleNameElement) return;
         
         const moduleName = moduleNameElement.textContent;
         
-        // Get the toggle elements
+        // Получить элементы переключателей
         const visibleToggle = row.querySelector('input.toggle-visible');
         const lockToggle = row.querySelector('input.toggle-lock');
         const enableToggle = row.querySelector('input.toggle-enable');
         
         if (!visibleToggle || !lockToggle || !enableToggle) return;
         
-        // Get target states for this module
+        // Получить целевые состояния для этого модуля
         const isEnabled = moduleStates[moduleName] !== undefined ? moduleStates[moduleName] : true;
         const moduleAccess = userAccessData[moduleName] || { visible: true, lock: false };
         const targetVisible = moduleAccess.visible;
         const targetLock = moduleAccess.lock;
         const targetEnable = isEnabled;
         
-        // Schedule the updates with a delay to create sequential effect
+        // Запланировать обновления с задержкой для создания последовательного эффекта
         setTimeout(() => {
-          // Update visible toggle with animation
+          // Обновить переключатель видимости с анимацией
           updateToggleWithAnimation(visibleToggle, targetVisible, 'user-switch-animation');
           
-          // Update lock toggle with animation
+          // Обновить переключатель блокировки с анимацией
           updateToggleWithAnimation(lockToggle, targetLock, 'user-switch-animation-lock');
           
-          // Update enable toggle with animation
+          // Обновить переключатель включения с анимацией
           updateToggleWithAnimation(enableToggle, targetEnable, 'user-switch-animation-enable');
           
-          // Update lock icon
+          // Обновить значок блокировки
           const lockIcon = row.querySelector('.lock-indicator');
           if (lockIcon) {
             if (targetLock) {
@@ -492,33 +492,33 @@ export function initModelSettings() {
       });
     };
 
-    // Helper function to update toggle state with animation
+    // Вспомогательная функция для обновления состояния переключателя с анимацией
     const updateToggleWithAnimation = (toggle, targetState, animationClass) => {
-      // Only proceed if the state needs to change
+      // Продолжить только если состояние нужно изменить
       if (toggle.checked !== targetState) {
-        // Add animation class to the parent switch element
+        // Добавить класс анимации к родительскому элементу переключателя
         const switchElement = toggle.closest('.model-settings-switch');
         if (switchElement) {
           switchElement.classList.add(animationClass);
           
-          // Remove animation class after animation completes
+          // Удалить класс анимации после завершения анимации
           setTimeout(() => {
             switchElement.classList.remove(animationClass);
-          }, 400); // Match the animation duration in CSS
+          }, 400); // Соответствует длительности анимации в CSS
         }
         
-        // Update the toggle state after a small delay to ensure animation starts
+        // Обновить состояние переключателя после небольшой задержки, чтобы обеспечить запуск анимации
         setTimeout(() => {
           toggle.checked = targetState;
           
-          // Trigger change event to ensure UI updates properly and store temp instructions
+          // Вызвать событие изменения, чтобы обеспечить правильное обновление UI и сохранить временные инструкции
           const event = new Event('change', { bubbles: true });
           toggle.dispatchEvent(event);
         }, 10);
       }
     };
 
-    // Function to read user access data from accessToModules.json
+    // Функция для чтения данных доступа пользователя из accessToModules.json
     const getUserAccessData = async (username) => {
       try {
         const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
@@ -532,7 +532,7 @@ export function initModelSettings() {
             return JSON.parse(data);
           }
         } else {
-          // Browser fallback
+          // Резервный вариант для браузера
           try {
             const response = await fetch(`/Server/users/${username}/accessToModules.json`);
             if (response.ok) {
@@ -544,11 +544,11 @@ export function initModelSettings() {
         console.warn(`getUserAccessData error for user ${username}:`, e);
       }
       
-      // Default to empty object if we can't read the file
+      // По умолчанию пустой объект, если мы не можем прочитать файл
       return {};
     };
 
-    // Function to save user access data to accessToModules.json
+    // Функция для сохранения данных доступа пользователя в accessToModules.json
     const saveUserAccessData = async (username, accessData) => {
       try {
         const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
@@ -557,11 +557,11 @@ export function initModelSettings() {
           const path = window.require('path');
           const accessPath = path.join(process.cwd(), 'Server', 'users', username, 'accessToModules.json');
           
-          // Write to file
+          // Запись в файл
           fs.writeFileSync(accessPath, JSON.stringify(accessData, null, 2), 'utf8');
           return true;
         } else {
-          // Browser fallback - in a real implementation, this would use a backend API
+          // Резервный вариант для браузера - в реальной реализации это будет использовать API бэкенда
           console.warn('Saving user access data in browser environment not implemented');
           return false;
         }
@@ -571,7 +571,7 @@ export function initModelSettings() {
       }
     };
 
-    // Function to read module states from index.json
+    // Функция для чтения состояний модулей из index.json
     const getModuleStates = async () => {
       try {
         const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
@@ -587,14 +587,14 @@ export function initModelSettings() {
             
             if (index.modules && typeof index.modules === 'object') {
               for (const [moduleName, moduleConfig] of Object.entries(index.modules)) {
-                states[moduleName] = moduleConfig.enable !== false; // default to true if not specified
+                states[moduleName] = moduleConfig.enable !== false; // по умолчанию true, если не указано
               }
             }
             
             return states;
           }
         } else {
-          // Browser fallback
+          // Резервный вариант для браузера
           try {
             const response = await fetch('/src/renderer/js/modules/index.json');
             if (response.ok) {
@@ -615,11 +615,11 @@ export function initModelSettings() {
         console.warn('getModuleStates error:', e);
       }
       
-      // Default to all modules enabled if we can't read the file
+      // По умолчанию все модули включены, если мы не можем прочитать файл
       return {};
     };
 
-    // Function to save module states to index.json
+    // Функция для сохранения состояний модулей в index.json
     const saveModuleStates = async (states) => {
       try {
         const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
@@ -632,7 +632,7 @@ export function initModelSettings() {
             const data = fs.readFileSync(indexPath, 'utf8');
             const index = JSON.parse(data);
             
-            // Update enable states
+            // Обновление состояний включения
             if (index.modules && typeof index.modules === 'object') {
               for (const [moduleName, enableState] of Object.entries(states)) {
                 if (index.modules[moduleName]) {
@@ -641,12 +641,12 @@ export function initModelSettings() {
               }
             }
             
-            // Write back to file
+            // Запись обратно в файл
             fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf8');
             return true;
           }
         } else {
-          // Browser fallback - in a real implementation, this would use a backend API
+          // Резервный вариант для браузера - в реальной реализации это будет использовать API бэкенда
           console.warn('Saving module states in browser environment not implemented');
           return false;
         }
@@ -660,7 +660,7 @@ export function initModelSettings() {
     openBtn?.addEventListener('click', openModal);
     closeBtn?.addEventListener && closeBtn?.addEventListener('click', closeModal);
     cancelBtn?.addEventListener('click', () => {
-      // Clear temporary instructions when canceling
+      // Очистить временные инструкции при отмене
       tempInstructions = {};
       closeModal();
     });
@@ -668,19 +668,19 @@ export function initModelSettings() {
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal(); });
 
-    // Add event listener for the Apply button
+    // Добавить обработчик события для кнопки Применить
     const applyBtn = document.getElementById('apply');
     applyBtn?.addEventListener('click', async () => {
-      // Get currently selected user
+      // Получить текущего выбранного пользователя
       const selectedUserRow = usersScroll().querySelector('.user-row.selected-user');
       let selectedUsername = selectedUserRow ? selectedUserRow.getAttribute('data-username') : null;
       
-      // If no user is explicitly selected, but we have temporary instructions, use the first user with instructions
+      // Если пользователь не выбран явно, но у нас есть временные инструкции, использовать первого пользователя с инструкциями
       if (!selectedUsername && Object.keys(tempInstructions).length > 0) {
         selectedUsername = Object.keys(tempInstructions)[0];
       }
       
-      // If still no user selected, use the first user from allUsersAccessData
+      // Если все еще не выбран пользователь, использовать первого пользователя из allUsersAccessData
       if (!selectedUsername && Object.keys(allUsersAccessData).length > 0) {
         selectedUsername = Object.keys(allUsersAccessData)[0];
       }
@@ -690,7 +690,7 @@ export function initModelSettings() {
         return;
       }
       
-      // Collect enable states from toggle switches
+      // Собрать состояния включения с переключателей
       const moduleRows = modulesScroll().querySelectorAll('.module-row');
       const moduleStates = {};
       const userAccessData = {};
@@ -715,29 +715,29 @@ export function initModelSettings() {
         }
       });
       
-      // Apply temporary instructions to all users
-      const usersToUpdate = new Set([selectedUsername]); // Start with selected user
+      // Применение временных инструкций ко всем пользователям
+      const usersToUpdate = new Set([selectedUsername]); // Начать с выбранного пользователя
       
-      // Add all users with temp instructions
+      // Добавить всех пользователей с временными инструкциями
       for (const username in tempInstructions) {
         usersToUpdate.add(username);
       }
       
-      // Save changes for all affected users
+      // Сохранить изменения для всех затронутых пользователей
       let allSuccess = true;
       
-      // Save module states to index.json
+      // Сохранение состояний модулей в index.json
       const moduleSuccess = await saveModuleStates(moduleStates);
       if (!moduleSuccess) {
         allSuccess = false;
       }
       
-      // Save access data for each affected user
+      // Сохранение данных доступа для каждого затронутого пользователя
       for (const username of usersToUpdate) {
-        // Get the user's current access data
+        // Получение текущих данных доступа пользователя
         let userData = allUsersAccessData[username] || {};
         
-        // Apply temp instructions for this user
+        // Применить временные инструкции для этого пользователя
         if (tempInstructions[username]) {
           for (const moduleName in tempInstructions[username]) {
             if (!userData[moduleName]) {
@@ -751,10 +751,10 @@ export function initModelSettings() {
             if (instructions.hasOwnProperty('lock')) {
               userData[moduleName].lock = instructions.lock;
             }
-            // Handle enable property if it exists in temp instructions
+            // Обработать свойство включения, если оно существует во временных инструкциях
             if (instructions.hasOwnProperty('enable')) {
-              // For enable property, we need to update the moduleStates object
-              // which will be saved to index.json
+              // Для свойства включения нам нужно обновить объект moduleStates
+              // которые будут сохранены в index.json
               if (moduleStates.hasOwnProperty(moduleName)) {
                 moduleStates[moduleName] = instructions.enable;
               }
@@ -762,27 +762,27 @@ export function initModelSettings() {
           }
         }
         
-        // Save to file
+        // Сохранить в файл
         const accessSuccess = await saveUserAccessData(username, userData);
         if (!accessSuccess) {
           allSuccess = false;
         }
       }
       
-      // Also save updated module states to index.json
+      // Также сохранить обновленные состояния модулей в index.json
       const moduleSuccess2 = await saveModuleStates(moduleStates);
       if (!moduleSuccess2) {
         allSuccess = false;
       }
       
       if (allSuccess) {
-        // Clear temporary instructions after successful save
+        // Очистить временные инструкции после успешного сохранения
         tempInstructions = {};
         
-        // Close modal after successful save
+        // Закрыть модальное окно после успешного сохранения
         closeModal();
         
-        // Show success notification
+        // Показать уведомление об успехе
         if (window.notificationManager) {
           window.notificationManager.createNotification({
             title: 'Настройки модулей',
@@ -791,12 +791,12 @@ export function initModelSettings() {
           });
         }
         
-        // Reload modules to apply changes
+        // Перезагрузить модули для применения изменений
         if (typeof window.loadModules === 'function') {
           window.loadModules({ dev: true });
         }
       } else {
-        // Show error notification
+        // Показать уведомление об ошибке
         if (window.notificationManager) {
           window.notificationManager.createNotification({
             title: 'Ошибка',

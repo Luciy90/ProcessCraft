@@ -1,6 +1,7 @@
 /* Стили для компонентов интерфейса */
 
 /* Перенесённые глобальные переменные и анимации из index.html */
+/* Пользовательские стили для ProcessCraft */
 :root { color-scheme: dark; }
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }

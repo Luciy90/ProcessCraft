@@ -250,7 +250,7 @@ class ProfileModule {
       return 'file://' + require('path').join(__dirname, '../../assets/cover.jpg').replace(/\\/g, '/');
     }
 
-    // Check for user-specific cover images
+    // Проверка наличия пользовательских изображений обложки
     const userAssetsPath = require('path').join(__dirname, '../../..', 'Server', 'users', user.username, 'assets');
     const coverExtensions = ['jpg', 'jpeg', 'png'];
     
@@ -427,7 +427,7 @@ class ProfileModule {
   }
 
   async uploadFile(file, type, username) {
-    // Validate file type
+    // Проверка типа файла
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!validTypes.includes(file.type)) {
       return {

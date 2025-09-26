@@ -67,7 +67,7 @@ class ModuleLoader {
             // Отправка события о завершении загрузки
             this.dispatchLoadEvent(loadResults);
             
-            // Final summary with success or warning message
+            // Итоговое сообщение об успехе или предупреждении
             const successfulModules = loadResults.success.length;
             const failedModules = loadResults.failed.length;
             
@@ -121,7 +121,7 @@ class ModuleLoader {
                 return await this.scanViaIPC();
             }
             
-            // Fallback на require fs (если context isolation отключен)
+            // Резервный вариант через require fs (если изоляция контекста отключена)
             const fs = window.require('fs');
             const path = window.require('path');
             
@@ -160,14 +160,14 @@ class ModuleLoader {
                 }
             }
                 
-            // Log successful scanning with checkmark
+            // Запись в лог успешного сканирования с галочкой
             this.log(`✓ Найдено файлов через fs: ${moduleFiles.length}`);
             return moduleFiles;
             
         } catch (error) {
-            // Log scanning error with warning
+            // Запись в лог ошибки сканирования с предупреждением
             this.warn(`⚠ Ошибка сканирования Electron директории:`, error);
-            // Fallback на браузерный режим
+            // Резервный вариант на браузерный режим
             return await this.scanBrowserDirectory();
         }
     }
@@ -193,12 +193,12 @@ class ModuleLoader {
                     fullPath: file
                 }));
                 
-            // Log successful IPC scanning with checkmark
+            // Запись в лог успешного IPC сканирования с галочкой
             this.log(`✓ Найдено файлов через IPC: ${moduleFiles.length}`);
             return moduleFiles;
             
         } catch (error) {
-            // Log IPC scanning error with warning
+            // Запись в лог ошибки IPC сканирования с предупреждением
             this.warn(`⚠ Ошибка IPC сканирования:`, error);
             throw error;
         }
@@ -260,12 +260,12 @@ class ModuleLoader {
                 moduleFiles.push(...files);
             }
                 
-            // Log successful index.json loading with checkmark
+            // Запись в лог успешной загрузки index.json с галочкой
             this.log(`✓ Успешно загружен index.json: найдено ${moduleFiles.length} модулей`);
             return moduleFiles;
             
         } catch (error) {
-            // Log index.json loading error with warning
+            // Запись в лог ошибки загрузки index.json с предупреждением
             this.warn(`⚠ Ошибка загрузки index.json:`, error);
             
             // Последний fallback - известные модули в новой структуре
@@ -306,19 +306,19 @@ class ModuleLoader {
                 const moduleInfo = await this.loadSingleModule(file);
                 if (moduleInfo) {
                     results.success.push(moduleInfo);
-                    // Log successful module connection with checkmark
+                    // Запись в лог успешного подключения модуля с галочкой
                     this.log(`✓ Модуль ${moduleInfo.id} успешно подключен`);
                 } else {
                     results.failed.push({ file: file.name, error: 'Модуль не возвращен' });
                 }
             } catch (error) {
-                // Log failed module connection with cross mark
+                // Запись в лог неудачного подключения модуля с крестиком
                 this.error(`✗ Ошибка подключения модуля ${file.name}:`, error);
                 results.failed.push({ file: file.name, error: error.message });
             }
         }
         
-        // Summary logging with counts
+        // Сводный лог с подсчетом
         if (results.success.length > 0) {
             this.log(`Успешно подключено модулей: ${results.success.length}`);
         }
@@ -440,11 +440,11 @@ class ModuleLoader {
                 return this.validateMeta(meta, moduleId);
             }
         } catch (error) {
-            // Log metadata not found with info message
+            // Запись в лог отсутствия метаданных с информационным сообщением
             this.log(`ℹ Метаданные ${moduleId}.meta.json не найдены, используются значения по умолчанию`);
         }
         
-        // Fallback на дефолтные метаданные
+        // Резервный вариант на метаданные по умолчанию
         return this.getDefaultMeta(moduleId);
     }
 
@@ -518,17 +518,17 @@ class ModuleLoader {
             // Поиск экспортированного класса
             const ModuleClass = this.findModuleClass(module, file.name);
             if (ModuleClass) {
-                // Log successful import with checkmark
+                // Запись в лог успешного импорта с галочкой
                 this.log(`✓ Модуль ${file.name} успешно импортирован`);
                 return ModuleClass;
             }
             
         } catch (error) {
-            // Log import error with warning
+            // Запись в лог ошибки импорта с предупреждением
             this.warn(`⚠ ES6 импорт неудачен для ${file.name}:`, error);
         }
         
-        // Fallback на глобальные переменные (для совместимости)
+        // Резервный вариант на глобальные переменные (для совместимости)
         return this.findGlobalModuleClass(file.name);
     }
 
@@ -606,13 +606,13 @@ class ModuleLoader {
             // Валидация интерфейса модуля
             this.validateModuleInterface(instance, moduleId);
             
-            // Log successful instance creation with checkmark
+            // Запись в лог успешного создания экземпляра с галочкой
             this.log(`✓ Экземпляр модуля ${moduleId} успешно создан`);
             
             return instance;
             
         } catch (error) {
-            // Log instance creation error with cross mark
+            // Запись в лог ошибки создания экземпляра с крестиком
             this.error(`✗ Ошибка создания экземпляра модуля ${moduleId}:`, error);
             throw error;
         }
@@ -657,13 +657,13 @@ class ModuleLoader {
                     initializedCount++;
                 }
             } else {
-                // Log disabled modules with warning icon
+                // Запись в лог отключенных модулей с иконкой предупреждения
                 this.warn(`⚠ Модуль ${moduleId} отключен, пропускаем инициализацию`);
                 skippedCount++;
             }
         }
         
-        // Summary of initialization
+        // Сводка по инициализации
         this.log(`Инициализация модулей завершена: ${initializedCount} инициализировано, ${skippedCount} отключено`);
     }
 
@@ -676,7 +676,7 @@ class ModuleLoader {
         const moduleInfo = window.moduleRegistry.get(moduleId);
         
         if (!moduleInfo) {
-            // Log missing modules with cross mark
+            // Запись в лог отсутствующих модулей с крестиком
             this.error(`✗ Модуль ${moduleId} не найден в реестре`);
             return false;
         }
@@ -696,13 +696,13 @@ class ModuleLoader {
             }
             
             moduleInfo.status = 'initialized';
-            // Log successful initialization with checkmark
+            // Запись в лог успешной инициализации с галочкой
             this.log(`✓ Модуль ${moduleId} успешно инициализирован`);
             
             return true;
             
         } catch (error) {
-            // Log initialization errors with cross mark
+            // Запись в лог ошибок инициализации с крестиком
             this.error(`✗ Ошибка инициализации модуля ${moduleId}:`, error);
             moduleInfo.status = 'error';
             moduleInfo.error = error.message;
