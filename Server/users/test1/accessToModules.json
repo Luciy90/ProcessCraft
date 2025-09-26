@@ -23,10 +23,6 @@
     "visible": true,
     "lock": false
   },
-  "profile": {
-    "visible": false,
-    "lock": false
-  },
   "warehouse": {
     "visible": false,
     "lock": true

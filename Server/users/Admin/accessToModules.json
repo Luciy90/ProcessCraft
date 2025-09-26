@@ -27,10 +27,6 @@
     "visible": true,
     "lock": false
   },
-  "profile": {
-    "visible": true,
-    "lock": false
-  },
   "technology": {
     "visible": false,
     "lock": true

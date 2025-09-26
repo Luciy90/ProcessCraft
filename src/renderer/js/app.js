@@ -44,6 +44,14 @@ import { openLoginModal, showForgotPasswordHelp } from './app/login-modal.js';
 // Импорт методов валидации - содержит функции для проверки данных авторизации
 import { validateAuthCredentials, displayValidationErrors, clearValidationErrors, validateUIState } from './app/auth-validation.js';
 
+// ==================== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ====================
+// Импорт компонента профиля - содержит логику работы с профилем пользователя
+import ProfileModule from './app/profile.js';
+
+// ==================== НАСТРОЙКИ МОДУЛЕЙ ====================
+// Импорт компонента настроек - содержит логику работы с настройками модулей
+import { initModelSettings } from './app/model-settings.js';
+
 // ==================== РАБОТА С ПРОФИЛЕМ ПОЛЬЗОВАТЕЛЯ ====================
 // Импорт методов работы с профилем - содержит функции для отображения и управления профилем пользователя
 import { openProfileModal, openProfilePage } from './app/user-profile.js';
@@ -76,6 +84,9 @@ import { showModal, closeModal, openFile } from './app/modal-windows.js';
 // Импорт вспомогательных методов - содержит утилиты для работы с сообщениями и уведомлениями
 import { showMessage, updateNotificationBadge } from './app/utils.js';
 
+// Инициализация модуля профиля
+window.ProfileModule = ProfileModule;
+
 // ==================== ИНИЦИАЛИЗАЦИЯ DOM ====================
 // Импорт методов инициализации DOM - содержит функции для инициализации приложения при загрузке DOM
 import { initializeDOM } from './app/dom-initialization.js';
@@ -85,6 +96,10 @@ import { initializeDOM } from './app/dom-initialization.js';
 
 // Методы инициализации
 ProcessCraftApp.prototype.init = function() { return initializeApp(this); };
+
+// Инициализация модуля профиля
+ProcessCraftApp.prototype.modules = ProcessCraftApp.prototype.modules || {};
+ProcessCraftApp.prototype.modules.profile = new ProfileModule();
 
 // Методы обработки событий загрузки модулей
 ProcessCraftApp.prototype.onModulesLoaded = function(detail) { return onModulesLoaded(this, detail); };
