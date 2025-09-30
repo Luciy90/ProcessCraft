@@ -6,6 +6,7 @@ const SESSION_KEY = 'pc_current_user';
 function getCurrentUser() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
+    console.log('[UserStore] getCurrentUser ->', raw ? 'present' : 'null');
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     console.warn('getCurrentUser error', e);
@@ -14,8 +15,17 @@ function getCurrentUser() {
 }
 
 function setCurrentUser(user) {
-  if (user) localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-  else localStorage.removeItem(SESSION_KEY);
+  try {
+    if (user) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      console.log('[UserStore] setCurrentUser -> set', user?.username);
+    } else {
+      localStorage.removeItem(SESSION_KEY);
+      console.log('[UserStore] setCurrentUser -> cleared');
+    }
+  } catch (e) {
+    console.warn('setCurrentUser error', e);
+  }
 }
 
 async function login(username, password) {
@@ -25,8 +35,19 @@ async function login(username, password) {
 }
 
 async function logout() {
+  console.log('[UserStore] logout invoked');
   await ipcRenderer.invoke('auth:logout');
-  setCurrentUser(null);
+  // Use explicit window.UserStore.setCurrentUser to avoid colliding with global setCurrentUser
+  try {
+    if (window && window.UserStore && typeof window.UserStore.setCurrentUser === 'function') {
+      window.UserStore.setCurrentUser(null);
+    } else {
+      setCurrentUser(null);
+    }
+  } catch (e) {
+    // Fallback to local function
+    try { setCurrentUser(null); } catch (err) { console.warn('logout: failed to clear current user', err); }
+  }
 }
 
 async function listUsers() {

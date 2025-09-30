@@ -41,7 +41,6 @@ ehthumbs.db
 Thumbs.db
 
 # Electron
-app/
 release/
 
 # База данных (локальные данные)

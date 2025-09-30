@@ -1,0 +1,17 @@
+{
+  "roles": [
+    "SuperAdmin",
+    "Admin",
+    "User"
+  ],
+  "markers": [
+    "sidebar-settings"
+  ],
+  "access": {
+    "SuperAdmin": [
+      "sidebar-settings"
+    ],
+    "Admin": [],
+    "User": []
+  }
+}

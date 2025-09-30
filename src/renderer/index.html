@@ -54,7 +54,7 @@
   <div class="rounded-xl border border-white/10 bg-neutral-900/40 backdrop-blur backdrop-saturate-150 p-3 lg:p-4 anim-fadeIn">
           <div class="flex items-center justify-between mb-2">
             <div class="text-base font-semibold text-white/90 tracking-tight">Навигация</div>
-            <button id="sidebar-settings" class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200">Настройки</button>
+            <button id="sidebar-settings" data-access-marker="sidebar-settings" class="h-8 px-2 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-xs text-white/70 transition-all duration-200">Настройки</button>
           </div>
 
           <nav class="space-y-1.5">
@@ -291,6 +291,9 @@
   <script src="js/utils/notifications.js"></script>
   <script src="js/utils/userStore.js"></script>
   <script src="js/utils/ui.js"></script>
+  
+  <!-- Система контроля доступа -->
+  <script src="js/app/app-access.js"></script>
   
   <!-- Основное приложение с ES6 модулями -->
   <script type="module" src="js/app.js"></script>
