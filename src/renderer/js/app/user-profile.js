@@ -11,7 +11,6 @@ import { updateAvatarInDOM } from '../utils/avatarUtils.js';
 export function openProfileModal(app, user) {
     const u = user || window.UserStore?.getCurrentUser();
     if (!u) { app.openLoginModal(); return; }
-    const isSuper = (u.role === 'SuperAdmin' || u.role === 'СуперАдминистратор');
     const cfg = window.UI_CONFIG;
     const t = cfg?.texts?.user_management?.profile || {};
     const html = `
@@ -31,7 +30,7 @@ export function openProfileModal(app, user) {
       </div>
       <div class="flex gap-2 pt-1">
         <button id="logout-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">${t.buttons?.logout || 'Выйти'}</button>
-        ${isSuper ? `<button id="admin-panel-btn" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">${t.buttons?.admin_panel || 'Администрирование'}</button>` : ''}
+        <button id="admin-panel-btn" data-access-marker="admin-panel-btn-mark" class="h-9 px-3 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 text-sm">${t.buttons?.admin_panel || 'Администрирование'}</button>
       </div>
     </div>`;
     app.showModal(html);
@@ -44,9 +43,13 @@ export function openProfileModal(app, user) {
         app.updateUserInterface().catch(console.warn);
         app.closeModal();
     });
-    if (isSuper) {
-        const btn = document.getElementById('admin-panel-btn');
-        if (btn) btn.addEventListener('click', () => app.openAdminPanelModal());
+    const adminPanelBtn = document.getElementById('admin-panel-btn');
+    if (adminPanelBtn) {
+        adminPanelBtn.addEventListener('click', () => {
+            if (app && typeof app.openAdminPanelModal === 'function') {
+                app.openAdminPanelModal();
+            }
+        });
     }
 }
 

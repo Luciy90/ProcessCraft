@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/model-settings.css">
   <link rel="stylesheet" href="styles/profile.css">
+  <link rel="stylesheet" href="styles/access-modal.css">
 
   
   <!-- Глобальные CSS переменные и анимации перенесены в styles/components.css -->
@@ -325,9 +326,12 @@
         let loadedCount = 0;
         scripts.forEach(src => {
           const script = document.createElement('script');
+          script.type = 'module';
           script.src = src;
+          console.log('[fallback] appending script', src);
           script.onload = () => {
             loadedCount++;
+            console.log('[fallback] loaded', src, '(', loadedCount, '/', scripts.length, ')');
             if (loadedCount === scripts.length) {
               console.log('Fallback скрипты загружены, создаём приложение...');
               if (!window.app && window.ProcessCraftApp) {
@@ -335,7 +339,11 @@
               }
             }
           };
-          script.onerror = () => console.error(`Ошибка загрузки fallback скрипта: ${src}`);
+          script.onerror = (ev) => {
+            console.error('[fallback] Ошибка загрузки fallback скрипта:', src, ev);
+            // show potential details on fetch failure
+            try { console.error('[fallback] event detail:', ev?.message || ev); } catch(e) {}
+          };
           document.head.appendChild(script);
         });
       }

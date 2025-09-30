@@ -1,0 +1,25 @@
+/* Minimal custom styles extracted from inline attributes (most styling is via Tailwind CDN). */
+/* Keep file for future overrides and to satisfy the separation request. */
+
+/* Ensure modal content scrolls nicely on small viewports */
+.modal-content { box-sizing: border-box; }
+
+/* Hide focus outlines for mouse users but keep for keyboard */
+:focus:not(:focus-visible) { outline: none; }
+
+/* Small utilities used by the script (non-tailwind fallback) */
+.hidden { display: none !important; }
+
+/* Preserve selection colors to match body selection classes when Tailwind not present */
+::selection { background-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+
+/* Corner dots used inside the SVG indicator */
+.corner-dot { transition: transform 0.28s ease, opacity 0.18s ease; }
+
+/* When the svg <g> has data-expanded="true", hide the corner dots and rotate center group */
+svg g[data-expanded="true"] .corner-dot { opacity: 0; transform: scale(0.9) translateY(0); }
+svg g[data-expanded="true"] { transform: rotate(45deg); }
+
+/* Support when button has aria-expanded or group states */
+button[data-expand][aria-expanded="true"] svg g { transform: rotate(45deg); }
+button[data-expand][aria-expanded="true"] svg g .corner-dot { opacity: 0; }

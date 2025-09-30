@@ -27,14 +27,12 @@ class ProfileModule {
     ]).then(async ([html, visitsRes, tasksRes, activityRes, infoRes]) => {
   // Generate avatar using centralized logic (module import)
   const avatar = await generateAvatarHTML(user, { size: 'lg' });
-        const isSuper = (role === 'SuperAdmin' || role === 'СуперАдминистратор');
         const adminActions = `
           <div class="flex items-center gap-2">
             <button id="profile-logout" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Выйти</button>
-            ${isSuper ? 
-              `<button id="profile-admin-list" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Администрирование</button>` : 
-              `<button id="profile-request-changes" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Запросить изменение данных</button>`
-            }
+            <button id="profile-admin-list" data-access-marker="profile-admin-list-mark" data-access-description="Управление пользователями" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Пользователи</button>
+            <button id="profile-access-modal" data-access-marker="profile-access-modal-mark" data-access-down="profile-admin-list-mark" data-access-description="Управление правами доступа" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Права доступа</button>
+            <button id="profile-request-changes" data-access-marker="profile-request-changes-mark" data-access-description="Запросить изменение данных" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Запросить изменение данных</button>
           </div>`;
 
         // Determine cover image source with user-specific fallback
@@ -59,6 +57,17 @@ class ProfileModule {
         out = this.processUIConfigPlaceholders(out);
 
         container.innerHTML = out;
+        // После динамической вставки шаблона применяем правила доступа, чтобы
+        // элементы с data-access-marker были скрыты/показаны согласно конфигурации.
+        try {
+          if (window.app && typeof window.app.applyAccessRules === 'function') {
+            window.app.applyAccessRules();
+          } else if (typeof window.applyAccessRules === 'function') {
+            window.applyAccessRules(window.app);
+          }
+        } catch (e) {
+          console.warn('applyAccessRules after profile render failed:', e);
+        }
         
         // Обеспечить отображение иконок Lucide после динамической вставки
         // Use setTimeout to ensure DOM is fully updated
@@ -117,12 +126,35 @@ class ProfileModule {
             </div>`).join('');
         }
 
-        if (isSuper) {
-          const listBtn = document.getElementById('profile-admin-list');
-          if (listBtn) listBtn.addEventListener('click', () => window.app.openAdminPanelModal());
-        } else {
-          const requestBtn = document.getElementById('profile-request-changes');
-          if (requestBtn) requestBtn.addEventListener('click', () => window.app.openRequestChangesModal());
+        // Always attach handlers to profile buttons. Access control should be enforced
+        // centrally via data-access-marker attributes and the app.applyAccessRules mechanism.
+        const listBtn = document.getElementById('profile-admin-list');
+        if (listBtn) {
+          listBtn.addEventListener('click', () => {
+            if (window.app && typeof window.app.openAdminPanelModal === 'function') {
+              try { window.app.openAdminPanelModal(); } catch (e) { console.warn('openAdminPanelModal failed:', e); }
+            }
+          });
+        }
+
+        const requestBtn = document.getElementById('profile-request-changes');
+        if (requestBtn) {
+          requestBtn.addEventListener('click', () => {
+            // Prefer AccessModal if available
+            try {
+              if (window.AccessModal && typeof window.AccessModal.open === 'function') {
+                window.AccessModal.open();
+                return;
+              }
+            } catch (e) {
+              console.warn('AccessModal open attempt failed:', e);
+            }
+
+            // Fallback to app handler if present
+            if (window.app && typeof window.app.openRequestChangesModal === 'function') {
+              try { window.app.openRequestChangesModal(); } catch (e) { console.warn('Fallback openRequestChangesModal failed:', e); }
+            }
+          });
         }
     const logoutBtn = document.getElementById('profile-logout');
     if (logoutBtn) logoutBtn.addEventListener('click', async () => {
@@ -199,6 +231,44 @@ class ProfileModule {
               console.warn('Final Lucide initialization warn:', e); 
             }
           }
+
+        // Open access modal when profile access button is clicked
+        const accessBtn = document.getElementById('profile-access-modal');
+        if (accessBtn) {
+          accessBtn.addEventListener('click', async () => {
+            try {
+              // Preferred API: global AccessModal helper inserted by access-modal.js
+              if (window.AccessModal && typeof window.AccessModal.open === 'function') {
+                window.AccessModal.open();
+                return;
+              }
+            } catch (e) {
+              console.warn('AccessModal.open attempt failed:', e);
+            }
+
+            // Fallback: if app exposes init/open functions, try them
+            try {
+              if (window.app && typeof window.app.openAccessModal === 'function') {
+                window.app.openAccessModal();
+                return;
+              }
+            } catch (e) {
+              console.warn('app.openAccessModal failed:', e);
+            }
+
+            // Last resort: try to import initAccessModal global (some builds expose it)
+            try {
+              if (typeof initAccessModal === 'function') {
+                initAccessModal();
+                return;
+              }
+            } catch (e) {
+              console.warn('initAccessModal fallback failed:', e);
+            }
+
+            console.warn('No access modal API available to open the access modal');
+          });
+        }
         }, 50);
       })
       .catch(err => {

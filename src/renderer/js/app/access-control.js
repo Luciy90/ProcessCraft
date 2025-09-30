@@ -20,7 +20,6 @@ async function loadAccessConfig() {
         
         if (result && result.ok && result.config) {
             accessConfig = result.config;
-            console.log('[AccessControl] Конфигурация доступа успешно загружена');
             return accessConfig;
         } else {
             console.error('[AccessControl] Ошибка загрузки конфигурации доступа:', result?.error);
@@ -86,7 +85,7 @@ export function applyAccessRules(app) {
         // Получаем разрешенные маркеры для текущей роли пользователя
         const allowedMarkers = accessConfig.access[currentUser.role] || [];
         
-        // Применяем правила доступа к элементам
+        // Применяем правила доступа к элементам (удаляем элементы без доступа)
         applyAccessToElements(allowedMarkers);
     } catch (error) {
         console.error('[AccessControl] Ошибка применения прав доступа:', error);
@@ -199,20 +198,25 @@ function applyAccessToElements(allowedMarkers) {
     try {
         // Получаем все элементы с атрибутом data-access-marker
         const markerElements = document.querySelectorAll('[data-access-marker]');
-        
-        // Применяем правила доступа к каждому элементу
+
+        // Применяем правила доступа к каждому элементу.
+        // Если доступ запрещён — удаляем элемент из DOM, чтобы пользователь не мог его использовать.
         markerElements.forEach(element => {
             const marker = element.getAttribute('data-access-marker');
-            
-            // Проверяем, разрешен ли доступ к этому элементу
+
             if (allowedMarkers.includes(marker)) {
-                // Показываем элемент
-                element.style.display = '';
-                element.classList.remove('access-hidden');
-            } else {
-                // Скрываем элемент
+                // разрешено — ничего не делаем (элемент остаётся в DOM)
+                return;
+            }
+
+            try {
+                element.remove();
+                console.log(`[AccessControl] Удалён элемент с маркером: ${marker}`);
+            } catch (e) {
+                // Как запасной вариант — скрываем, если remove() по какой-то причине не сработал
                 element.style.display = 'none';
                 element.classList.add('access-hidden');
+                console.warn('[AccessControl] Не удалось удалить элемент, скрыт вместо удаления:', e);
             }
         });
     } catch (error) {
@@ -227,11 +231,10 @@ function hideAllMarkedElements() {
     try {
         // Получаем все элементы с атрибутом data-access-marker
         const markerElements = document.querySelectorAll('[data-access-marker]');
-        
-        // Скрываем все элементы
+
+        // Удаляем все элементы с маркерами (для неавторизованных пользователей)
         markerElements.forEach(element => {
-            element.style.display = 'none';
-            element.classList.add('access-hidden');
+            try { element.remove(); } catch (e) { element.style.display = 'none'; element.classList.add('access-hidden'); }
         });
     } catch (error) {
         console.error('[AccessControl] Ошибка скрытия элементов:', error);
@@ -284,16 +287,51 @@ function setupDOMChangeObserver(app) {
                     // Проверяем добавленные узлы
                     mutation.addedNodes.forEach(node => {
                         if (node.nodeType === Node.ELEMENT_NODE) {
-                            // Проверяем сам элемент
-                            if (node.hasAttribute && node.hasAttribute('data-access-marker')) {
-                                shouldUpdateMarkers = true;
-                            }
-                            
-                            // Проверяем дочерние элементы
-                            const markerElements = node.querySelectorAll && node.querySelectorAll('[data-access-marker]');
-                            if (markerElements && markerElements.length > 0) {
-                                shouldUpdateMarkers = true;
-                            }
+                                // Если добавился элемент с маркером — пометим для обновления маркеров
+                                if (node.hasAttribute && node.hasAttribute('data-access-marker')) {
+                                    shouldUpdateMarkers = true;
+                                }
+
+                                // Проверяем дочерние элементы
+                                const markerElements = node.querySelectorAll && node.querySelectorAll('[data-access-marker]');
+                                if (markerElements && markerElements.length > 0) {
+                                    shouldUpdateMarkers = true;
+                                }
+
+                                // Немедленно применим правила доступа к добавленному узлу,
+                                // чтобы элементы без прав были удалены сразу при вставке.
+                                try {
+                                    if (!accessConfig) return;
+                                    if (!currentUser) {
+                                        // У пользователя нет аккаунта — удаляем все найденные маркер-элементы внутри узла
+                                        if (node.hasAttribute && node.hasAttribute('data-access-marker')) {
+                                            try { node.remove(); } catch (e) { node.style.display = 'none'; }
+                                        }
+                                        if (markerElements && markerElements.length > 0) {
+                                            markerElements.forEach(el => { try { el.remove(); } catch (e) { el.style.display = 'none'; } });
+                                        }
+                                    } else {
+                                        const allowed = accessConfig.access[currentUser.role] || [];
+                                        // Проверяем сам узел
+                                        if (node.hasAttribute && node.hasAttribute('data-access-marker')) {
+                                            const m = node.getAttribute('data-access-marker');
+                                            if (!allowed.includes(m)) {
+                                                try { node.remove(); } catch (e) { node.style.display = 'none'; }
+                                            }
+                                        }
+                                        // Проверяем дочерние элементы
+                                        if (markerElements && markerElements.length > 0) {
+                                            markerElements.forEach(el => {
+                                                const mm = el.getAttribute('data-access-marker');
+                                                if (!allowed.includes(mm)) {
+                                                    try { el.remove(); } catch (e) { el.style.display = 'none'; }
+                                                }
+                                            });
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.warn('[AccessControl] Ошибка при немедленном применении прав к добавленному узлу:', e);
+                                }
                         }
                     });
                     

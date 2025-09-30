@@ -194,7 +194,6 @@
 .modal-content {
   background: white;
   border-radius: 10px;
-  max-width: 600px;
   width: 90%;
   max-height: 90%;
   overflow-y: auto;

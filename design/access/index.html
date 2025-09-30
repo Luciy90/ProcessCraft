@@ -1,0 +1,131 @@
+
+    <!-- Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden items-center justify-center p-6" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+      <!-- Content -->
+      <div class="modal-content relative mx-auto my-auto w-[min(95vw,1100px)] max-w-[1100px] h-[80vh] overflow-hidden flex flex-col gap-4 rounded-xl border border-white/10 bg-neutral-900 shadow-xl p-6">
+        <header class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h2 id="settings-title" class="text-xl font-semibold tracking-tight">Настройки доступа</h2>
+            <div class="hidden md:flex items-center gap-2 text-xs text-white/50">
+              <svg data-lucide="dot" class="h-4 w-4"></svg>
+              <span>Активная роль:</span>
+              <span id="activeRoleName" class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/80">—</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="closeModalX" class="h-9 w-9 rounded-lg border border-white/10 hover:bg-white/10 active:bg-white/20 transition-colors grid place-items-center" aria-label="Закрыть">
+              <svg data-lucide="x" class="h-4 w-4"></svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Top helpers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <svg data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50"></svg>
+              <input id="rolesSearch" type="text" placeholder="Поиск ролей…" class="w-full h-9 pl-9 pr-3 rounded-lg bg-white/5 border border-white/10 placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20" />
+            </div>
+            <div class="hidden md:flex items-center gap-2 text-xs text-white/50">
+              <svg data-lucide="users" class="h-4 w-4"></svg>
+              <span>Роли</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <svg data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50"></svg>
+              <input id="modulesSearch" type="text" placeholder="Поиск по модулям и правам…" class="w-full h-9 pl-9 pr-3 rounded-lg bg-white/5 border border-white/10 placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20" />
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="expandAllBtn" class="h-9 px-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center gap-2">
+                <svg data-lucide="chevrons-down-up" class="h-4 w-4"></svg>
+                <span class="hidden sm:inline text-sm">Раскрыть всё</span>
+              </button>
+              <button id="collapseAllBtn" class="h-9 px-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center gap-2">
+                <svg data-lucide="chevrons-up-down" class="h-4 w-4"></svg>
+                <span class="hidden sm:inline text-sm">Свернуть всё</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
+          <!-- Roles -->
+          <section class="flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-lg font-medium tracking-tight flex items-center gap-2">
+                <svg data-lucide="users" class="h-5 w-5"></svg>
+                Роли
+              </h3>
+              <div class="hidden sm:flex items-center gap-2 text-xs text-white/50">
+                <svg data-lucide="info" class="h-4 w-4"></svg>
+                <span>Выберите роль для редактирования</span>
+              </div>
+            </div>
+            <div id="rolesList" class="flex-1 min-h-0 rounded-lg border border-white/10 bg-white/5 overflow-y-auto divide-y divide-white/10">
+              <!-- filled by script -->
+            </div>
+          </section>
+
+          <!-- Modules -->
+          <section class="flex flex-col min-h-0">
+            <div class="mb-3 flex flex-col gap-2">
+              <div class="grid items-center px-4 rounded-lg border border-white/10 bg-white/5" style="grid-template-columns: minmax(0,1fr) auto; column-gap: 3.35rem;">
+                <h3 class="text-lg font-medium tracking-tight flex items-center gap-2 py-2">
+                  <svg data-lucide="boxes" class="h-5 w-5"></svg>
+                  Разрешения
+                </h3>
+                <div class="md:flex justify-center text-xs text-white/60 py-2">
+                  <div class="flex items-center gap-1">
+                    <svg data-lucide="check-square" class="h-4 w-4"></svg>
+                    <span class="hidden md:inline">Включено</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="presetViewAll" class="h-8 px-3 rounded-md border border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-200 text-xs transition-colors flex items-center gap-2">
+                  <svg data-lucide="eye" class="h-4 w-4"></svg>
+                  <span>Разрешить: всё</span>
+                </button>
+                <button id="presetDisableAll" class="h-8 px-3 rounded-md border border-rose-400/30 bg-rose-500/10 hover:bg-rose-500/15 text-rose-200 text-xs transition-colors flex items-center gap-2">
+                  <svg data-lucide="shield-off" class="h-4 w-4"></svg>
+                  <span>Запретить: всё</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="modulesTree" class="flex-1 min-h-0 rounded-lg border border-white/10 bg-white/5 overflow-y-auto p-2 space-y-2">
+              <!-- filled by script -->
+            </div>
+          </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2 border-t border-white/10">
+          <div class="flex flex-wrap items-center gap-3 text-xs text-white/70">
+            <div class="flex items-center gap-2">
+              <svg data-lucide="info" class="h-4 w-4"></svg>
+              <span>Изменения применяются к выбранной роли. Чекбоксы наследуются вниз по дереву.</span>
+            </div>
+            <div class="hidden md:block h-4 w-px bg-white/10"></div>
+            <div class="flex items-center gap-2">
+              <span class="text-white/50">Итого:</span>
+              <span class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/80">Строк: <b id="countRows" class="font-medium">0</b></span>
+              <span class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/80">Подуровни: <b id="levelsBreakdown" class="font-medium">—</b></span>
+              <span class="px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-400/20 text-emerald-200">Активные: <b id="countActive" class="font-medium">0</b></span>
+              <span class="px-2 py-1 rounded-md bg-rose-500/10 border border-rose-400/20 text-rose-200">Запреты: <b id="countDenied" class="font-medium">0</b></span>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button id="cancel" class="h-9 px-4 rounded-lg border border-white/10 hover:bg-white/10 active:bg-white/20 transition-colors">Отмена</button>
+            <button id="apply" class="h-9 px-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/25 text-emerald-200 transition-colors">Применить</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>

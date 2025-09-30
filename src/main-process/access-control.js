@@ -33,7 +33,6 @@ function loadAccessConfig() {
       throw new Error('AccessFileFormatError: Поле "access" должно быть объектом');
     }
     
-    console.log('[AccessControl] Конфигурация доступа успешно загружена');
     return config;
   } catch (error) {
     console.error('[AccessControl] Ошибка загрузки конфигурации доступа:', error);
@@ -63,83 +62,66 @@ function saveAccessConfig(config) {
  */
 function updateAccessConfigWithMarkers() {
   try {
-    console.log('[AccessControl] Поиск маркеров доступа в HTML-файлах');
     
-    // Получаем список всех HTML-файлов в проекте
-    const htmlFiles = findHtmlFiles(path.join(__dirname, '../renderer'));
-    
-    // Собираем все маркеры доступа из HTML-файлов
-    const allMarkers = new Set();
-    
-    for (const filePath of htmlFiles) {
-      try {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        const markers = extractAccessMarkers(content);
-        markers.forEach(marker => allMarkers.add(marker));
-      } catch (error) {
-        console.warn(`Не удалось прочитать файл ${filePath}:`, error.message);
-      }
+  // Получаем список всех HTML и JS файлов в проекте (шаблоны могут быть в HTML или в JS)
+  const searchRoot = path.join(__dirname, '../renderer');
+  const files = findFilesByExtensions(searchRoot, ['.html', '.htm', '.js']);
+
+  // Собираем все маркеры доступа из найденных файлов
+  const allMarkers = new Set();
+
+  for (const filePath of files) {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const markers = extractAccessMarkers(content);
+      markers.forEach(marker => allMarkers.add(marker));
+    } catch (error) {
+      console.warn(`Не удалось прочитать файл ${filePath}:`, error.message);
     }
-    
-    console.log(`[AccessControl] Найдено маркеров: ${allMarkers.size}`);
-    
-    // Загружаем текущую конфигурацию доступа
-    let config = loadAccessConfig();
-    
-    // Если файл конфигурации не существует, создаем новый
-    if (!config) {
-      config = {
-        roles: ["SuperAdmin", "Admin", "User"],
-        markers: [],
-        access: {
-          "SuperAdmin": [],
-          "Admin": [],
-          "User": []
-        }
-      };
-    }
-    
-    // Получаем текущие маркеры из конфигурации
-    const existingMarkers = new Set(config.markers || []);
-    
-    // Определяем новые и удаленные маркеры
-    const newMarkers = [];
-    const removedMarkers = [];
-    
-    // Проверяем, какие маркеры добавились
-    for (const marker of allMarkers) {
-      if (!existingMarkers.has(marker)) {
-        newMarkers.push(marker);
-      }
-    }
-    
-    // Проверяем, какие маркеры удалены
-    for (const marker of existingMarkers) {
-      if (!allMarkers.has(marker)) {
-        removedMarkers.push(marker);
-      }
-    }
-    
-    console.log(`[AccessControl] Новые маркеры: ${newMarkers.length}, удаленные маркеры: ${removedMarkers.length}`);
-    
-    // Обновляем список маркеров в конфигурации
-    config.markers = Array.from(allMarkers);
-    
-    // Для новых маркеров не изменяем существующие привязки доступа
-    // Для удаленных маркеров удаляем их из всех списков доступа
-    if (removedMarkers.length > 0) {
-      for (const [role, roleMarkers] of Object.entries(config.access)) {
+  }
+
+  console.log(`[AccessControl] Найдено маркеров: ${allMarkers.size}`);
+
+  // Загружаем текущую конфигурацию доступа
+  let config = loadAccessConfig();
+
+  // Если файл конфигурации не существует, создаем новый дефолтный
+  if (!config) {
+    config = {
+      roles: ["SuperAdmin", "Admin", "User"],
+      markers: [],
+      access: {}
+    };
+  }
+
+  const existingMarkers = Array.isArray(config.markers) ? config.markers : [];
+  const foundMarkers = Array.from(allMarkers);
+
+  // Вычисляем добавленные и удаленные маркеры
+  const newMarkers = foundMarkers.filter(m => !existingMarkers.includes(m));
+  const removedMarkers = existingMarkers.filter(m => !allMarkers.has(m));
+
+  console.log(`[AccessControl] Новые маркеры: ${newMarkers.length}, удаленные маркеры: ${removedMarkers.length}`);
+
+  // Обновляем список маркеров в конфигурации
+  config.markers = foundMarkers;
+
+  // Для удаленных маркеров удаляем их из всех списков доступа
+  if (removedMarkers.length > 0 && config.access && typeof config.access === 'object') {
+    for (const [role, roleMarkers] of Object.entries(config.access)) {
+      if (Array.isArray(roleMarkers)) {
         config.access[role] = roleMarkers.filter(marker => !removedMarkers.includes(marker));
       }
     }
-    
-    // Сохраняем обновленную конфигурацию
-    const saved = saveAccessConfig(config);
-    if (saved) {
-      console.log('[AccessControl] Файл доступа успешно обновлен');
-    } else {
-      console.error('[AccessControl] Не удалось сохранить файл доступа');
-    }
+  }
+
+  // Сохраняем обновленную конфигурацию
+  const saved = saveAccessConfig(config);
+  if (saved) {
+    console.log('[AccessControl] Файл доступа успешно обновлен');
+  } else {
+    console.error('[AccessControl] Не удалось сохранить файл доступа');
+  }
   } catch (error) {
     console.error('[AccessControl] Ошибка при обновлении файла доступа:', error);
   }
@@ -170,6 +152,38 @@ function findHtmlFiles(dirPath) {
     return files;
   } catch (error) {
     console.error(`Ошибка при поиске HTML-файлов в ${dirPath}:`, error.message);
+    return [];
+  }
+}
+
+/**
+ * Поиск файлов по расширениям в директории
+ * @param {string} dirPath Путь к директории
+ * @param {Array<string>} extensions Список расширений (с точкой), например ['.html', '.js']
+ * @returns {Array<string>} Список путей к найденным файлам
+ */
+function findFilesByExtensions(dirPath, extensions) {
+  try {
+    const files = [];
+    const items = fs.readdirSync(dirPath, { withFileTypes: true });
+
+    for (const item of items) {
+      const fullPath = path.join(dirPath, item.name);
+
+      if (item.isDirectory()) {
+        // Рекурсивно ищем в поддиректориях
+        files.push(...findFilesByExtensions(fullPath, extensions));
+      } else if (item.isFile()) {
+        const ext = path.extname(item.name).toLowerCase();
+        if (extensions.includes(ext)) {
+          files.push(fullPath);
+        }
+      }
+    }
+
+    return files;
+  } catch (error) {
+    console.error(`Ошибка при поиске файлов в ${dirPath}:`, error.message);
     return [];
   }
 }

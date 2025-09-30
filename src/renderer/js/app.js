@@ -84,6 +84,10 @@ import { showModal, closeModal, openFile } from './app/modal-windows.js';
 // Импорт вспомогательных методов - содержит утилиты для работы с сообщениями и уведомлениями
 import { showMessage, updateNotificationBadge } from './app/utils.js';
 
+// ==================== ACCESS MODAL ====================
+// Import access modal script moved from design into app/ subfolder
+import { initAccessModal } from './app/access-modal.js';
+
 // ==================== СИСТЕМА КОНТРОЛЯ ДОСТУПА ====================
 // Импорт методов системы контроля доступа - содержит функции для управления доступом на основе ролей
 import {
