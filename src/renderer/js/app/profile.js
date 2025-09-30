@@ -57,8 +57,34 @@ class ProfileModule {
         out = this.processUIConfigPlaceholders(out);
 
         container.innerHTML = out;
-        // После динамической вставки шаблона применяем правила доступа, чтобы
-        // элементы с data-access-marker были скрыты/показаны согласно конфигурации.
+        // После динамической вставки шаблона сначала снимаем снимок маркеров и
+        // отправляем в main-process, чтобы описания и down-отношения были сохранены
+        // до потенциального удаления элементов при применении правил доступа.
+        try {
+          // Schedule updateAccessMarkers on next animation frame to ensure DOM fully rendered
+          const scheduleUpdate = () => {
+            try {
+              if (window.app && typeof window.app.updateAccessMarkers === 'function') {
+                window.app.updateAccessMarkers();
+              } else if (typeof window.updateAccessMarkers === 'function') {
+                window.updateAccessMarkers(window.app);
+              }
+            } catch (err) {
+              console.warn('updateAccessMarkers after profile render failed:', err);
+            }
+          };
+          if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => setTimeout(scheduleUpdate, 0));
+          } else {
+            // Fallback
+            setTimeout(scheduleUpdate, 50);
+          }
+        } catch (e) {
+          console.warn('updateAccessMarkers after profile render scheduling failed:', e);
+        }
+
+        // Затем применяем правила доступа — только после того, как метаданные маркеров
+        // надежно отправлены в main-process.
         try {
           if (window.app && typeof window.app.applyAccessRules === 'function') {
             window.app.applyAccessRules();

@@ -4,13 +4,27 @@
     "Admin",
     "User"
   ],
-  "markers": [
-    "sidebar-settings"
-  ],
+  "markers": {
+    "sidebar-settings": {
+      "description": "Требует заполнения",
+      "children": []
+    },
+    "profile-admin-list-mark": {
+      "description": "Управление пользователями",
+      "children": [
+        {
+          "description": "Управление правами доступа",
+          "children": []
+        }
+      ]
+    },
+    "profile-request-changes-mark": {
+      "description": "Запросить изменение данных",
+      "children": []
+    }
+  },
   "access": {
-    "SuperAdmin": [
-      "sidebar-settings"
-    ],
+    "SuperAdmin": [],
     "Admin": [],
     "User": []
   }
