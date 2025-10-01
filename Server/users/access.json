@@ -26,13 +26,8 @@
     }
   },
   "access": {
-    "SuperAdmin": [
-      "profile-admin-list-mark",
-      "profile-access-modal-mark"
-    ],
+    "SuperAdmin": [],
     "Admin": [],
-    "User": [
-      "profile-request-changes-mark"
-    ]
+    "User": []
   }
 }
