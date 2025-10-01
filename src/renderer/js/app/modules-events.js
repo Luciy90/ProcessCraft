@@ -7,7 +7,7 @@
  * @param {Object} detail Детали события
  */
 export function onModulesLoaded(app, detail) {
-    console.log('Обработка события загрузки модулей');
+    console.debug('Обработка события загрузки модулей');
     
     // Обновляем навигацию с учетом загруженных модулей
     updateNavigationFromModules(app, detail.success);
@@ -24,6 +24,6 @@ export function onModulesLoaded(app, detail) {
 export function updateNavigationFromModules(app, loadedModules) {
     // Можно добавить логику динамического обновления навигации
     // на основе метаданных модулей
-    console.log('Обновление навигации на основе загруженных модулей:', 
+    console.debug('Обновление навигации на основе загруженных модулей:', 
         loadedModules.map(m => m.id));
 }

@@ -13,7 +13,7 @@ let currentUser = null;
  */
 async function loadAccessConfig() {
     try {
-        console.log('[AccessControl] Загрузка конфигурации доступа');
+    console.debug('[AccessControl] Загрузка конфигурации доступа');
         
         // Загружаем конфигурацию через IPC
         const result = await ipcRenderer.invoke('access:loadConfig');
@@ -38,7 +38,7 @@ async function loadAccessConfig() {
  */
 export async function initializeAccessControl(app) {
     try {
-        console.log('[AccessControl] Инициализация системы контроля доступа');
+    console.debug('[AccessControl] Инициализация системы контроля доступа');
         
         // Загружаем конфигурацию доступа
         const config = await loadAccessConfig();
@@ -108,7 +108,7 @@ export async function initializeAccessControl(app) {
             console.warn('[AccessControl] cannot schedule initial updateAccessMarkers:', e);
         }
         
-        console.log('[AccessControl] Система контроля доступа успешно инициализирована');
+    console.debug('[AccessControl] Система контроля доступа успешно инициализирована');
         return true;
     } catch (error) {
         console.error('[AccessControl] Ошибка инициализации системы контроля доступа:', error);
@@ -122,7 +122,7 @@ export async function initializeAccessControl(app) {
  */
 export function applyAccessRules(app) {
     try {
-        console.log('[AccessControl] Применение прав доступа к элементам интерфейса');
+    console.debug('[AccessControl] Применение прав доступа к элементам интерфейса');
         
         // Если конфигурация не загружена, ничего не делаем
         if (!accessConfig) {
@@ -152,56 +152,24 @@ export function applyAccessRules(app) {
  */
 export async function updateAccessMarkers(app) {
     try {
-        console.log('[AccessControl] Обновление маркеров доступа');
+        console.debug('[AccessControl] Обновление маркеров доступа');
         
-        // Попытаемся получить текущие маркеры из документа, с retry на случай гонки DOM
-        let currentMarkers = getDocumentMarkers();
-        let attempts = 0;
-        while (currentMarkers.length === 0 && attempts < 3) {
-            attempts += 1;
-            console.warn(`[AccessControl] Скан маркеров вернул пустой результат, попытка ${attempts} из 3 — подождём 150ms и попробуем снова`);
-            // eslint-disable-next-line no-await-in-loop
-            const delay = ms => new Promise(res => setTimeout(res, ms));
-            // eslint-disable-next-line no-await-in-loop
-            await delay(150);
-            currentMarkers = getDocumentMarkers();
-        }
-        if (currentMarkers.length === 0) {
-            console.warn('[AccessControl] Скан маркеров вернулся пустым после всех попыток');
-            try {
-                console.warn('[AccessControl] Скан маркеров пуст, выполняем финальную попытку через requestAnimationFrame');
-                await new Promise((resolve) => requestAnimationFrame(resolve));
-                currentMarkers = getDocumentMarkers();
-                console.log('[AccessControl] currentMarkers (after rAF):', currentMarkers);
-            } catch (e) {
-                console.warn('[AccessControl] Финальная попытка requestAnimationFrame упала:', e);
-            }
-        }
-        console.log('[AccessControl] currentMarkers (raw):', currentMarkers);
-
-        // Сравниваем по id — accessConfig.markers может быть массивом или объектом
-        const existingMarkersRaw = accessConfig?.markers || [];
-        const existingKeys = Array.isArray(existingMarkersRaw) ? existingMarkersRaw : Object.keys(existingMarkersRaw || {});
-
-    const currentIds = currentMarkers.map(m => m.id);
-
-        // Вычисляем добавленные и удаленные маркеры (по id)
-        const newMarkers = currentIds.filter(id => !existingKeys.includes(id));
-
-        // Защита от ложных удалений: если текущий снимок пуст, но на диске уже есть маркеры,
-        // то это может быть результатом того, что элементы были удалены до сканирования.
-        // В таком случае не отправляем удалённые маркеры.
-        let removedMarkers = [];
-        if (currentIds.length === 0 && existingKeys.length > 0) {
-            console.warn('[AccessControl] Текущий снимок маркеров пуст, пропускаем отправку удалённых маркеров чтобы избежать массовой очистки');
-        } else {
-            removedMarkers = existingKeys.filter(id => !currentIds.includes(id));
-        }
-
-        console.log('[AccessControl] computed newMarkers:', newMarkers, 'removedMarkers:', removedMarkers);
-
-        // Если есть изменения, обновляем конфигурацию через IPC
-        if (newMarkers.length > 0 || removedMarkers.length > 0) {
+        // Получаем текущие маркеры из документа
+        const currentMarkers = getDocumentMarkers();
+        
+        // Если маркеры найдены, обновляем конфигурацию через IPC
+        if (currentMarkers.length > 0) {
+            // Вычисляем добавленные и удаленные маркеры (упрощенный подход)
+            const existingMarkers = accessConfig?.markers || {};
+            const existingKeys = Object.keys(existingMarkers);
+            const currentIds = currentMarkers.map(m => m.id);
+            
+            const newMarkers = currentIds.filter(id => !existingKeys.includes(id));
+            const removedMarkers = existingKeys.filter(id => !currentIds.includes(id));
+            
+            console.debug('[AccessControl] newMarkers:', newMarkers, 'removedMarkers:', removedMarkers);
+            
+            // Обновляем конфигурацию через IPC
             updateMarkersViaIPC(currentMarkers, newMarkers, removedMarkers);
         }
     } catch (error) {
@@ -216,7 +184,7 @@ export async function updateAccessMarkers(app) {
  */
 export function setCurrentUser(app, user) {
     try {
-        console.log(`[AccessControl] Установка текущего пользователя: ${user?.username} (${user?.role})`);
+    console.debug(`[AccessControl] Установка текущего пользователя: ${user?.username} (${user?.role})`);
         
         // Устанавливаем текущего пользователя
         currentUser = user;
@@ -263,27 +231,20 @@ export function checkAccess(marker) {
  */
 function getDocumentMarkers() {
     try {
-        // Получаем все элементы с атрибутом data-access-marker и собираем расширенные данные
+        // Получаем все элементы с атрибутом data-access-marker
         const markerElements = document.querySelectorAll('[data-access-marker]');
         const markers = [];
 
-        // Собираем уникальные маркеры с дополнительными атрибутами
+        // Собираем маркеры с атрибутами
         markerElements.forEach(element => {
             const marker = element.getAttribute('data-access-marker');
             if (!marker) return;
 
-            // description
-            let description = element.getAttribute('data-access-description');
-            if (!description) {
-                // если описания нет — ставим маркер для последующей записи
-                description = 'Требует заполнения';
-                element.setAttribute('data-access-description', description);
-            }
-
-            // down — маркер, к которому этот элемент должен быть вложен
+            // Получаем описание или устанавливаем значение по умолчанию
+            const description = element.getAttribute('data-access-description') || 'Требует заполнения';
             const down = element.getAttribute('data-access-down') || null;
 
-            // Добавляем объект маркера, избегая дублирования
+            // Добавляем маркер если он еще не добавлен
             if (!markers.some(m => m.id === marker)) {
                 markers.push({ id: marker, description, down, children: [] });
             }
@@ -291,7 +252,7 @@ function getDocumentMarkers() {
 
         return markers;
     } catch (error) {
-        console.error('[AccessControl] Ошибка получения маркеров из документа:', error);
+        console.error('[AccessControl] Ошибка получения маркеров:', error);
         return [];
     }
 }
@@ -301,26 +262,31 @@ function getDocumentMarkers() {
  * markers — массив объектов { id, description, down, children }
  */
 function buildMarkersHierarchy(markers) {
-    const map = new Map();
-    markers.forEach(m => map.set(m.id, { id: m.id, description: m.description, children: [] }));
-
-    // Собираем корневые ноды
-    const roots = [];
-
-    markers.forEach(m => {
-        if (m.down && map.has(m.down)) {
-            // вложаем узел под родителя
-            map.get(m.down).children.push(map.get(m.id));
-        } else {
-            roots.push(map.get(m.id));
-        }
+    // Создаем карту маркеров для быстрого доступа
+    const markerMap = {};
+    markers.forEach(marker => {
+        markerMap[marker.id] = {
+            description: marker.description,
+            children: []
+        };
     });
 
-    // Превращаем в объект вида { markerId: { description, children: [...] } }
-    const out = {};
-    const writeNode = (node) => ({ description: node.description, children: node.children.map(c => writeNode(c)) });
-    roots.forEach(r => { out[r.id] = writeNode(r); });
-    return out;
+    // Формируем иерархию
+    const hierarchy = {};
+    
+    markers.forEach(marker => {
+        if (marker.down && markerMap[marker.down]) {
+            // Добавляем как дочерний элемент
+            const childEntry = {};
+            childEntry[marker.id] = markerMap[marker.id];
+            markerMap[marker.down].children.push(childEntry);
+        } else {
+            // Добавляем как корневой элемент
+            hierarchy[marker.id] = markerMap[marker.id];
+        }
+    });
+    
+    return hierarchy;
 }
 
 /**
@@ -344,18 +310,18 @@ function applyAccessToElements(allowedMarkers) {
 
             try {
                 element.remove();
-                console.log(`[AccessControl] Удалён элемент с маркером: ${marker}`);
+                console.debug(`[AccessControl] Удалён элемент с маркером: ${marker}`);
             } catch (e) {
                 // Как запасной вариант — скрываем, если remove() по какой-то причине не сработал
                 element.style.display = 'none';
                 element.classList.add('access-hidden');
                 // Диагностический лог — сколько найдено элементов (помогает отследить гонки вставки)
-                try {
-                    const ids = Array.from(markerElements).slice(0, 10).map(el => el.getAttribute('data-access-marker'));
-                    console.log('[AccessControl] getDocumentMarkers: found', markerElements.length, 'elements, sample ids:', ids);
-                } catch (e) {
-                    console.log('[AccessControl] getDocumentMarkers: failed to serialize elements for log', e);
-                }
+                    try {
+                        const ids = Array.from(markerElements).slice(0, 10).map(el => el.getAttribute('data-access-marker'));
+                        console.debug('[AccessControl] getDocumentMarkers: found', markerElements.length, 'elements, sample ids:', ids);
+                    } catch (e) {
+                        console.debug('[AccessControl] getDocumentMarkers: failed to serialize elements for log', e);
+                    }
                 console.warn('[AccessControl] Не удалось удалить элемент, скрыт вместо удаления:', e);
             }
         });
@@ -389,7 +355,7 @@ function hideAllMarkedElements() {
  */
 async function updateMarkersViaIPC(markers, addedMarkers, removedMarkers) {
     try {
-        console.log(`[AccessControl] Обновление маркеров через IPC: добавлено ${addedMarkers.length}, удалено ${removedMarkers.length}`);
+    console.debug(`[AccessControl] Обновление маркеров через IPC: добавлено ${addedMarkers.length}, удалено ${removedMarkers.length}`);
         // Построим иерархию маркеров с описаниями
         const hierarchy = buildMarkersHierarchy(markers);
 
@@ -401,19 +367,20 @@ async function updateMarkersViaIPC(markers, addedMarkers, removedMarkers) {
 
         // Отправляем обновлённую структуру маркеров через IPC
         try {
-            console.log('[AccessControl] hierarchy to send:', JSON.stringify(hierarchy, null, 2), 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
+            console.debug('[AccessControl] hierarchy to send:', JSON.stringify(hierarchy, null, 2), 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
         } catch (e) {
-            console.log('[AccessControl] hierarchy to send (non-serializable):', hierarchy, 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
+            console.debug('[AccessControl] hierarchy to send (non-serializable):', hierarchy, 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
         }
 
         const result = await ipcRenderer.invoke('access:updateMarkers', {
             markers: hierarchy,
             addedMarkers,
             removedMarkers
+            // Убираем overwriteMarkers, так как теперь всегда перезаписываем в main-process
         });
         
         if (result && result.ok) {
-            console.log('[AccessControl] Маркеры успешно обновлены');
+            console.debug('[AccessControl] Маркеры успешно обновлены');
             
             // Перезагружаем конфигурацию доступа
             await loadAccessConfig();
@@ -533,7 +500,7 @@ function setupDOMChangeObserver(app) {
             subtree: true
         });
         
-        console.log('[AccessControl] Наблюдатель за изменениями DOM настроен');
+    console.debug('[AccessControl] Наблюдатель за изменениями DOM настроен');
     } catch (error) {
         console.error('[AccessControl] Ошибка настройки наблюдателя за изменениями DOM:', error);
     }
@@ -548,4 +515,4 @@ export default {
     checkAccess
 };
 
-console.log('[AccessControl] Модуль системы контроля доступа загружен');
+// Module loaded - logging suppressed in production

@@ -6,12 +6,12 @@
  * @param {Object} app Экземпляр приложения
  */
 export function testModuleSwitching(app) {
-    console.log('Тестирование переключения модулей...');
-    console.log('Доступные модули:', Object.keys(app.modules));
+    console.debug('Тестирование переключения модулей...');
+    console.debug('Доступные модули:', Object.keys(app.modules));
     
     // Динамически проверяем загруженные модули
     const loadedModules = Object.keys(app.modules);
-    console.log(`Проверка ${loadedModules.length} загруженных модулей:`);
+    console.debug(`Проверка ${loadedModules.length} загруженных модулей:`);
     
     loadedModules.forEach(moduleName => {
         const container = document.getElementById(`${moduleName}-module`);
@@ -24,7 +24,7 @@ export function testModuleSwitching(app) {
             console.warn(`⚠ Навигационный элемент для модуля "${moduleName}" не найден`);
         }
         
-        console.log(`Модуль ${moduleName}:`, {
+    console.debug(`Модуль ${moduleName}:`, {
             container: !!container,
             navItem: !!navItem,
             moduleInstance: !!app.modules[moduleName],
@@ -34,20 +34,20 @@ export function testModuleSwitching(app) {
     
     // Добавляем глобальную функцию для тестирования
     window.testSwitchModule = (moduleName) => {
-        console.log('Тестовое переключение на модуль:', moduleName);
+    console.debug('Тестовое переключение на модуль:', moduleName);
         app.switchModule(moduleName).catch(error => console.error(`Error switching to module ${moduleName}:`, error));
     };
     
-    console.log('Для тестирования используйте: testSwitchModule("orders")');
+    console.debug('Для тестирования используйте: testSwitchModule("orders")');
     
     // Тестирование иконок
     window.testIcons = () => {
-        console.log('Тестирование иконок...');
+        console.debug('Тестирование иконок...');
         if (window.lucide) {
-            console.log('Lucide доступен:', window.lucide);
+            console.debug('Lucide доступен:', window.lucide);
             try {
                 window.lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
-                console.log('Иконки созданы успешно');
+                console.debug('Иконки созданы успешно');
             } catch (error) {
                 console.error('Ошибка создания иконок:', error);
             }
@@ -56,5 +56,5 @@ export function testModuleSwitching(app) {
         }
     };
     
-    console.log('Для тестирования иконок используйте: testIcons()');
+    console.debug('Для тестирования иконок используйте: testIcons()');
 }

@@ -58,7 +58,7 @@ export function renderChromeFromConfig(app) {
         try {
             window.lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
             if (typeof window.repairLucideIcons === 'function') window.repairLucideIcons(document);
-            console.log('Иконки пересозданы после рендеринга');
+            console.debug('Иконки пересозданы после рендеринга');
         } catch (error) {
             console.warn('Ошибка при создании иконок Lucide:', error);
         }

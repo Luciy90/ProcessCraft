@@ -6,15 +6,17 @@
   ],
   "markers": {
     "sidebar-settings": {
-      "description": "Требует заполнения",
+      "description": "Управление модулями",
       "children": []
     },
     "profile-admin-list-mark": {
       "description": "Управление пользователями",
       "children": [
         {
-          "description": "Управление правами доступа",
-          "children": []
+          "profile-access-modal-mark": {
+            "description": "Управление правами доступа",
+            "children": []
+          }
         }
       ]
     },
@@ -24,8 +26,13 @@
     }
   },
   "access": {
-    "SuperAdmin": [],
+    "SuperAdmin": [
+      "profile-admin-list-mark",
+      "profile-access-modal-mark"
+    ],
     "Admin": [],
-    "User": []
+    "User": [
+      "profile-request-changes-mark"
+    ]
   }
 }

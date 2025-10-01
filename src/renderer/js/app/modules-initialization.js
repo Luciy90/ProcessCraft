@@ -7,7 +7,7 @@
  */
 export async function initializeModules(app) {
     try {
-        console.log('Запуск динамической загрузки модулей...');
+    console.debug('Запуск динамической загрузки модулей...');
         
         // Динамическая загрузка модулей
         const loadResult = await window.loadModules({
@@ -17,8 +17,8 @@ export async function initializeModules(app) {
         });
         
         if (loadResult.success) {
-            console.log('✓ Динамическая загрузка модулей завершена успешно');
-            console.log(`Загружено модулей: ${loadResult.loaded.length}/${loadResult.total}`);
+            console.debug('✓ Динамическая загрузка модулей завершена успешно');
+            console.debug(`Загружено модулей: ${loadResult.loaded.length}/${loadResult.total}`);
             
             // Создаем совместимый объект this.modules для существующего кода
             app.modules = {};
@@ -29,7 +29,7 @@ export async function initializeModules(app) {
             // Делаем модули доступными глобально через window.app.modules
             window.app.modules = app.modules;
             
-            console.log('Доступные модули:', Object.keys(app.modules));
+            console.debug('Доступные модули:', Object.keys(app.modules));
             
             // Логируем неудачные загрузки
             if (loadResult.failed.length > 0) {
@@ -55,7 +55,7 @@ export async function initializeModules(app) {
  */
 export async function initializeModulesStatic(app) {
     try {
-        console.log('Fallback: статическая инициализация модулей...');
+    console.debug('Fallback: статическая инициализация модулей...');
         
         app.modules = {};
         
@@ -76,7 +76,7 @@ export async function initializeModulesStatic(app) {
             if (ModuleClass && typeof ModuleClass === 'function') {
                 try {
                     app.modules[moduleId] = new ModuleClass();
-                    console.log(`✓ Статически инициализирован модуль: ${moduleId}`);
+                    console.debug(`✓ Статически инициализирован модуль: ${moduleId}`);
                 } catch (error) {
                     console.error(`✗ Ошибка статической инициализации модуля ${moduleId}:`, error);
                 }
@@ -85,7 +85,7 @@ export async function initializeModulesStatic(app) {
             }
         }
         
-        console.log('Статическая инициализация завершена. Доступные модули:', Object.keys(app.modules));
+    console.debug('Статическая инициализация завершена. Доступные модули:', Object.keys(app.modules));
         
         // Делаем модули доступными глобально через window.app.modules
         window.app.modules = app.modules;

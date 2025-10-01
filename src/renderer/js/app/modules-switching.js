@@ -7,7 +7,7 @@
  * @param {string} moduleName Название модуля для переключения
  */
 export async function switchModule(app, moduleName) {
-    console.log('Переключение на модуль:', moduleName);
+    console.debug('Переключение на модуль:', moduleName);
     
     try {
         // Убираем активный класс с текущего модуля
@@ -52,21 +52,21 @@ export async function switchModule(app, moduleName) {
         if (window.getModuleInstance) {
             moduleInstance = window.getModuleInstance(moduleName);
             if (moduleInstance) {
-                console.log(`Модуль ${moduleName} найден в динамическом реестре`);
+                console.debug(`Модуль ${moduleName} найден в динамическом реестре`);
             }
         }
         
         // Fallback на статический this.modules
         if (!moduleInstance && app.modules && app.modules[moduleName]) {
             moduleInstance = app.modules[moduleName];
-            console.log(`Модуль ${moduleName} найден в статическом реестре`);
+            console.debug(`Модуль ${moduleName} найден в статическом реестре`);
         }
         
         // Инициализация модуля (только если еще не инициализирован)
         if (moduleInstance && typeof moduleInstance.init === 'function') {
             // Проверяем, не инициализирован ли модуль уже
             if (!moduleInstance._initialized) {
-                console.log('Инициализация модуля:', moduleName);
+                console.debug('Инициализация модуля:', moduleName);
                 try {
                     await moduleInstance.init();
                     moduleInstance._initialized = true; // Помечаем как инициализированный
@@ -74,14 +74,14 @@ export async function switchModule(app, moduleName) {
                     console.error(`Ошибка инициализации модуля ${moduleName}:`, error);
                 }
             } else {
-                console.log(`Модуль ${moduleName} уже инициализирован, повторная инициализация пропущена`);
+                console.debug(`Модуль ${moduleName} уже инициализирован, повторная инициализация пропущена`);
             }
         } else {
             console.warn('Модуль не найден или не имеет метода init:', moduleName);
             
             // Попытка ленивой загрузки модуля
             if (window.moduleLoader && typeof window.moduleLoader.initModule === 'function') {
-                console.log(`Попытка ленивой инициализации модуля: ${moduleName}`);
+                console.debug(`Попытка ленивой инициализации модуля: ${moduleName}`);
                 window.moduleLoader.initModule(moduleName).catch(console.error);
             }
         }

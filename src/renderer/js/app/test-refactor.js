@@ -8,14 +8,14 @@ import { switchModule } from './modules-switching.js';
 const app = new ProcessCraftApp();
 
 // Проверяем, что методы правильно привязаны к прототипу
-console.log('App instance created:', !!app);
-console.log('App has switchModule method:', typeof app.switchModule === 'function');
+console.debug('App instance created:', !!app);
+console.debug('App has switchModule method:', typeof app.switchModule === 'function');
 
 // Проверяем, что модульные функции работают
-console.log('switchModule function imported:', typeof switchModule === 'function');
+console.debug('switchModule function imported:', typeof switchModule === 'function');
 
 // Тестовый вызов
-console.log('Testing modularized function call...');
+console.debug('Testing modularized function call...');
 try {
     // Это имитирует вызов, который происходит в основном файле:
     // ProcessCraftApp.prototype.switchModule = function(moduleName) { return switchModule(this, moduleName); };
@@ -26,11 +26,11 @@ try {
         return switchModule(app, moduleName); 
     };
     
-    console.log('Test function created successfully');
-    console.log('Test function type:', typeof testSwitchModule);
+    console.debug('Test function created successfully');
+    console.debug('Test function type:', typeof testSwitchModule);
     
     // Проверяем, что функция не вызывает ошибок при определении
-    console.log('Modularized approach seems correct');
+    console.debug('Modularized approach seems correct');
 } catch (error) {
     console.error('Error in modularized approach:', error);
 }
