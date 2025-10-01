@@ -72,7 +72,7 @@ function saveConfig(cfg) {
   console.log('Found markers:', found.length, found);
 
   let cfg = loadConfig();
-  if (!cfg) cfg = { roles: ['SuperAdmin','Admin','User'], markers: [], access: {} };
+  if (!cfg) cfg = { roles: { "SuperAdmin": {}, "Admin": {}, "User": {} }, markers: [], access: {} };
 
   // Вместо полной перезаписи маркеров, объединяем существующие с найденными
   const existing = Array.isArray(cfg.markers) ? cfg.markers : [];
@@ -105,14 +105,14 @@ function saveConfig(cfg) {
     }
   }
   
-  // Убедимся, что все роли из массива roles имеют записи в объекте access с пустыми массивами в качестве значений
+  // Убедимся, что все роли из объекта roles имеют записи в объекте access с пустыми массивами в качестве значений
   // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
-  if (cfg.roles && Array.isArray(cfg.roles) && cfg.access && typeof cfg.access === 'object') {
-    cfg.roles.forEach(role => {
+  if (cfg.roles && typeof cfg.roles === 'object' && !Array.isArray(cfg.roles) && cfg.access && typeof cfg.access === 'object') {
+    for (const role in cfg.roles) {
       if (!cfg.access.hasOwnProperty(role)) {
         cfg.access[role] = [];
       }
-    });
+    }
   }
 
   const ok = saveConfig(cfg);

@@ -1,40 +1,39 @@
 {
-  "roles": [
-    "SuperAdmin",
-    "User",
-    "Admin"
-  ],
-  "markers": {
-    "sidebar-settings-mark": {
-      "description": "Управление модулями",
-      "children": []
-    },
-    "profile-admin-list-mark": {
-      "description": "Управление пользователями",
-      "children": [
-        {
-          "profile-access-modal-mark": {
-            "description": "Управление правами доступа",
-            "children": []
-          }
-        }
-      ]
-    },
-    "profile-request-changes-mark": {
-      "description": "Запросить изменение данных",
-      "children": []
-    }
+  "roles": {
+    "SuperAdmin": {},
+    "Admin": {},
+    "User": {}
   },
+  "markers": [
+    "sidebar-settings-mark",
+    "profile-admin-list-mark",
+    "profile-access-modal-mark",
+    "profile-request-changes-mark"
+  ],
   "access": {
     "SuperAdmin": [
-      "sidebar-settings-mark"
+      "sidebar-settings-mark",
+      "profile-admin-list-mark",
+      "profile-access-modal-mark",
+      "profile-request-changes-mark"
     ],
     "Admin": [
+      "sidebar-settings-mark",
+      "profile-admin-list-mark",
+      "profile-access-modal-mark",
       "profile-request-changes-mark"
     ],
     "User": [
+      "sidebar-settings-mark",
+      "profile-admin-list-mark",
+      "profile-access-modal-mark",
       "profile-request-changes-mark"
     ]
   },
-  "generated_at": "2025-10-01T08:07:40.821Z"
+  "helper": {
+    "data-access-marker": "задает маркер доступа",
+    "data-access-down": "задает вложенность структуры",
+    "data-access-description": "задает описание маркера"
+  },
+  "generated_at": "2025-10-01T09:05:18.774Z"
 }

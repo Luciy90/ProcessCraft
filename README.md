@@ -360,16 +360,25 @@ ProcessCraft реализует гибкую систему ролей и дос
 
 ```json
 {
-  "roles": [
-    "SuperAdmin",
-    "Admin",
-    "User"
-  ],
-  "markers": [
-    "sidebar-settings",
-    "dashboard-panel",
-    "edit-button"
-  ],
+  "roles": {
+    "SuperAdmin": {},
+    "Admin": {},
+    "User": {}
+  },
+  "markers": {
+    "sidebar-settings": {
+      "description": "Настройки",
+      "children": []
+    },
+    "dashboard-panel": {
+      "description": "Панель управления",
+      "children": []
+    },
+    "edit-button": {
+      "description": "Кнопка редактирования",
+      "children": []
+    }
+  },
   "access": {
     "SuperAdmin": ["sidebar-settings", "dashboard-panel", "edit-button"],
     "Admin": ["dashboard-panel", "edit-button"],
