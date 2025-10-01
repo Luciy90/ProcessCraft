@@ -1,11 +1,11 @@
 {
   "roles": [
     "SuperAdmin",
-    "Admin",
-    "User"
+    "User",
+    "Admin"
   ],
   "markers": {
-    "sidebar-settings": {
+    "sidebar-settings-mark": {
       "description": "Управление модулями",
       "children": []
     },
@@ -26,8 +26,15 @@
     }
   },
   "access": {
-    "SuperAdmin": [],
-    "Admin": [],
-    "User": []
-  }
+    "SuperAdmin": [
+      "sidebar-settings-mark"
+    ],
+    "Admin": [
+      "profile-request-changes-mark"
+    ],
+    "User": [
+      "profile-request-changes-mark"
+    ]
+  },
+  "generated_at": "2025-10-01T08:07:40.821Z"
 }

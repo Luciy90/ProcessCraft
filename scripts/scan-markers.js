@@ -74,17 +74,47 @@ function saveConfig(cfg) {
   let cfg = loadConfig();
   if (!cfg) cfg = { roles: ['SuperAdmin','Admin','User'], markers: [], access: {} };
 
+  // Вместо полной перезаписи маркеров, объединяем существующие с найденными
   const existing = Array.isArray(cfg.markers) ? cfg.markers : [];
+  
+  // Добавляем только новые маркеры, сохраняя существующие
   const newMarkers = found.filter(m => !existing.includes(m));
-  const removed = existing.filter(m => !all.has(m));
-
-  cfg.markers = found;
-  if (removed.length && cfg.access && typeof cfg.access === 'object') {
-    for (const [role, roleMarkers] of Object.entries(cfg.access)) {
-      if (Array.isArray(roleMarkers)) cfg.access[role] = roleMarkers.filter(x => !removed.includes(x));
+  const updatedMarkers = [...existing];
+  
+  // Добавляем новые маркеры в список
+  newMarkers.forEach(marker => {
+    if (!updatedMarkers.includes(marker)) {
+      updatedMarkers.push(marker);
     }
+  });
+  
+  // Не удаляем существующие маркеры, даже если они не найдены в текущем сканировании
+  cfg.markers = updatedMarkers;
+  
+  // Обновляем секцию доступа, добавляя новые маркеры ко всем ролям, но не удаляя существующие
+  if (cfg.access && typeof cfg.access === 'object') {
+    for (const [role, roleMarkers] of Object.entries(cfg.access)) {
+      if (Array.isArray(roleMarkers)) {
+        // Добавляем только новые маркеры, которых еще нет в списке доступа
+        newMarkers.forEach(marker => {
+          if (!roleMarkers.includes(marker)) {
+            roleMarkers.push(marker);
+          }
+        });
+      }
+    }
+  }
+  
+  // Убедимся, что все роли из массива roles имеют записи в объекте access с пустыми массивами в качестве значений
+  // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
+  if (cfg.roles && Array.isArray(cfg.roles) && cfg.access && typeof cfg.access === 'object') {
+    cfg.roles.forEach(role => {
+      if (!cfg.access.hasOwnProperty(role)) {
+        cfg.access[role] = [];
+      }
+    });
   }
 
   const ok = saveConfig(cfg);
-  console.log('Saved:', ok, 'New:', newMarkers.length, 'Removed:', removed.length);
+  console.log('Saved:', ok, 'New:', newMarkers.length);
 })();

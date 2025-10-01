@@ -21,9 +21,10 @@ function loadAccessConfig() {
     if (!raw || raw.trim().length === 0) {
       console.warn('[AccessControl] Файл access.json пуст, вернём дефолтную конфигурацию');
       return {
-        roles: ["SuperAdmin", "Admin", "User"],
+        roles: [],
         markers: {},
-        access: {}
+        access: {},
+        generated_at: new Date().toISOString()
       };
     }
 
@@ -35,9 +36,10 @@ function loadAccessConfig() {
       // Логируем небольшую часть содержимого для диагностики
       try { console.error('[AccessControl] access.json excerpt:', raw.slice(0, 1000)); } catch (e) {}
       return {
-        roles: ["SuperAdmin", "Admin", "User"],
+        roles: [],
         markers: {},
-        access: {}
+        access: {},
+        generated_at: new Date().toISOString()
       };
     }
     
@@ -80,127 +82,40 @@ function saveAccessConfig(config) {
 }
 
 /**
- * Поиск маркеров доступа в HTML-файлах и обновление файла доступа
+ * Создание базовой конфигурации доступа
+ * @returns {Object} Базовая конфигурация доступа
  */
-function updateAccessConfigWithMarkers() {
-  try {
-    console.log('[AccessControl] Starting marker scan and update process');
-    
-    // Получаем список всех HTML и JS файлов в проекте (шаблоны могут быть в HTML или в JS)
-    const searchRoot = path.join(__dirname, '../renderer');
-    const files = findFilesByExtensions(searchRoot, ['.html', '.htm', '.js']);
+function createBaseAccessConfig() {
+  return {
+    roles: [],
+    markers: {},
+    access: {},
+    helper: {
+      "data-access-marker": "задает маркер доступа",
+      "data-access-down": "задает вложенность структуры",
+      "data-access-description": "задает описание маркера"
+    },
+    generated_at: new Date().toISOString()
+  };
+}
 
-    // Собираем все маркеры доступа из найденных файлов
-    // Теперь поддерживаем расширенные атрибуты: data-access-description и data-access-down
-    const allMarkersSet = new Set();
-    // Собираем временный словарь маркеров { id: { description, down } }
-    const foundMarkersMap = {};
-
-    for (const filePath of files) {
-      try {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        const markers = extractAccessMarkers(content);
-        // markers может быть массив объектов { id, description, down }
-        markers.forEach(marker => {
-          if (!marker || !marker.id) return;
-          allMarkersSet.add(marker.id);
-          // Если уже есть — не перезаписываем описание, оставляем первое найденное (предпочтительно в HTML)
-          if (!foundMarkersMap[marker.id]) {
-            foundMarkersMap[marker.id] = { description: marker.description || 'Требует заполнения', down: marker.down || null };
-          } else {
-            // если описание отсутствовало ранее, попробуем заполнить
-            if ((!foundMarkersMap[marker.id].description || foundMarkersMap[marker.id].description === 'Требует заполнения') && marker.description) {
-              foundMarkersMap[marker.id].description = marker.description;
-            }
-            if (!foundMarkersMap[marker.id].down && marker.down) {
-              foundMarkersMap[marker.id].down = marker.down;
-            }
-          }
-        });
-      } catch (error) {
-        console.warn(`Не удалось прочитать файл ${filePath}:`, error.message);
-      }
+/**
+ * Актуализация ролей в конфигурации
+ * @param {Object} config Конфигурация доступа
+ * @returns {Object} Обновленная конфигурация
+ */
+function updateRoles(config) {
+  // Обязательные роли
+  const requiredRoles = ["SuperAdmin", "Admin", "User"];
+  
+  // Добавляем отсутствующие обязательные роли
+  requiredRoles.forEach(role => {
+    if (!config.roles.includes(role)) {
+      config.roles.push(role);
     }
-
-    console.log(`[AccessControl] Найдено маркеров: ${allMarkersSet.size}`);
-
-    // Загружаем текущую конфигурацию доступа
-    let config = loadAccessConfig();
-
-    // Если файл конфигурации не существует, создаем новый дефолтный
-    if (!config) {
-      config = {
-        roles: ["SuperAdmin", "Admin", "User"],
-        markers: {},
-        access: {}
-      };
-    }
-
-    // Создаем новую структуру маркеров с правильной иерархией
-    const newMarkersObj = {};
-    
-    // Сначала добавим все маркеры на верхнем уровне
-    Array.from(allMarkersSet).forEach(markerId => {
-      const markerData = foundMarkersMap[markerId] || { description: 'Требует заполнения', down: null };
-      newMarkersObj[markerId] = { 
-        description: markerData.description, 
-        children: [] 
-      };
-    });
-
-    // Затем обработаем вложенности (data-access-down)
-    for (const [markerId, markerData] of Object.entries(foundMarkersMap)) {
-      const down = markerData.down;
-      if (down && newMarkersObj[markerId] && newMarkersObj[down]) {
-        // Создаем объект для дочернего маркера с именем в качестве ключа
-        const childObj = {};
-        childObj[markerId] = newMarkersObj[markerId];
-        
-        // Добавляем в массив children родительского маркера
-        newMarkersObj[down].children.push(childObj);
-        
-        // Удаляем дочерний маркер из верхнего уровня, так как он теперь вложен
-        // Но только если он не используется где-то еще на верхнем уровне
-        let isUsedAsTopLevel = false;
-        for (const [otherId, otherData] of Object.entries(foundMarkersMap)) {
-          if (otherId !== markerId && !otherData.down && otherData.description === markerData.description) {
-            isUsedAsTopLevel = true;
-            break;
-          }
-        }
-        
-        if (!isUsedAsTopLevel) {
-          delete newMarkersObj[markerId];
-        }
-      }
-    }
-
-    // Всегда перезаписываем маркеры новой структурой
-    config.markers = newMarkersObj;
-
-    // Обновляем секцию доступа, добавляя новые маркеры ко всем ролям
-    if (!config.access || typeof config.access !== 'object') {
-      config.access = {};
-    }
-    
-    // Убедимся, что все роли существуют
-    const roles = config.roles || ["SuperAdmin", "Admin", "User"];
-    roles.forEach(role => {
-      if (!config.access[role]) {
-        config.access[role] = [];
-      }
-    });
-
-    // Сохраняем обновленную конфигурацию
-    const saved = saveAccessConfig(config);
-    if (saved) {
-      console.log('[AccessControl] Файл доступа успешно обновлен при запуске программы');
-    } else {
-      console.error('[AccessControl] Не удалось сохранить файл доступа при запуске программы');
-    }
-  } catch (error) {
-    console.error('[AccessControl] Ошибка при обновлении файла доступа:', error);
-  }
+  });
+  
+  return config;
 }
 
 /**
@@ -219,8 +134,8 @@ function findHtmlFiles(dirPath) {
       if (item.isDirectory()) {
         // Рекурсивно ищем в поддиректориях
         files.push(...findHtmlFiles(fullPath));
-      } else if (item.isFile() && item.name.endsWith('.html')) {
-        // Добавляем HTML-файл
+      } else if (item.isFile() && (item.name.endsWith('.html') || item.name.endsWith('.js'))) {
+        // Добавляем HTML и JS файлы
         files.push(fullPath);
       }
     }
@@ -233,41 +148,9 @@ function findHtmlFiles(dirPath) {
 }
 
 /**
- * Поиск файлов по расширениям в директории
- * @param {string} dirPath Путь к директории
- * @param {Array<string>} extensions Список расширений (с точкой), например ['.html', '.js']
- * @returns {Array<string>} Список путей к найденным файлам
- */
-function findFilesByExtensions(dirPath, extensions) {
-  try {
-    const files = [];
-    const items = fs.readdirSync(dirPath, { withFileTypes: true });
-
-    for (const item of items) {
-      const fullPath = path.join(dirPath, item.name);
-
-      if (item.isDirectory()) {
-        // Рекурсивно ищем в поддиректориях
-        files.push(...findFilesByExtensions(fullPath, extensions));
-      } else if (item.isFile()) {
-        const ext = path.extname(item.name).toLowerCase();
-        if (extensions.includes(ext)) {
-          files.push(fullPath);
-        }
-      }
-    }
-
-    return files;
-  } catch (error) {
-    console.error(`Ошибка при поиске файлов в ${dirPath}:`, error.message);
-    return [];
-  }
-}
-
-/**
- * Извлечение маркеров доступа из HTML-контента
- * @param {string} content HTML-контент
- * @returns {Array<string>} Список маркеров доступа
+ * Извлечение маркеров доступа из контента файла
+ * @param {string} content Контент файла
+ * @returns {Array<Object>} Список маркеров доступа
  */
 function extractAccessMarkers(content) {
   try {
@@ -305,6 +188,151 @@ function extractAccessMarkers(content) {
   }
 }
 
+/**
+ * Построение иерархической структуры маркеров
+ * @param {Array<Object>} foundMarkers Список найденных маркеров
+ * @returns {Object} Иерархическая структура маркеров
+ */
+function buildMarkersHierarchy(foundMarkers) {
+  // Создаем карту маркеров для быстрого доступа
+  const markerMap = {};
+  foundMarkers.forEach(marker => {
+    // Для пустых или некорректных значений description подставляем "Требует заполнения"
+    const description = (!marker.description || marker.description.trim() === '') ? 'Требует заполнения' : marker.description;
+    
+    markerMap[marker.id] = {
+      description: description,
+      children: []
+    };
+  });
+
+  // Формируем иерархию
+  const hierarchy = {};
+  
+  foundMarkers.forEach(marker => {
+    if (marker.down && markerMap[marker.down]) {
+      // Добавляем как дочерний элемент
+      const childEntry = {};
+      childEntry[marker.id] = markerMap[marker.id];
+      markerMap[marker.down].children.push(childEntry);
+    } else {
+      // Добавляем как корневой элемент
+      hierarchy[marker.id] = markerMap[marker.id];
+    }
+  });
+  
+  // Удаляем дочерние маркеры из верхнего уровня
+  foundMarkers.forEach(marker => {
+    if (marker.down && hierarchy[marker.id]) {
+      delete hierarchy[marker.id];
+    }
+  });
+  
+  return hierarchy;
+}
+
+/**
+ * Актуализация структуры доступа
+ * @param {Object} config Конфигурация доступа
+ * @returns {Object} Обновленная конфигурация
+ */
+function updateAccessStructure(config) {
+  // Удаляем записи для ролей, которых нет в массиве roles
+  for (const role in config.access) {
+    if (!config.roles.includes(role)) {
+      delete config.access[role];
+    }
+  }
+  
+  // Добавляем отсутствующие роли в access
+  config.roles.forEach(role => {
+    if (!config.access.hasOwnProperty(role)) {
+      config.access[role] = [];
+    }
+  });
+  
+  return config;
+}
+
+/**
+ * Поиск маркеров доступа в HTML-файлах и обновление файла доступа
+ */
+function updateAccessConfigWithMarkers() {
+  try {
+    console.log('[AccessControl] Starting marker scan and update process');
+    
+    // 1. Проверка существования файла Server\users\access.json
+    let config;
+    if (!fs.existsSync(accessConfigPath)) {
+      // Если файла нет, создать его с базовой структурой
+      config = createBaseAccessConfig();
+      console.log('[AccessControl] Создан новый файл конфигурации доступа с базовой структурой');
+    } else {
+      // Загружаем текущую конфигурацию доступа
+      config = loadAccessConfig();
+      if (!config) {
+        // Если не удалось загрузить, создаем новую
+        config = createBaseAccessConfig();
+        console.log('[AccessControl] Не удалось загрузить конфигурацию, создан новый файл');
+      }
+      
+      // Если helper отсутствует, не добавляем его (только при первом создании)
+      if (!config.helper) {
+        delete config.helper; // Удаляем, если был добавлен при загрузке
+      }
+    }
+
+    // 2. Актуализация ролей
+    config = updateRoles(config);
+    console.log(`[AccessControl] Актуализированы роли: ${config.roles.join(', ')}`);
+
+    // 3. Анализ HTML и построение структуры маркеров
+    // Выполнить поиск всех HTML-файлов в каталоге src, в том числе файлов, встроенных в JS
+    const searchRoot = path.join(__dirname, '../renderer');
+    const files = findHtmlFiles(searchRoot);
+    console.log(`[AccessControl] Найдено файлов для анализа: ${files.length}`);
+
+    // Собираем все маркеры доступа из найденных файлов
+    const allMarkers = [];
+    for (const filePath of files) {
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const markers = extractAccessMarkers(content);
+        allMarkers.push(...markers);
+        console.log(`[AccessControl] В файле ${filePath} найдено маркеров: ${markers.length}`);
+      } catch (error) {
+        console.warn(`[AccessControl] Не удалось прочитать файл ${filePath}:`, error.message);
+      }
+    }
+
+    console.log(`[AccessControl] Всего найдено маркеров: ${allMarkers.length}`);
+
+    // Построить иерархическую структуру маркеров с их описаниями и вложенностью
+    const markersHierarchy = buildMarkersHierarchy(allMarkers);
+    config.markers = markersHierarchy;
+    console.log('[AccessControl] Построена иерархическая структура маркеров');
+
+    // 4. Проверка структуры доступа
+    config = updateAccessStructure(config);
+    console.log('[AccessControl] Актуализирована структура доступа');
+
+    // 5. Дата генерации
+    config.generated_at = new Date().toISOString();
+    console.log(`[AccessControl] Обновлена дата генерации: ${config.generated_at}`);
+
+    // Сохраняем обновленную конфигурацию
+    const saved = saveAccessConfig(config);
+    if (saved) {
+      console.log('[AccessControl] Файл доступа успешно обновлен');
+    } else {
+      console.error('[AccessControl] Не удалось сохранить файл доступа');
+    }
+  } catch (error) {
+    console.error('[AccessControl] Ошибка при обновлении файла доступа:', error);
+    return { error: `Ошибка при обновлении файла доступа: ${error.message}` };
+  }
+}
+
 // Регистрация IPC обработчиков для контроля доступа
 function registerAccessControlHandlers() {
   // IPC обработчик для загрузки конфигурации доступа
@@ -322,17 +350,10 @@ function registerAccessControlHandlers() {
     }
   });
 
-  // IPC обработчик для обновления маркеров в конфигурации
-  ipcMain.handle('access:updateMarkers', async (event, payload) => {
+  // IPC обработчик для обновления прав доступа (только для явных запросов)
+  ipcMain.handle('access:updateAccess', async (event, payload) => {
     try {
-      const { markers, addedMarkers, removedMarkers } = payload || {};
-      try {
-        const markerKeys = markers && typeof markers === 'object' ? Object.keys(markers) : [];
-        console.log('[AccessControl][IPC] Received markers payload:', { markerKeys, addedMarkers, removedMarkers, payloadType: typeof payload });
-        if (markerKeys.length === 0) console.warn('[AccessControl][IPC] Received empty markers object');
-      } catch (e) {
-        console.log('[AccessControl][IPC] Received markers payload (unserializable):', { markers, addedMarkers, removedMarkers, payloadType: typeof payload });
-      }
+      const { access } = payload || {};
       
       // Загружаем текущую конфигурацию
       const config = loadAccessConfig();
@@ -340,27 +361,25 @@ function registerAccessControlHandlers() {
         return { ok: false, error: 'Не удалось загрузить конфигурацию доступа', log: 'Failed to load access configuration file' };
       }
       
-      // Всегда перезаписываем маркеры новой структурой (упрощенный подход)
-      if (markers && typeof markers === 'object') {
-        // Простая перезапись всей структуры маркеров
-        config.markers = markers;
-        
-        // Объединяем существующие права доступа с новыми маркерами
-        // чтобы не потерять уже установленные разрешения для ролей
-        if (config.access && typeof config.access === 'object') {
-          // Убедимся, что все маркеры представлены в секции доступа для каждой роли
-          const allMarkers = Object.keys(markers);
-          for (const role in config.access) {
-            if (Array.isArray(config.access[role])) {
-              // Добавляем недостающие маркеры в каждую роль (но не удаляем существующие)
-              allMarkers.forEach(marker => {
-                if (!config.access[role].includes(marker)) {
-                  config.access[role].push(marker);
-                }
-              });
-            }
+      // Обновляем права доступа ТОЛЬКО если они переданы явно
+      if (access && typeof access === 'object') {
+        // Обновляем права доступа для каждой роли отдельно
+        for (const role in access) {
+          if (Array.isArray(access[role]) && config.access.hasOwnProperty(role)) {
+            // Заменяем права доступа для этой роли на переданные
+            config.access[role] = [...access[role]];
           }
         }
+      }
+      
+      // Убедимся, что все роли из массива roles имеют записи в объекте access с пустыми массивами в качестве значений
+      // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
+      if (config.roles && Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
+        config.roles.forEach(role => {
+          if (!config.access.hasOwnProperty(role)) {
+            config.access[role] = [];
+          }
+        });
       }
 
       // Сохраняем обновленную конфигурацию
@@ -369,10 +388,10 @@ function registerAccessControlHandlers() {
         return { ok: false, error: 'Не удалось сохранить обновленную конфигурацию доступа', log: 'Failed to save access configuration file' };
       }
       
-      console.log(`[AccessControl] Маркеры обновлены: добавлено ${addedMarkers?.length || 0}, удалено ${removedMarkers?.length || 0}`);
-      return { ok: true, log: `Markers updated: added ${addedMarkers?.length || 0}, removed ${removedMarkers?.length || 0}` };
+      console.log('[AccessControl] Права доступа обновлены');
+      return { ok: true, log: 'Access permissions updated' };
     } catch (error) {
-      const errorMsg = `[AccessControl] Ошибка IPC при обновлении маркеров: ${error.message}`;
+      const errorMsg = `[AccessControl] Ошибка IPC при обновлении прав доступа: ${error.message}`;
       console.error(errorMsg);
       return { ok: false, error: error.message, log: errorMsg };
     }

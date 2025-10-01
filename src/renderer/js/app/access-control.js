@@ -67,14 +67,11 @@ export async function initializeAccessControl(app) {
             // Если есть недостающие роли — отправим update в main-process и обновим локальную переменную
             if (Object.keys(missing).length > 0) {
                 const payload = {
-                    markers: config.markers || {},
-                    addedMarkers: [],
-                    removedMarkers: [],
-                    access: Object.assign({}, existingAccess, missing)
+                    access: missing
                 };
 
                 try {
-                    await ipcRenderer.invoke('access:updateMarkers', payload);
+                    await ipcRenderer.invoke('access:updateAccess', payload);
                     // Обновим локальную переменную accessConfig — объединяя существующие access с добавленными ролями
                     accessConfig = Object.assign({}, config, { access: Object.assign({}, existingAccess, missing) });
                 } catch (e) {
@@ -365,28 +362,13 @@ async function updateMarkersViaIPC(markers, addedMarkers, removedMarkers) {
             return;
         }
 
-        // Отправляем обновлённую структуру маркеров через IPC
-        try {
-            console.debug('[AccessControl] hierarchy to send:', JSON.stringify(hierarchy, null, 2), 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
-        } catch (e) {
-            console.debug('[AccessControl] hierarchy to send (non-serializable):', hierarchy, 'addedMarkers:', addedMarkers, 'removedMarkers:', removedMarkers);
-        }
-
-        const result = await ipcRenderer.invoke('access:updateMarkers', {
-            markers: hierarchy,
-            addedMarkers,
-            removedMarkers
-            // Убираем overwriteMarkers, так как теперь всегда перезаписываем в main-process
-        });
+        // NOTE: We no longer send marker updates via IPC to avoid duplication
+        // Marker updates are handled by updateAccessConfigWithMarkers during app initialization
+        // Only explicit access permission changes should be sent via IPC
+        console.debug('[AccessControl] Marker updates are handled during app initialization, skipping IPC update');
         
-        if (result && result.ok) {
-            console.debug('[AccessControl] Маркеры успешно обновлены');
-            
-            // Перезагружаем конфигурацию доступа
-            await loadAccessConfig();
-        } else {
-            console.error('[AccessControl] Ошибка обновления маркеров:', result?.error);
-        }
+        // Перезагружаем конфигурацию доступа
+        await loadAccessConfig();
     } catch (error) {
         console.error('[AccessControl] Ошибка обновления маркеров через IPC:', error);
     }
