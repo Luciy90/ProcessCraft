@@ -61,7 +61,7 @@ export async function renderUserAvatar(app) {
             fallback.classList.remove('hidden');
         }
     } catch (error) {
-        console.error('Failed to render user avatar:', error);
+        console.error('Ошибка рендеринга аватара пользователя:', error);
         fallback.textContent = '👤';
         fallback.style.backgroundColor = '';
         fallback.style.color = '';

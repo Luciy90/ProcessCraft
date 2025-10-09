@@ -144,12 +144,12 @@
     </div>
 
     <script>
-      // Init icons
+      // Инициализация иконок
       document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons({ attrs: { "stroke-width": 1.5 } });
       });
 
-      // Data
+      // Данные
       const roles = [
         { id: "admin", name: "Администратор", info: "Полный доступ", color: "emerald" },
         { id: "editor", name: "Редактор", info: "Управление контентом", color: "sky" },
@@ -181,7 +181,7 @@
         }
       ];
 
-      // Flatten helpers
+      // Вспомогательные функции для преобразования в плоский список
       function flattenWithDepth(tree) {
         const out = [];
         const walk = (nodes, depth) => {
@@ -196,7 +196,7 @@
       const flatModules = flattenWithDepth(modules);
       const allModuleIds = flatModules.map(n => n.id);
 
-      // Precompute per-level stats (structure is static)
+      // Предварительное вычисление статистики по уровням (структура статична)
       const levelCounts = (() => {
         const map = new Map();
         flatModules.forEach(n => map.set(n.depth, (map.get(n.depth) || 0) + 1));
@@ -204,7 +204,7 @@
       })();
       const totalRows = flatModules.length;
 
-      // Permissions per role (single "checked" set)
+      // Права доступа для каждой роли (один набор "отмеченных" элементов)
       const rolePermissions = {
         admin: { checked: new Set(allModuleIds) },
         editor: { checked: new Set(["dashboard", "projects", "projects.view", "projects.edit", "reports"]) },
@@ -212,7 +212,7 @@
         contractor: { checked: new Set(["projects", "projects.view"]) }
       };
 
-      // UI elements
+      // Элементы пользовательского интерфейса
       const modal = document.getElementById("settingsModal");
       const openModalBtn = document.getElementById("openModalBtn");
       const closeModalX = document.getElementById("closeModalX");
@@ -229,7 +229,7 @@
       const presetViewAll = document.getElementById("presetViewAll");
       const presetDisableAll = document.getElementById("presetDisableAll");
 
-      // New counter refs
+      // Ссылки на новые счетчики
       const countRowsEl = document.getElementById("countRows");
       const levelsBreakdownEl = document.getElementById("levelsBreakdown");
       const countActiveEl = document.getElementById("countActive");
@@ -237,18 +237,18 @@
 
       const activeRoleNameEl = document.getElementById("activeRoleName");
 
-      // Local state
+      // Локальное состояние
       let activeRoleId = roles[0].id;
       const stateByRole = new Map(roles.map(r => {
         const s = rolePermissions[r.id] || { checked: new Set() };
         return [r.id, { checked: new Set(s.checked) }];
       }));
 
-      // Filters and view state
+      // Фильтры и состояние просмотра
       let rolesQuery = "";
       let modulesQuery = "";
 
-      // Track expanded nodes (preserves open state across re-renders)
+      // Отслеживание развернутых узлов (сохраняет состояние открытия между перерисовками)
       const expandedIds = new Set();
 
       function setForAll(tree, set, on) {
@@ -280,7 +280,7 @@
         return walk(nodes);
       }
 
-      // Render roles
+      // Рендеринг ролей
       function renderRoles() {
         rolesList.innerHTML = "";
         const q = rolesQuery.trim().toLowerCase();
@@ -322,7 +322,7 @@
         if (activeRoleNameEl && activeRole) activeRoleNameEl.textContent = activeRole.name;
       }
 
-      // Render modules tree
+      // Рендеринг дерева модулей
       function renderModules() {
         const roleState = stateByRole.get(activeRoleId);
         const filtered = filterTree(modules, modulesQuery);

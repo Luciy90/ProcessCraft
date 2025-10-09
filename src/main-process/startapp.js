@@ -121,11 +121,11 @@ function initializeApp(updateAccessConfigWithMarkers, ensureUsersDir, getUserDir
         child.execFileSync(process.execPath, [scriptsPath], { stdio: 'inherit' });
         console.log('modules/index.json успешно перестроен');
       } catch (e) {
-        console.warn('Failed to rebuild modules/index.json (continuing):', e.message);
+        console.warn('Не удалось перестроить modules/index.json (продолжаем):', e.message);
       }
     }
   } catch (e) {
-    console.warn('Rebuild modules step skipped:', e.message);
+    console.warn('Этап перестроения модулей пропущен:', e.message);
   }
 
   createWindow();

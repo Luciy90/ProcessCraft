@@ -36,26 +36,26 @@ export async function initializeApp(app) {
             const container = document.createElement('div');
             container.innerHTML = html;
             document.body.appendChild(container);
-            console.log('Template model-settings.html loaded and inserted');
+            console.log('Шаблон model-settings.html загружен и вставлен');
                     
             // Попытка импортировать ES-модуль и инициализировать
             try {
                 const mod = await import('./model-settings.js');
                 if (mod && typeof mod.initModelSettings === 'function') {
                     mod.initModelSettings();
-                    console.log('initModelSettings invoked');
+                    console.log('initModelSettings вызван');
                 } else if (mod && mod.default && typeof mod.default.initModelSettings === 'function') {
                     mod.default.initModelSettings();
-                    console.log('initModelSettings invoked from default export');
+                    console.log('initModelSettings вызван из экспорта по умолчанию');
                 } else {
                     console.warn('model-settings module loaded but initModelSettings not found');
                 }
             } catch (e) {
-                console.warn('Failed to import or invoke model-settings module:', e);
+                console.warn('Не удалось импортировать или вызвать модуль model-settings:', e);
             }
         } catch (e) {
             // Неприменимо в некоторых окружениях (CSP, file://, Electron packaging). Это не фатально.
-            console.warn('Could not load model-settings template:', e);
+            console.warn('Не удалось загрузить шаблон model-settings:', e);
         }
     })();
     
@@ -63,7 +63,7 @@ export async function initializeApp(app) {
     app.setupNavigationListeners();
     
     // Активируем модуль dashboard по умолчанию
-    app.switchModule('dashboard').catch(error => console.error('Error switching to dashboard:', error));
+    app.switchModule('dashboard').catch(error => console.error('Ошибка переключения на панель управления:', error));
     
     // Инициализируем систему контроля доступа
     if (typeof app.initializeAccessControl === 'function') {
@@ -76,11 +76,11 @@ export async function initializeApp(app) {
                 if (currentUser) {
                     // Prefer instance method if available
                     if (typeof app.setCurrentUser === 'function') {
-                        try { app.setCurrentUser(currentUser); } catch (e) { console.warn('app.setCurrentUser failed:', e); }
+                        try { app.setCurrentUser(currentUser); } catch (e) { console.warn('Ошибка app.setCurrentUser:', e); }
                     } else if (window.AppAccess && typeof window.AppAccess.setCurrentUser === 'function') {
-                        try { window.AppAccess.setCurrentUser(app, currentUser); } catch (e) { console.warn('AppAccess.setCurrentUser failed:', e); }
+                        try { window.AppAccess.setCurrentUser(app, currentUser); } catch (e) { console.warn('Ошибка AppAccess.setCurrentUser:', e); }
                     } else {
-                        console.warn('No setCurrentUser available to set current user in access control');
+                        console.warn('Нет доступного setCurrentUser для установки текущего пользователя в системе контроля доступа');
                     }
                 }
                 
@@ -120,11 +120,11 @@ export async function addSettingsElementsForUser() {
                     if (mod && typeof mod.initModelSettings === 'function') {
                         mod.initModelSettings();
                         window.modelSettingsInitialized = true;
-                        console.log('initModelSettings invoked for existing elements');
+                        console.log('initModelSettings вызван для существующих элементов');
                     }
                 }
             } catch (e) {
-                console.warn('Failed to initialize model-settings for existing elements:', e);
+                console.warn('Не удалось инициализировать model-settings для существующих элементов:', e);
             }
             return;
         }
@@ -139,7 +139,7 @@ export async function addSettingsElementsForUser() {
         const container = document.createElement('div');
         container.innerHTML = html;
         document.body.appendChild(container);
-        console.log('Template model-settings.html loaded and inserted for authorized user');
+        console.log('Шаблон model-settings.html загружен и вставлен для авторизованного пользователя');
                 
         // Инициализируем настройки
         try {
@@ -147,12 +147,12 @@ export async function addSettingsElementsForUser() {
             if (mod && typeof mod.initModelSettings === 'function') {
                 mod.initModelSettings();
                 window.modelSettingsInitialized = true;
-                console.log('initModelSettings invoked for authorized user');
+                console.log('initModelSettings вызван для авторизованного пользователя');
             }
         } catch (e) {
-            console.warn('Failed to initialize model-settings for authorized user:', e);
+            console.warn('Не удалось инициализировать model-settings для авторизованного пользователя:', e);
         }
     } catch (e) {
-        console.warn('Could not add settings elements for user:', e);
+        console.warn('Не удалось добавить элементы настроек для пользователя:', e);
     }
 }

@@ -1,14 +1,14 @@
-// Access modal script (moved from design/access/script.js)
-// NOTE: This file is intended to be loaded as part of renderer scripts bundle.
+// Скрипт модального окна доступа (перенесен из design/access/script.js)
+// ПРИМЕЧАНИЕ: Этот файл предназначен для загрузки как часть бандла скриптов рендерера.
 
-// Initialization will be done after all functions are declared
-// to ensure function declarations (renderRoles/renderModules) are available.
+// Инициализация будет выполнена после объявления всех функций
+// чтобы обеспечить доступность объявлений функций (renderRoles/renderModules).
 function initAccessModal() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     try {
       lucide.createIcons({ attrs: { "stroke-width": 1.5 } });
     } catch (e) {
-      console.warn('Lucide icons init failed:', e);
+      console.warn('Ошибка инициализации иконок Lucide:', e);
     }
   }
 
@@ -17,7 +17,7 @@ function initAccessModal() {
     if (typeof renderRoles === 'function') renderRoles();
     if (typeof renderModules === 'function') renderModules();
   } catch (e) {
-    console.error('Error initializing access modal renderers:', e);
+    console.error('Ошибка инициализации рендереров модального окна доступа:', e);
   }
 }
 
@@ -276,7 +276,7 @@ async function ensureTemplateInserted() {
     // Initialize renderers for the modal
     initAccessModal();
   } catch (e) {
-    console.error('Failed to insert access modal template:', e);
+    console.error('Не удалось вставить шаблон модального окна доступа:', e);
   }
 }
 
@@ -310,8 +310,8 @@ function closeModal() {
 // Expose a minimal API so other modules can open/close the modal
 window.AccessModal = window.AccessModal || {};
 // These functions will be exposed via global AccessModal
-window.AccessModal.open = function() { try { return openModal(); } catch (e) { console.warn('AccessModal.open failed:', e); } };
-window.AccessModal.close = function() { try { return closeModal(); } catch (e) { console.warn('AccessModal.close failed:', e); } };
+window.AccessModal.open = function() { try { return openModal(); } catch (e) { console.warn('Ошибка открытия AccessModal:', e); } };
+window.AccessModal.close = function() { try { return closeModal(); } catch (e) { console.warn('Ошибка закрытия AccessModal:', e); } };
 
 // Ensure initialization after definitions (no-op if template loaded lazily)
 if (document.readyState === 'loading') {

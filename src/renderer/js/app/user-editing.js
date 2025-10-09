@@ -7,7 +7,7 @@
  * @param {Object} user Пользователь для редактирования
  */
 export function openEditUserModal(app, user) {
-    // Load roles dynamically from access configuration
+    // Загрузка ролей динамически из конфигурации доступа
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
@@ -16,23 +16,23 @@ export function openEditUserModal(app, user) {
                 return result.config.roles;
             }
         } catch (error) {
-            console.error('[UserEditing] Error loading roles:', error);
+            console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }
-        // Fallback to default roles if loading fails
+        // Резервный вариант с ролями по умолчанию, если загрузка не удалась
         return ['User', 'Admin', 'SuperAdmin'];
     };
 
-    // Generate role options HTML
+    // Генерация HTML опций ролей
     const generateRoleOptions = (roles, userRole) => {
         return roles.map(role => {
-            // Handle special case for SuperAdmin role which might have different names
+            // Обработка специального случая для роли SuperAdmin, которая может иметь разные имена
             const isSelected = (role === 'SuperAdmin' && (userRole === 'SuperAdmin' || userRole === 'СуперАдминистратор')) || 
                              (role !== 'SuperAdmin' && userRole === role);
             return `<option ${isSelected ? 'selected' : ''}>${role}</option>`;
         }).join('');
     };
 
-    // Create the modal HTML with dynamic roles
+    // Создание HTML модального окна с динамическими ролями
     const createModalHTML = async () => {
         const roles = await loadRoles();
         return `
@@ -82,7 +82,7 @@ export function openEditUserModal(app, user) {
     </div>`;
     };
 
-    // Show the modal
+    // Отображение модального окна
     createModalHTML().then(html => {
         app.showModal(html);
         document.getElementById('edit-user-cancel').addEventListener('click', () => { app.openAdminPanelModal(); });
@@ -131,7 +131,7 @@ export function openEditUserModal(app, user) {
 export function openRequestChangesModal(app) {
     const currentUser = window.UserStore?.getCurrentUser();
     
-    // Load roles dynamically from access configuration
+    // Загрузка ролей динамически из конфигурации доступа
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
@@ -140,23 +140,23 @@ export function openRequestChangesModal(app) {
                 return result.config.roles;
             }
         } catch (error) {
-            console.error('[UserEditing] Error loading roles:', error);
+            console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }
-        // Fallback to default roles if loading fails
+        // Резервный вариант с ролями по умолчанию, если загрузка не удалась
         return ['User', 'Admin', 'SuperAdmin'];
     };
 
-    // Generate role options HTML
+    // Генерация HTML опций ролей
     const generateRoleOptions = (roles, userRole) => {
         return roles.map(role => {
-            // Handle special case for SuperAdmin role which might have different names
+            // Обработка специального случая для роли SuperAdmin, которая может иметь разные имена
             const isSelected = (role === 'SuperAdmin' && (userRole === 'SuperAdmin' || userRole === 'СуперАдминистратор')) || 
                              (role !== 'SuperAdmin' && userRole === role);
             return `<option ${isSelected ? 'selected' : ''}>${role}</option>`;
         }).join('');
     };
 
-    // Create the modal HTML with dynamic roles
+    // Создание HTML модального окна с динамическими ролями
     const createModalHTML = async () => {
         const roles = await loadRoles();
         return `
@@ -206,7 +206,7 @@ export function openRequestChangesModal(app) {
     </div>`;
     };
 
-    // Show the modal
+    // Отображение модального окна
     createModalHTML().then(html => {
         app.showModal(html);
         
@@ -245,7 +245,7 @@ export function openRequestChangesModal(app) {
  * @param {Object} app Экземпляр приложения
  */
 export function openCreateUserModal(app) {
-    // Load roles dynamically from access configuration
+    // Загрузка ролей динамически из конфигурации доступа
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
@@ -254,13 +254,13 @@ export function openCreateUserModal(app) {
                 return result.config.roles;
             }
         } catch (error) {
-            console.error('[UserEditing] Error loading roles:', error);
+            console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }
-        // Fallback to default roles if loading fails
+        // Резервный вариант с ролями по умолчанию, если загрузка не удалась
         return ['User', 'Admin', 'SuperAdmin'];
     };
 
-    // Generate role options HTML
+    // Генерация HTML опций ролей
     const generateRoleOptions = (roles) => {
         return roles.map(role => {
             // User is selected by default for new users
@@ -269,7 +269,7 @@ export function openCreateUserModal(app) {
         }).join('');
     };
 
-    // Create the modal HTML with dynamic roles
+    // Создание HTML модального окна с динамическими ролями
     const createModalHTML = async () => {
         const roles = await loadRoles();
         return `
@@ -323,7 +323,7 @@ export function openCreateUserModal(app) {
     </div>`;
     };
 
-    // Show the modal
+    // Отображение модального окна
     createModalHTML().then(html => {
         app.showModal(html);
         const cancelCreate = document.getElementById('create-user-cancel');

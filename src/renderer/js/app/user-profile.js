@@ -69,7 +69,7 @@ export function openProfilePage(app) {
         console.error('Нет контейнера profile-module');
         return;
     }
-    app.switchModule('profile').catch(error => console.error('Error switching to profile:', error));
+    app.switchModule('profile').catch(error => console.error('Ошибка переключения на профиль:', error));
     // Всегда повторно инициализируйте профиль, чтобы получить свежие данные (включая изображения обложек).
     app.modules.profile.init();
     const currentModuleEl = document.getElementById('current-module');

@@ -33,7 +33,7 @@ const { registerFileHandlers } = require('./main-process/files.js');
 const { registerUploadHandlers } = require('./main-process/uploads.js');
 
 // Импорт модуля контроля доступа
-const { updateAccessConfigWithMarkers, registerAccessControlHandlers } = require('./main-process/access-control.js');
+const { updateAccessConfigWithMarkers, registerAccessControlHandlers } = require('./main-process/access.js');
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
 // Инициализация приложения когда Electron готов

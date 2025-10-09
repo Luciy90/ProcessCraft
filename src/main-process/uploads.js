@@ -73,7 +73,7 @@ function registerUploadHandlers() {
         
         fs.writeFileSync(filePath, buffer);
       } catch (err) {
-        console.error('File save error:', err);
+        console.error('Ошибка сохранения файла:', err);
         return {
           status: 'error',
           error_code: 'save_failed',
@@ -91,7 +91,7 @@ function registerUploadHandlers() {
           fs.writeFileSync(userJsonPath, JSON.stringify(userData, null, 2));
         }
       } catch (err) {
-        console.warn('Failed to update user.json with cover path:', err);
+        console.warn('Не удалось обновить user.json с путем к обложке:', err);
         // Продолжаем, так как файл был успешно сохранен
       }
 
@@ -101,7 +101,7 @@ function registerUploadHandlers() {
         file_path: filePath
       };
     } catch (err) {
-      console.error('Cover upload error:', err);
+      console.error('Ошибка загрузки обложки:', err);
       return {
         status: 'error',
         error_code: 'unknown_error',
@@ -153,7 +153,7 @@ function registerUploadHandlers() {
             fs.unlinkSync(oldFilePath);
             console.log(`Удален старый файл аватара: ${oldFile}`);
           } catch (err) {
-            console.warn(`Failed to remove old avatar file ${oldFile}:`, err);
+            console.warn(`Не удалось удалить старый файл аватара ${oldFile}:`, err);
           }
         }
       });
@@ -179,7 +179,7 @@ function registerUploadHandlers() {
         
         fs.writeFileSync(filePath, buffer);
       } catch (err) {
-        console.error('File save error:', err);
+        console.error('Ошибка сохранения файла:', err);
         return {
           status: 'error',
           error_code: 'save_failed',
@@ -197,7 +197,7 @@ function registerUploadHandlers() {
           fs.writeFileSync(userJsonPath, JSON.stringify(userData, null, 2));
         }
       } catch (err) {
-        console.warn('Failed to update user.json:', err);
+        console.warn('Не удалось обновить user.json:', err);
         // Продолжаем, так как файл был успешно сохранен
       }
 
@@ -207,7 +207,7 @@ function registerUploadHandlers() {
         file_path: filePath
       };
     } catch (err) {
-      console.error('Avatar upload error:', err);
+      console.error('Ошибка загрузки аватара:', err);
       return {
         status: 'error',
         error_code: 'unknown_error',

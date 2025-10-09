@@ -6,10 +6,10 @@ const SESSION_KEY = 'pc_current_user';
 function getCurrentUser() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
-    console.log('[UserStore] getCurrentUser ->', raw ? 'present' : 'null');
+    console.log('[UserStore] getCurrentUser ->', raw ? 'присутствует' : 'null');
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
-    console.warn('getCurrentUser error', e);
+    console.warn('ошибка getCurrentUser', e);
     return null;
   }
 }
@@ -24,7 +24,7 @@ function setCurrentUser(user) {
       console.log('[UserStore] setCurrentUser -> cleared');
     }
   } catch (e) {
-    console.warn('setCurrentUser error', e);
+    console.warn('ошибка setCurrentUser', e);
   }
 }
 
@@ -126,7 +126,7 @@ async function getAvatarColor(username) {
     
     return color;
   } catch (error) {
-    console.warn('Failed to get/generate avatar color:', error);
+    console.warn('Не удалось получить/сгенерировать цвет аватара:', error);
     return generateAvatarColor(username);
   }
 }
@@ -138,7 +138,7 @@ async function checkAvatarFileExists(avatarPath) {
     const result = await ipcRenderer.invoke('file:exists', avatarPath);
     return result?.exists || false;
   } catch (error) {
-    console.warn('Failed to check avatar file existence:', error);
+    console.warn('Не удалось проверить существование файла аватара:', error);
     return false;
   }
 }

@@ -194,68 +194,9 @@ ProcessCraftApp.prototype.setCurrentUser = function(user) { return setCurrentUse
 // Инициализация приложения при загрузке DOM
 document.addEventListener('DOMContentLoaded', function() { 
     initializeDOM().catch(error => {
-        console.error('Error initializing DOM:', error);
+        console.error('Ошибка инициализации DOM:', error);
     });
 });
 
 // Экспорт для ES6 модулей
 export default ProcessCraftApp;
-
-// Временный код для создания тестовых пользователей
-// TODO: Удалить после тестирования
-document.addEventListener('DOMContentLoaded', async function() {
-  // Проверяем, что мы в режиме разработки
-  const urlParams = new URLSearchParams(window.location.search);
-  if (!urlParams.has('dev') && !process.argv.includes('--dev')) {
-    return;
-  }
-  
-  // Создаем тестовых пользователей
-  try {
-    // Проверяем существующих пользователей
-    const usersResponse = await window.UserStore.listUsers();
-    const existingUsers = usersResponse.ok ? usersResponse.users : [];
-    
-    // Создаем пользователя с ролью Admin если его нет
-    if (!existingUsers.some(u => u.username === 'TestAdmin')) {
-      const adminResponse = await window.UserStore.createUser({
-        username: 'TestAdmin',
-        password: '1111',
-        displayName: 'Тестовый Администратор',
-        role: 'Admin',
-        email: 'admin@test.com',
-        phone: '+7(123)456-78-90',
-        department: 'IT',
-        position: 'Администратор'
-      });
-      
-      if (adminResponse.ok) {
-        console.log('Тестовый пользователь Admin создан успешно');
-      } else {
-        console.warn('Не удалось создать тестового пользователя Admin:', adminResponse.error);
-      }
-    }
-    
-    // Создаем обычного пользователя если его нет
-    if (!existingUsers.some(u => u.username === 'TestUser')) {
-      const userResponse = await window.UserStore.createUser({
-        username: 'TestUser',
-        password: '1111',
-        displayName: 'Тестовый Пользователь',
-        role: 'User',
-        email: 'user@test.com',
-        phone: '+7(123)456-78-91',
-        department: 'Производство',
-        position: 'Оператор'
-      });
-      
-      if (userResponse.ok) {
-        console.log('Тестовый пользователь User создан успешно');
-      } else {
-        console.warn('Не удалось создать тестового пользователя User:', userResponse.error);
-      }
-    }
-  } catch (error) {
-    console.error('Ошибка при создании тестовых пользователей:', error);
-  }
-});

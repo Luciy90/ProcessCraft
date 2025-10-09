@@ -3,7 +3,7 @@ import { generateAvatarHTML } from '../utils/avatarUtils.js';
 class ProfileModule {
   init() {
     this.render().catch(error => {
-      console.error('Failed to render profile module:', error);
+      console.error('Ошибка рендеринга модуля профиля:', error);
     });
   }
 
@@ -25,7 +25,7 @@ class ProfileModule {
       user?.username ? window.UserStore.getSection(user.username, 'activity') : Promise.resolve({ ok: true, data: { items: [] } }),
       user?.username ? window.UserStore.getUser(user.username).then(res => ({ ok: res.ok, data: res.user || {} })) : Promise.resolve({ ok: true, data: { phone: '', email: '', department: '', position: '' } })
     ]).then(async ([html, visitsRes, tasksRes, activityRes, infoRes]) => {
-  // Generate avatar using centralized logic (module import)
+  // Генерация аватара с использованием централизованной логики (импорт модуля)
   const avatar = await generateAvatarHTML(user, { size: 'lg' });
         const adminActions = `
           <div class="flex items-center gap-2">
@@ -35,12 +35,12 @@ class ProfileModule {
             <button id="profile-request-changes" data-access-marker="profile-request-changes-mark" data-access-description="Запросить изменение данных" class="h-9 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-sm">Запросить изменение данных</button>
           </div>`;
 
-        // Determine cover image source with user-specific fallback
+        // Определение источника изображения обложки с пользовательским резервным вариантом
         let coverImageSrc;
         if (user?.coverPath) {
           coverImageSrc = `file://${user.coverPath}`;
         } else {
-          // Check for user-specific cover images, fallback to default
+          // Проверка наличия пользовательских изображений обложки, резервный вариант по умолчанию
           coverImageSrc = await this.getCoverImagePath(user);
         }
 
@@ -53,7 +53,7 @@ class ProfileModule {
           .replace(/\{\{ADMIN_ACTIONS_CARD\}\}/g, adminActions)
           .replace(/\{\{COVER_IMAGE_SRC\}\}/g, coverImageSrc);
 
-        // Process UI_CONFIG placeholders
+        // Обработка заполнителей UI_CONFIG
         out = this.processUIConfigPlaceholders(out);
 
         container.innerHTML = out;
@@ -61,7 +61,7 @@ class ProfileModule {
         // отправляем в main-process, чтобы описания и down-отношения были сохранены
         // до потенциального удаления элементов при применении правил доступа.
         try {
-          // Schedule updateAccessMarkers on next animation frame to ensure DOM fully rendered
+          // Планирование updateAccessMarkers на следующем кадре анимации для обеспечения полного рендеринга DOM
           const scheduleUpdate = () => {
             try {
               if (window.app && typeof window.app.updateAccessMarkers === 'function') {
@@ -70,17 +70,17 @@ class ProfileModule {
                 window.updateAccessMarkers(window.app);
               }
             } catch (err) {
-              console.warn('updateAccessMarkers after profile render failed:', err);
+              console.warn('Ошибка updateAccessMarkers после рендеринга профиля:', err);
             }
           };
           if (typeof requestAnimationFrame === 'function') {
             requestAnimationFrame(() => setTimeout(scheduleUpdate, 0));
           } else {
-            // Fallback
+            // Резервный вариант
             setTimeout(scheduleUpdate, 50);
           }
         } catch (e) {
-          console.warn('updateAccessMarkers after profile render scheduling failed:', e);
+          console.warn('Ошибка планирования updateAccessMarkers после рендеринга профиля:', e);
         }
 
         // Затем применяем правила доступа — только после того, как метаданные маркеров
@@ -92,7 +92,7 @@ class ProfileModule {
             window.applyAccessRules(window.app);
           }
         } catch (e) {
-          console.warn('applyAccessRules after profile render failed:', e);
+          console.warn('Ошибка applyAccessRules после рендеринга профиля:', e);
         }
         
         // Обеспечить отображение иконок Lucide после динамической вставки
@@ -100,17 +100,17 @@ class ProfileModule {
         setTimeout(() => {
           if (window.lucide && typeof window.lucide.createIcons === 'function') {
             try {
-              // Recreate icons specifically for the profile container
+              // Пересоздание иконок специально для контейнера профиля
               window.lucide.createIcons({ 
                 attrs: { 'stroke-width': 1.5 },
                 container: container 
               });
               console.debug('Иконки Lucide пересозданы для модуля профиля');
             } catch (e) { 
-              console.warn('Lucide render warn:', e); 
+              console.warn('Предупреждение рендеринга Lucide:', e); 
             }
           } else {
-            console.error('Lucide not available for profile icons');
+            console.error('Lucide недоступен для иконок профиля');
           }
         }, 10);
 
@@ -152,13 +152,13 @@ class ProfileModule {
             </div>`).join('');
         }
 
-        // Always attach handlers to profile buttons. Access control should be enforced
-        // centrally via data-access-marker attributes and the app.applyAccessRules mechanism.
+        // Всегда прикрепляем обработчики к кнопкам профиля. Контроль доступа должен применяться
+        // централизованно через атрибуты data-access-marker и механизм app.applyAccessRules.
         const listBtn = document.getElementById('profile-admin-list');
         if (listBtn) {
           listBtn.addEventListener('click', () => {
             if (window.app && typeof window.app.openAdminPanelModal === 'function') {
-              try { window.app.openAdminPanelModal(); } catch (e) { console.warn('openAdminPanelModal failed:', e); }
+              try { window.app.openAdminPanelModal(); } catch (e) { console.warn('Ошибка openAdminPanelModal:', e); }
             }
           });
         }
@@ -166,19 +166,19 @@ class ProfileModule {
         const requestBtn = document.getElementById('profile-request-changes');
         if (requestBtn) {
           requestBtn.addEventListener('click', () => {
-            // Prefer AccessModal if available
+            // Предпочтение AccessModal, если доступен
             try {
               if (window.AccessModal && typeof window.AccessModal.open === 'function') {
                 window.AccessModal.open();
                 return;
               }
             } catch (e) {
-              console.warn('AccessModal open attempt failed:', e);
+              console.warn('Попытка открытия AccessModal не удалась:', e);
             }
 
-            // Fallback to app handler if present
+            // Резервный вариант с обработчиком приложения, если присутствует
             if (window.app && typeof window.app.openRequestChangesModal === 'function') {
-              try { window.app.openRequestChangesModal(); } catch (e) { console.warn('Fallback openRequestChangesModal failed:', e); }
+              try { window.app.openRequestChangesModal(); } catch (e) { console.warn('Резервный openRequestChangesModal не удался:', e); }
             }
           });
         }
@@ -187,7 +187,7 @@ class ProfileModule {
   // Выполняем выход из системы (очищается localStorage в UserStore)
   await window.UserStore.logout();
   // На случай, если logout не удалил ключ (диагностика/резервное удаление)
-  try { if (typeof window.UserStore.setCurrentUser === 'function') window.UserStore.setCurrentUser(null); } catch (err) { console.warn('Fallback UserStore.setCurrentUser(null) failed:', err); }
+  try { if (typeof window.UserStore.setCurrentUser === 'function') window.UserStore.setCurrentUser(null); } catch (err) { console.warn('Резервный UserStore.setCurrentUser(null) не удался:', err); }
 
       // Обновляем состояние приложения — пытаемся очистить через метод инстанса приложения
       try {
@@ -197,13 +197,13 @@ class ProfileModule {
           try {
             await window.AppAccess.setCurrentUser(window.app, null);
           } catch (err) {
-            console.warn('AppAccess.setCurrentUser failed:', err);
+            console.warn('Ошибка AppAccess.setCurrentUser:', err);
           }
         } else {
-          console.warn('No setCurrentUser available on app or window');
+          console.warn('Нет доступного setCurrentUser в приложении или окне');
         }
       } catch (e) {
-        console.warn('Error while calling setCurrentUser:', e);
+        console.warn('Ошибка при вызове setCurrentUser:', e);
       }
 
       // Обрабатываем изменение состояния аутентификации (UI hooks)
@@ -213,9 +213,9 @@ class ProfileModule {
 
       // Применяем права доступа для гостя — вызываем безопасно на инстансе или глобально
       if (window.app && typeof window.app.applyAccessRules === 'function') {
-        try { window.app.applyAccessRules(); } catch (e) { console.warn('app.applyAccessRules failed:', e); }
+        try { window.app.applyAccessRules(); } catch (e) { console.warn('Ошибка app.applyAccessRules:', e); }
       } else if (typeof window.applyAccessRules === 'function') {
-        try { window.applyAccessRules(window.app); } catch (e) { console.warn('window.applyAccessRules failed:', e); }
+        try { window.applyAccessRules(window.app); } catch (e) { console.warn('Ошибка window.applyAccessRules:', e); }
       }
 
       // Перезагружаем страницу для обновления интерфейса
@@ -254,7 +254,7 @@ class ProfileModule {
               });
               console.debug('Финальная инициализация иконок Lucide для профиля завершена');
             } catch (e) { 
-              console.warn('Final Lucide initialization warn:', e); 
+              console.warn('Предупреждение о финальной инициализации Lucide:', e); 
             }
           }
 
@@ -269,7 +269,7 @@ class ProfileModule {
                 return;
               }
             } catch (e) {
-              console.warn('AccessModal.open attempt failed:', e);
+              console.warn('Попытка открытия AccessModal не удалась:', e);
             }
 
             // Fallback: if app exposes init/open functions, try them
@@ -279,7 +279,7 @@ class ProfileModule {
                 return;
               }
             } catch (e) {
-              console.warn('app.openAccessModal failed:', e);
+              console.warn('Ошибка app.openAccessModal:', e);
             }
 
             // Last resort: try to import initAccessModal global (some builds expose it)
@@ -289,10 +289,10 @@ class ProfileModule {
                 return;
               }
             } catch (e) {
-              console.warn('initAccessModal fallback failed:', e);
+              console.warn('Резервный initAccessModal не удался:', e);
             }
 
-            console.warn('No access modal API available to open the access modal');
+            console.warn('Нет доступного API модального окна доступа для открытия модального окна доступа');
           });
         }
         }, 50);
@@ -303,25 +303,25 @@ class ProfileModule {
   }
 
   /**
-   * Update avatar images across all UI locations instantly
-   * @param {string} avatarPath - Path to the new avatar image
-   * @param {boolean} useCacheBusting - Whether to add timestamp to prevent caching
+   * Мгновенное обновление изображений аватаров во всех местах пользовательского интерфейса
+   * @param {string} avatarPath - Путь к новому изображению аватара
+   * @param {boolean} useCacheBusting - Добавлять ли метку времени для предотвращения кэширования
    */
   updateAvatarInstantly(avatarPath, useCacheBusting = true) {
     const imageUrl = useCacheBusting ? `file://${avatarPath}?t=${Date.now()}` : `file://${avatarPath}`;
   console.debug('Мгновенное обновление аватара с URL:', imageUrl);
     
-    // Update profile avatar - handle both container and direct img cases
+    // Обновление аватара профиля - обработка обоих случаев: контейнер и прямое изображение
     const profileAvatarContainer = document.querySelector('.h-24.w-24, .h-28.w-28');
     if (profileAvatarContainer) {
-      // Check if it already has an img element
+      // Проверка, есть ли уже элемент img
       const existingImg = profileAvatarContainer.querySelector('img');
       if (existingImg) {
-        // Update existing image
+        // Обновление существующего изображения
         existingImg.src = imageUrl;
   console.debug('Обновлено существующее изображение аватара профиля');
       } else {
-        // Create new image element and replace container content
+        // Создание нового элемента изображения и замена содержимого контейнера
         const img = document.createElement('img');
         img.className = 'h-full w-full object-cover';
         img.onload = () => {
@@ -330,14 +330,14 @@ class ProfileModule {
           console.debug('Создано новое изображение аватара профиля');
         };
         img.onerror = () => {
-          console.warn('Profile avatar load failed, trying without cache-busting');
+          console.warn('Ошибка загрузки аватара профиля, пробуем без обхода кэша');
           img.src = `file://${avatarPath}`;
         };
         img.src = imageUrl;
       }
     }
     
-    // Update top bar avatar
+    // Обновление аватара верхней панели
     const topBarAvatar = document.getElementById('user-avatar');
     const fallback = document.getElementById('user-avatar-fallback');
     if (topBarAvatar) {
@@ -347,14 +347,14 @@ class ProfileModule {
   console.debug('Аватар верхней панели загружен и отображен');
       };
       topBarAvatar.onerror = () => {
-        console.warn('Top bar avatar load failed, trying without cache-busting');
+        console.warn('Ошибка загрузки аватара в верхней панели, пробуем без обхода кэша');
         topBarAvatar.src = `file://${avatarPath}`;
       };
       topBarAvatar.src = imageUrl;
   console.debug('Источник аватара верхней панели обновлен');
     }
     
-    // Update modal avatars if present
+    // Обновление аватаров в модальных окнах, если присутствуют
     const modalAvatars = document.querySelectorAll('#profile-modal-avatar img, .modal img[src*="avatar"]');
     modalAvatars.forEach(img => {
       img.src = imageUrl;
@@ -364,7 +364,7 @@ class ProfileModule {
   console.debug(`Обновлено ${modalAvatars.length} аватаров в модальных окнах`);
     }
     
-    // Make this function globally available for use by other modules
+    // Сделать эту функцию глобально доступной для использования другими модулями
     if (!window.updateAvatarInstantly) {
       window.updateAvatarInstantly = (path, cacheBust = true) => this.updateAvatarInstantly(path, cacheBust);
     }
@@ -387,7 +387,7 @@ class ProfileModule {
           return `file://${coverPath.replace(/\\/g, '/')}`;
         }
       } catch (error) {
-        console.warn(`Failed to check cover file: ${coverPath}`, error);
+        console.warn(`Не удалось проверить файл обложки: ${coverPath}`, error);
       }
     }
     
@@ -396,14 +396,14 @@ class ProfileModule {
   }
 
   processUIConfigPlaceholders(html) {
-    // Replace UI_CONFIG placeholders with actual values
+    // Замена заполнителей UI_CONFIG реальными значениями
     const cfg = window.UI_CONFIG;
     if (!cfg) {
-      console.warn('UI_CONFIG not available for template processing');
+      console.warn('UI_CONFIG недоступен для обработки шаблона');
       return html;
     }
 
-    // Replace all UI_CONFIG.texts.profile.* placeholders
+    // Замена всех заполнителей UI_CONFIG.texts.profile.*
     return html.replace(/\{\{UI_CONFIG\.([^}]+)\}\}/g, (match, path) => {
       try {
         const keys = path.split('.');
@@ -411,14 +411,14 @@ class ProfileModule {
         for (const key of keys) {
           value = value[key];
           if (value === undefined) {
-            console.warn(`UI_CONFIG path not found: ${path}`);
-            return match; // Return original placeholder if path not found
+            console.warn(`Путь UI_CONFIG не найден: ${path}`);
+            return match; // Возврат оригинального заполнителя, если путь не найден
           }
         }
         return value;
       } catch (error) {
-        console.warn(`Error processing UI_CONFIG placeholder: ${path}`, error);
-        return match; // Return original placeholder on error
+        console.warn(`Ошибка обработки заполнителя UI_CONFIG: ${path}`, error);
+        return match; // Возврат оригинального заполнителя при ошибке
       }
     });
   }
@@ -431,7 +431,7 @@ class ProfileModule {
           await navigator.clipboard.writeText(info.email);
           window.app.showMessage('Email скопирован в буфер обмена', 'success');
         } catch (err) {
-          console.error('Failed to copy email:', err);
+          console.error('Ошибка копирования email:', err);
           window.app.showMessage('Не удалось скопировать email', 'error');
         }
       });
@@ -446,7 +446,7 @@ class ProfileModule {
 
   console.debug('setupFileUploads: настройка для пользователя:', user.username);
 
-    // Cover image upload
+    // Загрузка изображения обложки
     const coverInput = document.getElementById('coverInput');
   console.debug('coverInput найден:', !!coverInput);
     if (coverInput) {
@@ -463,7 +463,7 @@ class ProfileModule {
           const result = await this.uploadFile(file, 'cover', user.username);
           console.debug('upload result:', result);
           if (result.status === 'success') {
-            // Add cache-busting timestamp to prevent browser caching
+            // Добавление метки времени для предотвращения кэширования браузером
             const timestamp = Date.now();
             const imageUrl = `file://${result.file_path}?t=${timestamp}`;
             
@@ -474,7 +474,7 @@ class ProfileModule {
               window.UserStore.setCurrentUser(currentUser);
             }
             
-            // Use setTimeout to ensure file system has completed the write operation
+            // Использование setTimeout для обеспечения завершения операции записи файловой системой
             setTimeout(() => {
               const coverImage = document.getElementById('coverImage');
               if (coverImage) {
@@ -482,8 +482,8 @@ class ProfileModule {
                   console.debug('Изображение обложки успешно обновлено');
                 };
                 coverImage.onerror = () => {
-                  // Fallback: try loading without cache-busting
-                  console.warn('Cover image load with cache-busting failed, trying without timestamp');
+                  // Резервный вариант: попытка загрузки без обхода кэша
+                  console.warn('Ошибка загрузки изображения обложки с обходом кэша, пробуем без временной метки');
                   coverImage.src = `file://${result.file_path}`;
                 };
                 coverImage.src = imageUrl;
@@ -495,13 +495,13 @@ class ProfileModule {
             window.app.showMessage(`Ошибка: ${result.message}`, 'error');
           }
         } catch (err) {
-          console.error('cover upload error:', err);
+          console.error('Ошибка загрузки обложки:', err);
           window.app.showMessage('Ошибка при загрузке файла', 'error');
         }
       });
     }
 
-    // Avatar upload
+    // Загрузка аватара
     const avatarInput = document.getElementById('avatarInput');
   console.debug('avatarInput найден:', !!avatarInput);
     if (avatarInput) {
@@ -518,7 +518,7 @@ class ProfileModule {
           const result = await this.uploadFile(file, 'avatar', user.username);
           console.debug('upload result:', result);
           if (result.status === 'success') {
-            // Add cache-busting timestamp to prevent browser caching
+            // Добавление метки времени для предотвращения кэширования браузером
             const timestamp = Date.now();
             const imageUrl = `file://${result.file_path}?t=${timestamp}`;
             
@@ -529,22 +529,22 @@ class ProfileModule {
               window.UserStore.setCurrentUser(currentUser);
             }
 
-            // Use setTimeout to ensure file system has completed the write operation
+            // Использование setTimeout для обеспечения завершения операции записи файловой системой
             setTimeout(() => {
               console.debug('Начало обновления UI аватара с результатом:', result.file_path);
               
-              // Use the new instant update method
+              // Использование нового метода мгновенного обновления
               this.updateAvatarInstantly(result.file_path, true);
               
               console.debug('Обновление UI аватара завершено');
-            }, 50); // Reduced delay for faster response
+            }, 50); // Уменьшенная задержка для более быстрого ответа
 
             window.app.showMessage('Аватар обновлен', 'success');
           } else {
             window.app.showMessage(`Ошибка: ${result.message}`, 'error');
           }
         } catch (err) {
-          console.error('avatar upload error:', err);
+          console.error('Ошибка загрузки аватара:', err);
           window.app.showMessage('Ошибка при загрузке аватара', 'error');
         }
       });
@@ -562,15 +562,15 @@ class ProfileModule {
       };
     }
 
-    // Convert file to base64 for transfer
+    // Преобразование файла в base64 для передачи
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async () => {
         try {
           const fileData = {
             type: file.type,
-            data: reader.result.split(',')[1], // Remove data:image/...;base64, prefix
-            fileName: file.name // Add original filename
+            data: reader.result.split(',')[1], // Удаление префикса data:image/...;base64,
+            fileName: file.name // Добавление оригинального имени файла
           };
 
           let result;
@@ -585,7 +585,7 @@ class ProfileModule {
           reject(err);
         }
       };
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
       reader.readAsDataURL(file);
     });
   }

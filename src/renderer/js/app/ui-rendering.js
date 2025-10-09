@@ -7,20 +7,20 @@
  */
 export function renderChromeFromConfig(app) {
     const cfg = window.UI_CONFIG;
-    // Topbar texts
+    // Тексты верхней панели
     const titleEl = document.getElementById('current-module');
     if (titleEl) titleEl.textContent = cfg.nav.find(n => n.key === 'dashboard')?.title || cfg.texts.topbar.title_default;
-    // Logo text on top bar
+    // Текст логотипа в верхней панели
     const logoBadge = document.getElementById('logo-badge');
     const logoText = document.getElementById('logo-text');
     if (logoBadge && cfg.app.logoText) logoBadge.textContent = cfg.app.logoText;
     if (logoText) logoText.textContent = `${cfg.app.name} • ${cfg.app.tagline}`;
-    // Version badge
+    // Бейдж версии
     document.querySelectorAll('span').forEach(s => {
         if (s.textContent === 'v1.0.0') s.textContent = cfg.app.version;
     });
 
-    // Sidebar nav from config
+    // Навигация боковой панели из конфигурации
     const sidebar = document.querySelector('aside nav');
     if (sidebar) {
         sidebar.innerHTML = cfg.nav.map(item => `
@@ -38,7 +38,7 @@ export function renderChromeFromConfig(app) {
         }
     }
 
-    // Dashboard KPI cards from config
+    // Карточки KPI панели управления из конфигурации
     const dash = document.getElementById('dashboard-module');
     if (dash) {
         const kpiGrid = dash.querySelector('.grid');
@@ -53,7 +53,7 @@ export function renderChromeFromConfig(app) {
         }
     }
 
-    // Recreate lucide icons after dynamic render and repair empties
+    // Пересоздание иконок lucide после динамического рендеринга и исправление пустых элементов
     if (window.lucide?.createIcons) {
         try {
             window.lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });

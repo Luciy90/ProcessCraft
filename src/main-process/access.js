@@ -105,9 +105,18 @@ function saveAccessConfig(config) {
 function createBaseAccessConfig() {
   return {
     roles: {
-      "SuperAdmin": {},
-      "Admin": {},
-      "User": {}
+      "SuperAdmin": { 
+        "name": "Супер Администратор",
+        "description": "Полные права доступа"
+      },
+      "Admin": {      
+        "name": "Администратор",
+        "description": "Ограниченое управление"
+      },
+      "User": {
+        "name": "Пользователь",
+        "description": "Просмотр данных"
+      }
     },
     markers: {},
     access: {},
@@ -279,13 +288,10 @@ function updateAccessStructure(config) {
     }
   }
   
-  // Убедимся, что все роли из объекта roles имеют записи в объекте access с пустыми массивами в качестве значений
-  // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
-  if (config.roles && typeof config.roles === 'object' && !Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
-    for (const role in config.roles) {
-      if (!config.access.hasOwnProperty(role)) {
-        config.access[role] = [];
-      }
+  // Добавляем отсутствующие роли в access
+  for (const role in config.roles) {
+    if (!config.access.hasOwnProperty(role)) {
+      config.access[role] = [];
     }
   }
   
@@ -410,14 +416,14 @@ function registerAccessControlHandlers() {
         }
       }
       
-      // Убедимся, что все роли из массива roles имеют записи в объекте access с пустыми массивами в качестве значений
+      // Убедимся, что все роли из объекта roles имеют записи в объекте access с пустыми массивами в качестве значений
       // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
-      if (config.roles && Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
-        config.roles.forEach(role => {
+      if (config.roles && typeof config.roles === 'object' && !Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
+        for (const role in config.roles) {
           if (!config.access.hasOwnProperty(role)) {
             config.access[role] = [];
           }
-        });
+        }
       }
 
       // Сохраняем обновленную конфигурацию

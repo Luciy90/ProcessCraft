@@ -230,7 +230,7 @@ class WarehouseModule {
             });
             document.querySelector(`[data-item-id="${itemId}"]`)?.classList.add('border-white/20', 'bg-white/10');
         } catch (error) {
-            console.error('Error loading position:', error);
+            console.error('Ошибка загрузки позиции:', error);
         }
     }
 
@@ -447,19 +447,19 @@ class WarehouseModule {
             this.loadInventory();
             window.app.showMessage('Позиция успешно добавлена на склад', 'success');
         } catch (error) {
-            console.error('Error saving position:', error);
+            console.error('Ошибка сохранения позиции:', error);
             window.app.showMessage('Ошибка сохранения позиции', 'error');
         }
     }
 
     showCreateInvoiceModal() {
         // Implementation for creating warehouse invoices
-        console.log('Create invoice modal window');
+        console.log('Создание модального окна накладной');
     }
 
     async adjustStock(itemId) {
         // Implementation for stock adjustment
-        console.log('Stock adjustment for position:', itemId);
+        console.log('Корректировка запасов для позиции:', itemId);
     }
 
     async deleteItem(itemId) {
@@ -474,7 +474,7 @@ class WarehouseModule {
                 `;
                 window.app.showMessage('Позиция удалена', 'success');
             } catch (error) {
-                console.error('Error deleting position:', error);
+                console.error('Ошибка удаления позиции:', error);
                 window.app.showMessage('Ошибка удаления позиции', 'error');
             }
         }

@@ -1,15 +1,15 @@
-// Init icons
+// Инициализация иконок
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons({ attrs: { "stroke-width": 1.5 } });
   }
 
-  // After icons ready, initialize renderers
+  // После готовности иконок, инициализируем рендереры
   renderRoles();
   renderModules();
 });
 
-// Data
+// Данные
 const roles = [
   { id: "admin", name: "Администратор", info: "Полный доступ", color: "emerald" },
   { id: "editor", name: "Редактор", info: "Управление контентом", color: "sky" },
@@ -41,7 +41,7 @@ const modules = [
   }
 ];
 
-// Flatten helpers
+// Вспомогательные функции для преобразования в плоский список
 function flattenWithDepth(tree) {
   const out = [];
   const walk = (nodes, depth) => {
@@ -56,7 +56,7 @@ function flattenWithDepth(tree) {
 const flatModules = flattenWithDepth(modules);
 const allModuleIds = flatModules.map(n => n.id);
 
-// Precompute per-level stats (structure is static)
+// Предварительное вычисление статистики по уровням (структура статична)
 const levelCounts = (() => {
   const map = new Map();
   flatModules.forEach(n => map.set(n.depth, (map.get(n.depth) || 0) + 1));
@@ -64,7 +64,7 @@ const levelCounts = (() => {
 })();
 const totalRows = flatModules.length;
 
-// Permissions per role (single "checked" set)
+// Права доступа для каждой роли (один набор "отмеченных" элементов)
 const rolePermissions = {
   admin: { checked: new Set(allModuleIds) },
   editor: { checked: new Set(["dashboard", "projects", "projects.view", "projects.edit", "reports"]) },
@@ -89,7 +89,7 @@ const collapseAllBtn = document.getElementById("collapseAllBtn");
 const presetViewAll = document.getElementById("presetViewAll");
 const presetDisableAll = document.getElementById("presetDisableAll");
 
-// New counter refs
+// Ссылки на новые счетчики
 const countRowsEl = document.getElementById("countRows");
 const levelsBreakdownEl = document.getElementById("levelsBreakdown");
 const countActiveEl = document.getElementById("countActive");
@@ -97,26 +97,44 @@ const countDeniedEl = document.getElementById("countDenied");
 
 const activeRoleNameEl = document.getElementById("activeRoleName");
 
-// Local state
+// Локальное состояние
 let activeRoleId = roles[0].id;
 const stateByRole = new Map(roles.map(r => {
   const s = rolePermissions[r.id] || { checked: new Set() };
   return [r.id, { checked: new Set(s.checked) }];
 }));
 
-// Filters and view state
+// Фильтры и состояние просмотра
 let rolesQuery = "";
 let modulesQuery = "";
 
-// Track expanded nodes (preserves open state across re-renders)
+// Отслеживание развернутых узлов (сохраняет состояние открытия между перерисовками)
 const expandedIds = new Set();
 
-// Returns SVG markup for node expand indicator. `expanded` is boolean.
+// Возвращает SVG разметку для индикатора раскрытия узла. `expanded` - булево значение.
 function nodeIconSVG(hasChildren, expanded) {
   if (hasChildren) {
-      return `\n            <svg viewBox="0 0 16 16" class="h-4 w-4 text-slate-500" aria-hidden="true">\n              <g data-expanded="${expanded}" class="origin-center transition-transform duration-300 ease-out">\n                <circle cx="3" cy="3" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="tl"></circle>\n                <circle cx="8" cy="3" r="0.9" class="fill-current opacity-85"></circle>\n                <circle cx="13" cy="3" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="tr"></circle>\n                <circle cx="3" cy="8" r="0.9" class="fill-current opacity-85"></circle>\n                <circle cx="8" cy="8" r="0.9" class="fill-current opacity-100"></circle>\n                <circle cx="13" cy="8" r="0.9" class="fill-current opacity-85"></circle>\n                <circle cx="3" cy="13" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="bl"></circle>\n                <circle cx="8" cy="13" r="0.9" class="fill-current opacity-85"></circle>\n                <circle cx="13" cy="13" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="br"></circle>\n              </g>\n            </svg>\n          `;
+      return `
+            <svg viewBox="0 0 16 16" class="h-4 w-4 text-slate-500" aria-hidden="true">
+              <g data-expanded="${expanded}" class="origin-center transition-transform duration-300 ease-out">
+                <circle cx="3" cy="3" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="tl"></circle>
+                <circle cx="8" cy="3" r="0.9" class="fill-current opacity-85"></circle>
+                <circle cx="13" cy="3" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="tr"></circle>
+                <circle cx="3" cy="8" r="0.9" class="fill-current opacity-85"></circle>
+                <circle cx="8" cy="8" r="0.9" class="fill-current opacity-100"></circle>
+                <circle cx="13" cy="8" r="0.9" class="fill-current opacity-85"></circle>
+                <circle cx="3" cy="13" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="bl"></circle>
+                <circle cx="8" cy="13" r="0.9" class="fill-current opacity-85"></circle>
+                <circle cx="13" cy="13" r="0.9" class="fill-current opacity-85 transition-transform duration-300 corner-dot" data-corner="br"></circle>
+              </g>
+            </svg>
+          `;
   }
-  return `\n            <svg viewBox="0 0 16 16" class="h-4 w-4 text-slate-500/80" aria-hidden="true">\n              <circle cx="8" cy="8" r="1.25" class="fill-current"></circle>\n            </svg>\n          `;
+  return `
+            <svg viewBox="0 0 16 16" class="h-4 w-4 text-slate-500/80" aria-hidden="true">
+              <circle cx="8" cy="8" r="1.25" class="fill-current"></circle>
+            </svg>
+          `;
 }
 
 function setForAll(tree, set, on) {
@@ -148,7 +166,7 @@ function filterTree(nodes, query) {
   return walk(nodes);
 }
 
-// Render roles
+// Рендеринг ролей
 function renderRoles() {
   if (!rolesList) return;
   rolesList.innerHTML = "";
@@ -191,7 +209,7 @@ function renderRoles() {
   if (activeRoleNameEl && activeRole) activeRoleNameEl.textContent = activeRole.name;
 }
 
-// Render modules tree
+// Рендеринг дерева модулей
 function renderModules() {
   if (!modulesTree) return;
   const roleState = stateByRole.get(activeRoleId);
@@ -234,13 +252,13 @@ function renderModules() {
         </div>
       `;
 
-      // Children container (accordion)
+      // Контейнер для дочерних элементов (аккордеон)
       const childrenWrap = document.createElement("div");
       childrenWrap.setAttribute("data-children", "1");
       childrenWrap.setAttribute("data-node-id", node.id);
       childrenWrap.className = hasChildren ? (collapsed ? "hidden" : "") : "";
 
-      // Expand/collapse
+      // Раскрытие/сворачивание
       const expandBtn = row.querySelector("[data-expand]");
       const iconExpand = expandBtn.querySelector("svg");
       if (hasChildren && !collapsed) iconExpand.style.transform = "rotate(90deg)";
@@ -254,12 +272,12 @@ function renderModules() {
         collapsed = !collapsed;
         childrenWrap.classList.toggle("hidden", collapsed);
 
-        // Rotate icon + reflect state
+        // Поворот иконки + отражение состояния
         iconExpand.style.transform = collapsed ? "rotate(0deg)" : "rotate(90deg)";
         expandBtn.setAttribute("aria-expanded", String(!collapsed));
         if (collapsed) expandedIds.delete(node.id); else expandedIds.add(node.id);
 
-        // Accordion behavior: collapse siblings when opening
+        // Поведение аккордеона: сворачивание соседних элементов при открытии
         if (!collapsed) {
           const siblings = Array.from(parentEl.querySelectorAll(':scope > div[data-children="1"]'));
           siblings.forEach((wrap) => {
@@ -279,7 +297,7 @@ function renderModules() {
         }
       });
 
-      // Checkbox behavior (cascade down)
+      // Поведение чекбокса (каскадное вниз)
       checkbox.addEventListener("change", (e) => {
         const on = e.target.checked;
         cascadeChecked(node, stateByRole.get(activeRoleId).checked, on);
@@ -309,7 +327,7 @@ function cascadeChecked(node, set, on) {
   toggle(node);
 }
 
-// Counters (Итого)
+// Счетчики (Итого)
 function updateCounters() {
   const s = stateByRole.get(activeRoleId);
   const active = s.checked.size;
@@ -331,7 +349,7 @@ function updateCounters() {
   if (countDeniedEl) countDeniedEl.textContent = String(denied);
 }
 
-// Modal controls
+// Управление модальным окном
 function openModal() {
   if (!modal) return;
   modal.classList.remove("hidden");
@@ -348,7 +366,7 @@ if (closeModalX) closeModalX.addEventListener("click", closeModal);
 if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 if (applyBtn) applyBtn.addEventListener("click", closeModal);
 
-// Filters
+// Фильтры
 if (rolesSearch) rolesSearch.addEventListener("input", (e) => {
   rolesQuery = e.target.value || "";
   renderRoles();
@@ -358,7 +376,7 @@ if (modulesSearch) modulesSearch.addEventListener("input", (e) => {
   renderModules();
 });
 
-// Expand/Collapse all: update expandedIds
+// Раскрыть/Свернуть все: обновление expandedIds
 function addAllExpandable(nodes) {
   nodes.forEach(n => {
     if (n.children?.length) {
@@ -379,14 +397,14 @@ if (collapseAllBtn) collapseAllBtn.addEventListener("click", () => {
   renderModules();
 });
 
-// Close by clicking overlay
+// Закрытие по клику на оверлей
 if (modal) modal.addEventListener("click", (e) => {
   if (e.target === modal || e.target === modal.firstElementChild) {
     closeModal();
   }
 });
 
-// Presets
+// Предустановки
 if (presetViewAll) presetViewAll.addEventListener("click", () => {
   const s = stateByRole.get(activeRoleId);
   setForAll(modules, s.checked, true);

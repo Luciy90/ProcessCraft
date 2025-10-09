@@ -1,39 +1,51 @@
 {
   "roles": {
-    "SuperAdmin": {},
-    "Admin": {},
-    "User": {}
+    "SuperAdmin": {
+      "name": "Супер Администратор",
+      "description": "Полные права доступа"
+    },
+    "Admin": {
+      "name": "Администратор",
+      "description": "Ограниченое управление"
+    },
+    "User": {
+      "name": "Пользователь",
+      "description": "Просмотр данных"
+    }
   },
-  "markers": [
-    "sidebar-settings-mark",
-    "profile-admin-list-mark",
-    "profile-access-modal-mark",
-    "profile-request-changes-mark"
-  ],
+  "markers": {
+    "sidebar-settings-mark": {
+      "description": "Управление модулями",
+      "children": []
+    },
+    "profile-admin-list-mark": {
+      "description": "Управление пользователями",
+      "children": [
+        {
+          "profile-access-modal-mark": {
+            "description": "Управление правами доступа",
+            "children": []
+          }
+        }
+      ]
+    },
+    "profile-request-changes-mark": {
+      "description": "Запросить изменение данных",
+      "children": []
+    }
+  },
   "access": {
     "SuperAdmin": [
       "sidebar-settings-mark",
       "profile-admin-list-mark",
-      "profile-access-modal-mark",
-      "profile-request-changes-mark"
+      "profile-access-modal-mark"
     ],
     "Admin": [
-      "sidebar-settings-mark",
-      "profile-admin-list-mark",
-      "profile-access-modal-mark",
-      "profile-request-changes-mark"
+      "sidebar-settings-mark"
     ],
     "User": [
-      "sidebar-settings-mark",
-      "profile-admin-list-mark",
-      "profile-access-modal-mark",
-      "profile-request-changes-mark"
+      "sidebar-settings-mark"
     ]
   },
-  "helper": {
-    "data-access-marker": "задает маркер доступа",
-    "data-access-down": "задает вложенность структуры",
-    "data-access-description": "задает описание маркера"
-  },
-  "generated_at": "2025-10-01T09:05:18.774Z"
+  "generated_at": "2025-10-09T03:44:02.755Z"
 }

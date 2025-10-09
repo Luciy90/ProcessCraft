@@ -78,7 +78,7 @@ export async function initializeDOM() {
             window.lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
         }
         if (typeof window.repairLucideIcons === 'function') window.repairLucideIcons(document);
-    } catch (e) { console.warn('Initial Lucide repair warn:', e); }
+    } catch (e) { console.warn('Предупреждение о первоначальном восстановлении Lucide:', e); }
 
     // Наблюдатель за DOM: автоматически чинит добавленные data-lucide
     try {
@@ -108,7 +108,7 @@ export async function initializeDOM() {
         mo.observe(document.documentElement, { childList: true, subtree: true });
         window.__lucideObserver = mo;
     } catch (e) {
-        console.warn('MutationObserver for Lucide failed:', e);
+        console.warn('Ошибка MutationObserver для Lucide:', e);
     }
 }
 

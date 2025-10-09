@@ -497,4 +497,4 @@ export default {
     checkAccess
 };
 
-// Module loaded - logging suppressed in production
+// Модуль загружен - логирование отключено в production

@@ -55,7 +55,7 @@ export function setupEventListeners(app) {
     // Обработка меню приложения
     const { ipcRenderer } = require('electron');
     ipcRenderer.on('menu-new-order', () => {
-        app.switchModule('orders').catch(error => console.error('Error switching to orders:', error));
+        app.switchModule('orders').catch(error => console.error('Ошибка переключения на заказы:', error));
         // Здесь будет логика создания нового заказа
     });
 

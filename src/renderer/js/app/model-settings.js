@@ -24,7 +24,6 @@ export function initModelSettings() {
     let allUsersAccessData = {};
 
     // Чтение пользователей из локальной директории Server/users (Electron) или через fetch fallback (браузер).
-    // Чтение пользователей из локальной директории Server/users (Electron) или через fetch fallback (браузер).
     const readUsersFromServer = async () => {
       try {
         const isElectron = typeof window.require !== 'undefined' && typeof process !== 'undefined';
@@ -39,7 +38,6 @@ export function initModelSettings() {
           for (const e of entries) {
             if (!e.isDirectory()) continue;
             const name = e.name;
-            // пропустить очевидные временные/шаблонные папки
             // пропустить очевидные временные/шаблонные папки
             if (name.startsWith('.') || name.startsWith('_') || /template|temp|backup/i.test(name)) continue;
 
@@ -61,7 +59,6 @@ export function initModelSettings() {
             const position = infoJson.position || infoJson.role || '';
 
             // Включаем avatarPath в данные пользователя
-            // Включаем avatarPath в данные пользователя
             users.push({ 
               name: displayName, 
               role: position,
@@ -73,7 +70,7 @@ export function initModelSettings() {
           return users;
         } else {
           // Резервный вариант для браузера - попытка получить индекс или каждую папку (наилучшие усилия)
-          // Резервный вариант для браузера - попытка получить индекс или каждую папку (наилучшие усилия)
+
           try {
             const resp = await fetch('/Server/users/index.json');
             if (resp.ok) {
@@ -562,7 +559,7 @@ export function initModelSettings() {
           return true;
         } else {
           // Резервный вариант для браузера - в реальной реализации это будет использовать API бэкенда
-          console.warn('Saving user access data in browser environment not implemented');
+          console.warn('Сохранение данных доступа пользователя в браузерной среде не реализовано');
           return false;
         }
       } catch (e) {
@@ -647,7 +644,7 @@ export function initModelSettings() {
           }
         } else {
           // Резервный вариант для браузера - в реальной реализации это будет использовать API бэкенда
-          console.warn('Saving module states in browser environment not implemented');
+          console.warn('Сохранение состояний модулей в браузерной среде не реализовано');
           return false;
         }
       } catch (e) {
@@ -686,7 +683,7 @@ export function initModelSettings() {
       }
       
       if (!selectedUsername) {
-        console.warn('No user selected');
+        console.warn('Пользователь не выбран');
         return;
       }
       

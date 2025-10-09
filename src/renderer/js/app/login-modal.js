@@ -121,7 +121,7 @@ export function openLoginModal(app) {
           });
         }
       } catch (error) {
-        console.error('Login error:', error);
+        console.error('Ошибка входа:', error);
 
         const networkValidation = {
           errors: {},

@@ -60,7 +60,7 @@ async function generateColoredLetterAvatar(user, sizeConfig) {
     
     return `<div class="${sizeConfig.container} flex items-center justify-center font-semibold ${sizeConfig.text}" style="color: ${textColor}; background-color: transparent;">${firstLetter}</div>`;
   } catch (error) {
-    console.warn('Failed to get avatar color:', error);
+    console.warn('Не удалось получить цвет аватара:', error);
     return generateFallbackAvatar(firstLetter, sizeConfig);
   }
 }
@@ -105,7 +105,7 @@ async function updateAvatarInDOM(selector, user, options = {}) {
     const avatarHTML = await generateAvatarHTML(user, options);
     element.innerHTML = avatarHTML;
   } catch (error) {
-    console.error('Failed to update avatar:', error);
+    console.error('Ошибка обновления аватара:', error);
     element.innerHTML = generateFallbackAvatar('?', options.size || 'md');
   }
 }
@@ -136,7 +136,7 @@ async function generateTopBarAvatar(user) {
       color: `hsl(${color.hue}, ${color.saturation}%, ${color.brightness}%)`
     };
   } catch (error) {
-    console.warn('Failed to get avatar color:', error);
+    console.warn('Не удалось получить цвет аватара:', error);
     return {
       letter: firstLetter,
       color: '#6b7280'

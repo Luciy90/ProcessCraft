@@ -22,7 +22,7 @@ function findFilesByExtensions(dirPath, extensions) {
 
     return files;
   } catch (err) {
-    console.error('scan error', err.message);
+    console.error('ошибка сканирования', err.message);
     return [];
   }
 }
@@ -40,7 +40,7 @@ function loadConfig() {
     if (!fs.existsSync(accessFile)) return null;
     return JSON.parse(fs.readFileSync(accessFile, 'utf8'));
   } catch (e) {
-    console.error('loadConfig error', e.message);
+    console.error('ошибка загрузки конфигурации', e.message);
     return null;
   }
 }
@@ -51,13 +51,13 @@ function saveConfig(cfg) {
     fs.writeFileSync(accessFile, JSON.stringify(cfg, null, 2), 'utf8');
     return true;
   } catch (e) {
-    console.error('saveConfig error', e.message);
+    console.error('ошибка сохранения конфигурации', e.message);
     return false;
   }
 }
 
 (function main(){
-  console.log('Scanning renderer for markers...');
+  console.log('Сканирование рендерера на наличие маркеров...');
   const files = findFilesByExtensions(rendererRoot, ['.html', '.htm', '.js']);
   const all = new Set();
   for (const f of files) {
@@ -69,7 +69,7 @@ function saveConfig(cfg) {
     }
   }
   const found = Array.from(all);
-  console.log('Found markers:', found.length, found);
+  console.log('Найдено маркеров:', found.length, found);
 
   let cfg = loadConfig();
   if (!cfg) cfg = { roles: { "SuperAdmin": {}, "Admin": {}, "User": {} }, markers: [], access: {} };
@@ -116,5 +116,5 @@ function saveConfig(cfg) {
   }
 
   const ok = saveConfig(cfg);
-  console.log('Saved:', ok, 'New:', newMarkers.length);
+  console.log('Сохранено:', ok, 'Новых:', newMarkers.length);
 })();

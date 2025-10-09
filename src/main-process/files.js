@@ -11,7 +11,7 @@ function registerFileHandlers(mainWindow) {
       const exists = fs.existsSync(filePath);
       return { exists };
     } catch (error) {
-      console.error('Error checking file existence:', error);
+      console.error('Ошибка проверки существования файла:', error);
       return { exists: false };
     }
   });
