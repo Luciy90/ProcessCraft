@@ -1,5 +1,5 @@
 /**
- * Test script for authentication service
+ * Тестовый скрипт для сервиса аутентификации
  */
 const { 
   initializeAuthDatabase, 
@@ -10,71 +10,71 @@ const {
   verifyPassword
 } = require('./auth-service');
 
-console.log('Testing authentication service...\n');
+console.log('Тестирование сервиса аутентификации...\n');
 
 try {
-  // Test password hashing
-  console.log('1. Testing password hashing:');
+  // Тест хеширования пароля
+  console.log('1. Тестирование хеширования пароля:');
   const password = 'testPassword123';
   const { hash, salt } = hashPassword(password);
-  console.log('Password hashed successfully');
-  console.log('Hash length:', hash.length);
-  console.log('Salt length:', salt.length);
+  console.log('Пароль успешно хеширован');
+  console.log('Длина хеша:', hash.length);
+  console.log('Длина соли:', salt.length);
   
-  // Test password verification
-  console.log('\n2. Testing password verification:');
+  // Тест проверки пароля
+  console.log('\n2. Тестирование проверки пароля:');
   const isValid = verifyPassword(password, hash, salt);
-  console.log('Password verification result:', isValid ? '✓ PASS' : '✗ FAIL');
+  console.log('Результат проверки пароля:', isValid ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
   const isInvalid = verifyPassword('wrongPassword', hash, salt);
-  console.log('Wrong password verification result:', !isInvalid ? '✓ PASS' : '✗ FAIL');
+  console.log('Результат проверки неверного пароля:', !isInvalid ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Initialize auth database
-  console.log('\n3. Initializing authentication database:');
+  // Инициализация базы данных аутентификации
+  console.log('\n3. Инициализация базы данных аутентификации:');
   const authDb = initializeAuthDatabase();
-  console.log('Authentication database initialized');
+  console.log('База данных аутентификации инициализирована');
   
-  // Test getting user credentials
-  console.log('\n4. Testing user credentials retrieval:');
+  // Тест получения учетных данных пользователя
+  console.log('\n4. Тестирование получения учетных данных пользователя:');
   const superAdminCreds = getUserCredentials('AppSuperAdmin');
-  console.log('SuperAdmin credentials:', superAdminCreds);
-  console.log('Test 4 result:', superAdminCreds ? '✓ PASS' : '✗ FAIL');
+  console.log('Учетные данные суперадмина:', superAdminCreds);
+  console.log('Тест 4 результат:', superAdminCreds ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
   const regularUserCreds = getUserCredentials('AppSuperUser');
-  console.log('Regular user credentials:', regularUserCreds);
-  console.log('Test 5 result:', regularUserCreds ? '✓ PASS' : '✗ FAIL');
+  console.log('Учетные данные обычного пользователя:', regularUserCreds);
+  console.log('Тест 5 результат:', regularUserCreds ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Test user authentication
-  console.log('\n5. Testing user authentication:');
+  // Тест аутентификации пользователя
+  console.log('\n5. Тестирование аутентификации пользователя:');
   const superAdminAuth = verifyUserCredentials('AppSuperAdmin', 'aA3$!Qp9_superAdminStrongPwd');
-  console.log('SuperAdmin authentication:', superAdminAuth ? '✓ PASS' : '✗ FAIL');
+  console.log('Аутентификация суперадмина:', superAdminAuth ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
   const regularUserAuth = verifyUserCredentials('AppSuperUser', 'uU7@#Kx2_superUserStrongPwd');
-  console.log('Regular user authentication:', regularUserAuth ? '✓ PASS' : '✗ FAIL');
+  console.log('Аутентификация обычного пользователя:', regularUserAuth ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Test wrong password
-  console.log('\n6. Testing wrong password authentication:');
+  // Тест неверного пароля
+  console.log('\n6. Тестирование аутентификации с неверным паролем:');
   const wrongPasswordAuth = verifyUserCredentials('AppSuperAdmin', 'wrongPassword');
-  console.log('Wrong password authentication:', !wrongPasswordAuth ? '✓ PASS' : '✗ FAIL');
+  console.log('Аутентификация с неверным паролем:', !wrongPasswordAuth ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Test non-existent user
-  console.log('\n7. Testing non-existent user authentication:');
+  // Тест несуществующего пользователя
+  console.log('\n7. Тестирование аутентификации несуществующего пользователя:');
   const nonExistentUserAuth = verifyUserCredentials('NonExistentUser', 'anyPassword');
-  console.log('Non-existent user authentication:', !nonExistentUserAuth ? '✓ PASS' : '✗ FAIL');
+  console.log('Аутентификация несуществующего пользователя:', !nonExistentUserAuth ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Test password update
-  console.log('\n8. Testing password update:');
+  // Тест обновления пароля
+  console.log('\n8. Тестирование обновления пароля:');
   const updateResult = updateUserPassword('AppSuperUser', 'newPassword123');
-  console.log('Password update result:', updateResult ? '✓ PASS' : '✗ FAIL');
+  console.log('Результат обновления пароля:', updateResult ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
-  // Verify updated password
-  console.log('\n9. Testing updated password:');
+  // Проверка обновленного пароля
+  console.log('\n9. Тестирование обновленного пароля:');
   const updatedPasswordAuth = verifyUserCredentials('AppSuperUser', 'newPassword123');
-  console.log('Updated password authentication:', updatedPasswordAuth ? '✓ PASS' : '✗ FAIL');
+  console.log('Аутентификация с обновленным паролем:', updatedPasswordAuth ? '✓ ПРОЙДЕН' : '✗ НЕ ПРОЙДЕН');
   
   console.log('\n---\n');
-  console.log('All authentication service tests completed!');
+  console.log('Все тесты сервиса аутентификации завершены!');
   
 } catch (error) {
-  console.error('Test failed with error:', error);
+  console.error('Тест завершен с ошибкой:', error);
 }

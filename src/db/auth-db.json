@@ -2,15 +2,15 @@
   "users": {
     "AppSuperAdmin": {
       "username": "AppSuperAdmin",
-      "hash": "2cc37e3ca46622629bf7df46f46fea7b8de20a264a488b09a3110cd0bac6c0c8b36f6eeb51e20498e5f758f0291033b9f0f2d36693884fc859cedac661ad479f",
-      "salt": "13b9c4045c9e6dd9d59fc9606598f3b7ca05889bd448ae5a6ec8e2050f9c50d7"
+      "hash": "121a1d1b4205d995384ce03460182dd02815779acb92d559e1124143cd0b96af96b92eb2d54180e3715620c9cc3902268fcf5951cb9babc94821258e068f6fa6",
+      "salt": "0b562a2b53f319136c5c3bc956b99a4772d6c02fd3daf4d6086ea4645190f852"
     },
     "AppSuperUser": {
       "username": "AppSuperUser",
-      "hash": "3558c2093a90f6031cf7e38409b4b41d6cc57cb1d2b33e99ec586ea95306a23150ba332c6ffdb9e5328b90b3814f6eb18e51e96e5a3f20d8da10811d307a7b0d",
-      "salt": "5d2d8eebe8277ceaffb634607597c55a848874487d8ba596c508cf4dabfbc41e"
+      "hash": "c3b9e1a374a4bb5c3e6016fe29aa361d552d93fd58984dd7ce93fbc355c0ce249969f3fd2500595fc9b35b05686f2793ec32134f7dfcbfda531f7c9c12c56978",
+      "salt": "703b48ef5945a209f35e8881b0c6e61e4df8484a0104476162919e9f6746c851"
     }
   },
-  "createdAt": "2025-10-15T10:18:39.417Z",
-  "lastUpdated": "2025-10-15T10:18:39.417Z"
+  "createdAt": "2025-10-15T11:02:37.502Z",
+  "lastUpdated": "2025-10-15T11:02:37.502Z"
 }
