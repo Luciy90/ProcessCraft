@@ -1,0 +1,16 @@
+{
+  "users": {
+    "AppSuperAdmin": {
+      "username": "AppSuperAdmin",
+      "hash": "fa40103497c1788b67e855c2b4e6c14b389ca68c0c83c70c1f63ceb255c7936492ba65f61768d6ac65b689e6ef9379156863297f7372d19d38fe73b9d2c134a9",
+      "salt": "62a2db898a4b130d3cc93b28d21b890ad2e947def667a82ef4e19b84461443d4"
+    },
+    "AppSuperUser": {
+      "username": "AppSuperUser",
+      "hash": "981d9a56c6b92f029c96ed1bcdd70b6fa91d87f41c7dcdd08e675e29a3de5fb2c0ff8bf049bd7f804878f09c051d577440c61bd5648655688e014fca92d0c701",
+      "salt": "17f4ac34415fb36b7dfc66e27224e4a8fdc843e3d5ec6967b3c799da43dbe1a9"
+    }
+  },
+  "createdAt": "2025-10-15T07:21:35.613Z",
+  "lastUpdated": "2025-10-15T07:21:35.642Z"
+}

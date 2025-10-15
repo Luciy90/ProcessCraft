@@ -4,10 +4,10 @@
   "description": "Приложение для управления производством",
   "main": "src/main.js",
   "scripts": {
-  "start": "node scripts/run-electron.js",
-  "dev": "node scripts/run-electron.js --dev",
+    "start": "node scripts/run-electron.js",
+    "dev": "node scripts/run-electron.js --dev",
     "build": "npm run build:modules && npm run build:css && electron-builder",
-  "build:modules": "node scripts/build-module-index.js",
+    "build:modules": "node scripts/build-module-index.js",
     "build:css": "tailwindcss -i ./src/renderer/styles/input.css -o ./src/renderer/styles/tailwind.css --watch",
     "build:css:prod": "tailwindcss -i ./src/renderer/styles/input.css -o ./src/renderer/styles/tailwind.css --minify",
     "dist": "npm run build:css:prod && electron-builder --publish=never",
@@ -23,18 +23,20 @@
   "author": "ProcessCraft Team",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "electron-store": "^8.1.0",
+    "mssql": "^12.0.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
-    "uuid": "^9.0.1",
-    "nunjucks": "^3.2.4"
+    "nunjucks": "^3.2.4",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.16",
     "electron": "^22.3.27",
     "electron-builder": "^24.9.1",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32"
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0"
   },
   "build": {
     "appId": "com.processcraft.app",
@@ -59,4 +61,3 @@
     }
   }
 }
-

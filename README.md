@@ -46,12 +46,16 @@ cd ProcessCraft
 npm install
 ```
 
-3. Соберите CSS (для разработки):
+3. Настройте переменные окружения:
+   - Скопируйте [.env.example](file:///c%3A/Users/KodochigovV/Documents/Projects/ProcessCraft/.env.example) в `.env`
+   - Отредактируйте значения в `.env` в соответствии с вашей конфигурацией базы данных
+
+4. Соберите CSS (для разработки):
 ```bash
 npm run build:css
 ```
 
-4. Запустите приложение в режиме разработки:
+5. Запустите приложение в режиме разработки:
 ```bash
 npm run dev
 ```
@@ -59,7 +63,7 @@ npm run dev
 ### Сборка для продакшена
 
 Для создания продакшен сборки:
-```bash
+```
 npm run build:css:prod
 npm run dist
 ```
@@ -275,6 +279,26 @@ ProcessCraft/
 - `maintenance.json` - данные РММ
 - `analytics.json` - аналитические данные
 
+## Учетные данные базы данных SQL Server
+
+Для подключения к базе данных SQL Server 2008 приложение использует зашифрованные учетные данные:
+
+### Учетные записи пользователей базы данных
+
+1. **Суперадмин приложения (AppSuperAdmin)**
+   - Имя пользователя: AppSuperAdmin
+   - Пароль: aA3$!Qp9_superAdminStrongPwd
+   - Назначение: Для административных задач, требующих полного доступа к базе данных
+
+2. **Пользователь приложения (AppSuperUser)**
+   - Имя пользователя: AppSuperUser
+   - Пароль: uU7@#Kx2_superUserStrongPwd
+   - Назначение: Для стандартных операций приложения с ограниченными правами доступа к базе данных
+
+**ВАЖНО**: В приложении пароли не хранятся в открытом виде. Вместо этого используется система аутентификации с хешированием паролей. Подробнее см. в [DATABASE_SECURITY.md](file:///c%3A/Users/KodochigovV/Documents/Projects/ProcessCraft/DATABASE_SECURITY.md).
+
+Учетные данные хранятся в зашифрованном виде с использованием AES-256-GCM. Подробнее см. в [src/db/ENCRYPTION_README.md](file:///c%3A/Users/KodochigovV/Documents/Projects/ProcessCraft/src/db/ENCRYPTION_README.md) и [src/db/DATABASE_CREDENTIALS.md](file:///c%3A/Users/KodochigovV/Documents/Projects/ProcessCraft/src/db/DATABASE_CREDENTIALS.md).
+
 ## Сборка
 
 Для создания исполняемого файла:
@@ -358,7 +382,7 @@ ProcessCraft реализует гибкую систему ролей и дос
 
 Файл `Server/users/access.json` содержит конфигурацию ролей и доступа:
 
-```json
+```
 {
   "roles": {
     "SuperAdmin": {},
