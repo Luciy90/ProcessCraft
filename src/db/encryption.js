@@ -6,19 +6,28 @@ const crypto = require('crypto');
 
 // Секретный ключ для шифрования/дешифрования
 // В производственной среде это должно храниться безопасно (например, переменные окружения, служба управления ключами)
-const SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY || 'ProcessCraftSuperSecretKey12345';
+const SECRET_KEY = process.env.ENCRYPTION_SECRET_KEY;
+
+if (!SECRET_KEY) {
+  throw new Error('ENCRYPTION_SECRET_KEY environment variable must be set');
+}
 
 /**
  * Шифрует текст с использованием AES-256-GCM
  * @param {string} text - Текст для шифрования
- * @returns {Object} - Объект, содержащий зашифрованные данные, IV и тег аутентификации
+ * @returns {Object} - Объект с зашифрованными данными, IV, тегом аутентификации и солью
  */
 function encrypt(text) {
+  if (typeof text !== 'string' || text.length === 0) {
+    throw new Error('Input must be a non-empty string');
+  }
+
+  // Генерируем случайную соль для KDF
+  const salt = crypto.randomBytes(16);
+  const key = crypto.scryptSync(SECRET_KEY, salt, 32);
+  
   // Генерируем случайный вектор инициализации
   const iv = crypto.randomBytes(16);
-  
-  // Создаем шифр с использованием createCipheriv
-  const key = crypto.scryptSync(SECRET_KEY, 'salt', 32);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   
   // Шифруем текст
@@ -32,7 +41,8 @@ function encrypt(text) {
   return {
     encryptedData: encrypted,
     iv: iv.toString('hex'),
-    authTag: authTag.toString('hex')
+    authTag: authTag.toString('hex'),
+    salt: salt.toString('hex')
   };
 }
 
@@ -42,10 +52,10 @@ function encrypt(text) {
  * @returns {string} - Расшифрованный текст
  */
 function decrypt(encryptedObj) {
-  const { encryptedData, iv, authTag } = encryptedObj;
-  
+  const { encryptedData, iv, authTag, salt } = encryptedObj;
+
   // Создаем дешифратор с использованием createDecipheriv
-  const key = crypto.scryptSync(SECRET_KEY, 'salt', 32);
+  const key = crypto.scryptSync(SECRET_KEY, Buffer.from(salt, 'hex'), 32);
   const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'hex'));
   
   // Устанавливаем тег аутентификации
@@ -65,6 +75,14 @@ function decrypt(encryptedObj) {
  * @returns {Object} - Зашифрованные учетные данные
  */
 function createEncryptedCredentials(userType, credentials) {
+  if (!credentials || typeof credentials !== 'object') {
+    throw new Error('Invalid credentials object');
+  }
+
+  if (!credentials.username || !credentials.password) {
+    throw new Error('Credentials must contain username and password');
+  }
+  
   // Мы могли бы реализовать разное шифрование для суперадмина и обычных пользователей
   // Пока что мы будем использовать одно и то же шифрование, но можем расширить это позже
   

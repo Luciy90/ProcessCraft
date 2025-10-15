@@ -1,27 +1,27 @@
 /**
- * Authentication service for handling password hashing and verification
- * This service removes plaintext passwords from the application and uses only password hashes
+ * Сервис аутентификации для хеширования и проверки паролей
+ * Этот сервис удаляет пароли в открытом виде из приложения и использует только хеши паролей
  */
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-// Path to the authentication database
+// Путь к базе данных аутентификации
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 
 /**
- * Hash a password using PBKDF2
- * @param {string} password - The password to hash
- * @param {string} salt - The salt to use (optional, will be generated if not provided)
- * @returns {Object} - Object containing the hash and salt
+ * Хеширование пароля с использованием PBKDF2
+ * @param {string} password - Пароль для хеширования
+ * @param {string} salt - Соль для использования (необязательно, будет сгенерирована, если не указана)
+ * @returns {Object} - Объект, содержащий хеш и соль
  */
 function hashPassword(password, salt = null) {
-  // Generate a salt if not provided
+  // Генерируем соль, если она не предоставлена
   if (!salt) {
     salt = crypto.randomBytes(32).toString('hex');
   }
   
-  // Hash the password using PBKDF2
+  // Хешируем пароль с использованием PBKDF2
   const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   
   return {
@@ -31,11 +31,11 @@ function hashPassword(password, salt = null) {
 }
 
 /**
- * Verify a password against a hash
- * @param {string} password - The password to verify
- * @param {string} hash - The hash to compare against
- * @param {string} salt - The salt used to create the hash
- * @returns {boolean} - Whether the password matches the hash
+ * Проверка пароля по хешу
+ * @param {string} password - Пароль для проверки
+ * @param {string} hash - Хеш для сравнения
+ * @param {string} salt - Соль, использованная для создания хеша
+ * @returns {boolean} - Соответствует ли пароль хешу
  */
 function verifyPassword(password, hash, salt) {
   const hashedPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
@@ -43,10 +43,10 @@ function verifyPassword(password, hash, salt) {
 }
 
 /**
- * Initialize the authentication database with our users
+ * Инициализация базы данных аутентификации с нашими пользователями
  */
 function initializeAuthDatabase() {
-  // Hash the passwords for our users
+  // Хешируем пароли для наших пользователей
   const superAdmin = {
     username: 'AppSuperAdmin',
     ...hashPassword('aA3$!Qp9_superAdminStrongPwd')
@@ -57,7 +57,7 @@ function initializeAuthDatabase() {
     ...hashPassword('uU7@#Kx2_superUserStrongPwd')
   };
   
-  // Create the authentication database
+  // Создаем базу данных аутентификации
   const authDb = {
     users: {
       'AppSuperAdmin': superAdmin,
@@ -67,126 +67,126 @@ function initializeAuthDatabase() {
     lastUpdated: new Date().toISOString()
   };
   
-  // Save to file
+  // Сохраняем в файл
   fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
-  console.log('Authentication database initialized with hashed passwords');
+  console.log('База данных аутентификации инициализирована с хешированными паролями');
   
   return authDb;
 }
 
 /**
- * Get user credentials (username only, no password)
- * @param {string} username - The username to look up
- * @returns {Object|null} - User object with username only, or null if not found
+ * Получение учетных данных пользователя (только имя пользователя, без пароля)
+ * @param {string} username - Имя пользователя для поиска
+ * @returns {Object|null} - Объект пользователя только с именем пользователя, или null, если не найден
  */
 function getUserCredentials(username) {
   try {
-    // Check if auth database exists
+    // Проверяем, существует ли база данных аутентификации
     if (!fs.existsSync(AUTH_DB_FILE)) {
-      console.log('Authentication database not found, initializing...');
+      console.log('База данных аутентификации не найдена, инициализация...');
       initializeAuthDatabase();
     }
     
-    // Read and parse the auth database
+    // Читаем и парсим базу данных аутентификации
     const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse(authData);
     
-    // Return user object (without password hash for security)
+    // Возвращаем объект пользователя (без хеша пароля для безопасности)
     const user = authDb.users[username];
     if (!user) {
       return null;
     }
     
-    // Return only the username (no password hash)
+    // Возвращаем только имя пользователя (без хеша пароля)
     return {
       username: user.username
     };
   } catch (error) {
-    console.error('Failed to get user credentials:', error);
+    console.error('Не удалось получить учетные данные пользователя:', error);
     return null;
   }
 }
 
 /**
- * Verify user credentials
- * @param {string} username - The username to verify
- * @param {string} password - The password to verify
- * @returns {boolean} - Whether the credentials are valid
+ * Проверка учетных данных пользователя
+ * @param {string} username - Имя пользователя для проверки
+ * @param {string} password - Пароль для проверки
+ * @returns {boolean} - Действительны ли учетные данные
  */
 function verifyUserCredentials(username, password) {
   try {
-    // Check if auth database exists
+    // Проверяем, существует ли база данных аутентификации
     if (!fs.existsSync(AUTH_DB_FILE)) {
-      console.log('Authentication database not found, initializing...');
+      console.log('База данных аутентификации не найдена, инициализация...');
       initializeAuthDatabase();
     }
     
-    // Read and parse the auth database
+    // Читаем и парсим базу данных аутентификации
     const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse(authData);
     
-    // Get user
+    // Получаем пользователя
     const user = authDb.users[username];
     if (!user) {
-      console.log(`User ${username} not found in auth database`);
+      console.log(`Пользователь ${username} не найден в базе данных аутентификации`);
       return false;
     }
     
-    // Verify password
+    // Проверяем пароль
     const isValid = verifyPassword(password, user.hash, user.salt);
-    console.log(`Password verification for ${username}: ${isValid ? 'VALID' : 'INVALID'}`);
+    console.log(`Проверка пароля для ${username}: ${isValid ? 'ДЕЙСТВИТЕЛЕН' : 'НЕДЕЙСТВИТЕЛЕН'}`);
     return isValid;
   } catch (error) {
-    console.error('Failed to verify user credentials:', error);
+    console.error('Не удалось проверить учетные данные пользователя:', error);
     return false;
   }
 }
 
 /**
- * Update user password
- * @param {string} username - The username to update
- * @param {string} newPassword - The new password
- * @returns {boolean} - Whether the update was successful
+ * Обновление пароля пользователя
+ * @param {string} username - Имя пользователя для обновления
+ * @param {string} newPassword - Новый пароль
+ * @returns {boolean} - Успешно ли обновление
  */
 function updateUserPassword(username, newPassword) {
   try {
-    // Check if auth database exists
+    // Проверяем, существует ли база данных аутентификации
     if (!fs.existsSync(AUTH_DB_FILE)) {
-      console.log('Authentication database not found, initializing...');
+      console.log('База данных аутентификации не найдена, инициализация...');
       initializeAuthDatabase();
     }
     
-    // Read and parse the auth database
+    // Читаем и парсим базу данных аутентификации
     const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse(authData);
     
-    // Check if user exists
+    // Проверяем, существует ли пользователь
     if (!authDb.users[username]) {
-      console.error(`User ${username} not found`);
+      console.error(`Пользователь ${username} не найден`);
       return false;
     }
     
-    // Hash the new password
+    // Хешируем новый пароль
     const { hash, salt } = hashPassword(newPassword);
     
-    // Update user
+    // Обновляем пользователя
     authDb.users[username].hash = hash;
     authDb.users[username].salt = salt;
     authDb.lastUpdated = new Date().toISOString();
     
-    // Save to file
+    // Сохраняем в файл
     fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
-    console.log(`Password updated for user ${username}`);
+    console.log(`Пароль обновлен для пользователя ${username}`);
     
     return true;
   } catch (error) {
-    console.error('Failed to update user password:', error);
+    console.error('Не удалось обновить пароль пользователя:', error);
     return false;
   }
 }
 
-// Initialize the auth database when the module is loaded
-// This ensures we have the correct passwords
+// Инициализируем базу данных аутентификации при загрузке модуля
+// Это гарантирует, что у нас есть правильные пароли
 initializeAuthDatabase();
 
 module.exports = {

@@ -52,7 +52,7 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'AppSuperUser')
 BEGIN
     CREATE LOGIN [AppSuperUser]
-    WITH PASSWORD = N'uU7@#Kx2_superUserStrongPwd',
+    WITH PASSWORD = N'uU7@!Kx2_superUserStrongPwd',
           CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
     PRINT N'-- 2.2: Логин [AppSuperUser] создан.';
 END

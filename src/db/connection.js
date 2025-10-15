@@ -4,39 +4,50 @@ const sql = require('mssql');
 const { getUserCredentials, verifyUserCredentials } = require('./auth-service');
 
 // Объект конфигурации для SQL Server
-const config = {
-  server: process.env.DB_SERVER || 'OZO-62\\SQLEXPRESS',
-  database: process.env.DB_DATABASE || 'ProcessCraftDB',
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000
-  },
-  options: {
-    encrypt: false, // Требуется для совместимости с SQL Server 2008
-    trustServerCertificate: true // В производственной среде измените на false, если используются надежные сертификаты
-  }
-};
+// Проверяем, содержит ли сервер имя экземпляра или порт
+const serverConfig = process.env.DB_SERVER || 'OZO-62\\SQLEXPRESS';
+
+// Функция для создания новой конфигурации для каждого подключения
+function createConfig() {
+  return {
+    server: serverConfig.split(',')[0], // Извлекаем имя сервера
+    database: process.env.DB_DATABASE || 'ProcessCraftDB',
+    options: {
+      encrypt: false, // Требуется для совместимости с SQL Server 2008
+      trustServerCertificate: true, // В производственной среде измените на false, если используются надежные сертификаты
+      // Если указан порт, используем его, иначе используем порт по умолчанию
+      port: serverConfig.includes(',') ? parseInt(serverConfig.split(',')[1]) : 1433
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      idleTimeoutMillis: 30000
+    }
+  };
+}
 
 // Функция для загрузки учетных данных на основе типа пользователя
 async function loadCredentials(userType = 'regular') {
   try {
+    // Создаем новую конфигурацию для каждого вызова
+    const config = createConfig();
+    
     // Если установлены переменные окружения, используем их напрямую (наивысший приоритет)
-    if (process.env.DB_USER) {
-      // Проверяем учетные данные пользователя
-      const username = process.env.DB_USER;
-      const user = getUserCredentials(username);
-      
-      if (user) {
-        config.user = user.username;
-        // Пароль не хранится в приложении, он проверяется отдельно
-        // Для подключения к SQL Server нам все равно нужен пароль
-        // В реальной реализации пароль должен быть в переменных окружения
-        if (process.env.DB_PASSWORD) {
-          config.password = process.env.DB_PASSWORD;
-          console.log(`Использование учетных данных из переменных окружения для ${userType}`);
-          return config;
-        }
+    if (userType === 'regular' && process.env.DB_USER_REGULAR) {
+      config.user = process.env.DB_USER_REGULAR;
+      if (process.env.DB_PASSWORD_REGULAR) {
+        config.password = process.env.DB_PASSWORD_REGULAR;
+        console.log(`Использование учетных данных из переменных окружения для ${userType}`);
+        return config;
+      }
+    }
+    // Для суперадмина используем переменные окружения
+    else if (userType === 'superadmin' && process.env.DB_USER_ADMIN) {
+      config.user = process.env.DB_USER_ADMIN;
+      if (process.env.DB_PASSWORD_ADMIN) {
+        config.password = process.env.DB_PASSWORD_ADMIN;
+        console.log(`Использование учетных данных из переменных окружения для ${userType}`);
+        return config;
       }
     }
     
@@ -59,6 +70,7 @@ async function loadCredentials(userType = 'regular') {
     console.error('Не удалось загрузить учетные данные:', error);
     
     // Откат к значениям по умолчанию
+    const config = createConfig();
     config.user = 'AppSuperUser';
     config.password = 'uU7@#Kx2_superUserStrongPwd';
     console.log('Использование учетных данных по умолчанию для обычного пользователя');
