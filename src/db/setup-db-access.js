@@ -2,15 +2,37 @@
  * Функция настройки доступа к СУБД с хешированием учетных данных
  * Эта функция запускается после развертывания СУБД для настройки подключения приложения
  */
-require('dotenv').config();
-const fs = require('fs');
 const path = require('path');
+// Указываем путь к .env файлу явно
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+const fs = require('fs');
 const crypto = require('crypto');
 
 // Пути к файлам
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 const ENV_FILE = path.join(__dirname, '../../.env');
-const SALT_DIR = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
+// Используем абсолютный путь для директории солей, но без дублирования
+const SALT_DIR = path.resolve(__dirname, 'src/salt');
+
+/**
+ * Гарантирует наличие файла auth-db.json (создаёт, если отсутствует или пустой)
+ */
+function ensureAuthDbFile() {
+  try {
+    const exists = fs.existsSync(AUTH_DB_FILE);
+    const isEmpty = exists ? fs.statSync(AUTH_DB_FILE).size === 0 : true;
+    if (!exists || isEmpty) {
+      const placeholder = {
+        initializing: true,
+        createdAt: new Date().toISOString()
+      };
+      fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(placeholder, null, 2));
+      console.log('✓ Создан базовый файл auth-db.json');
+    }
+  } catch (e) {
+    console.warn('Не удалось проверить/создать auth-db.json заранее:', e.message);
+  }
+}
 
 /**
  * Хеширование данных с использованием PBKDF2
@@ -119,16 +141,74 @@ function validateAndReadEnvFile() {
 }
 
 /**
+ * Создание ключа шифрования
+ * @returns {Object} - Объект с ключом и именем файла
+ */
+function createEncryptionKey() {
+  const saltDirAbs = path.resolve(SALT_DIR);
+  if (!fs.existsSync(saltDirAbs)) {
+    fs.mkdirSync(saltDirAbs, { recursive: true });
+  }
+  
+  // Создаем 32-байтный ключ
+  const keyBytes = crypto.randomBytes(32);
+  const keyHex = keyBytes.toString('hex');
+  const keyFileName = 'enc_key.json';
+  
+  const keyData = {
+    salt: keyHex,
+    createdAt: new Date().toISOString()
+  };
+  
+  fs.writeFileSync(path.join(saltDirAbs, keyFileName), JSON.stringify(keyData, null, 2));
+  console.log(`  ✓ Ключ шифрования создан: ${keyFileName}`);
+  
+  return {
+    key: keyBytes,
+    fileName: keyFileName
+  };
+}
+
+/**
+ * Шифрование текста с использованием заданного ключа
+ * @param {string} text - Текст для шифрования
+ * @param {Buffer} key - Ключ шифрования
+ * @returns {Object} - Зашифрованные данные
+ */
+function encryptWithKey(text, key) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  const authTag = cipher.getAuthTag();
+  
+  return {
+    encryptedData: encrypted,
+    iv: iv.toString('hex'),
+    authTag: authTag.toString('hex')
+  };
+}
+
+/**
  * Настройка доступа к СУБД с хешированием всех учетных данных
  */
 function setupDatabaseAccess() {
-  console.log('=== Настройка доступа к СУБД с хешированием ===\n');
+  console.log('=== Настройка доступа к СУБД: хеширование и шифрование ===\n');
   
   try {
+    // Предварительно гарантируем наличие файла auth-db.json
+    ensureAuthDbFile();
+
     // Шаг 1: Проверка и чтение .env файла
     const envData = validateAndReadEnvFile();
     
-    // Шаг 2: Хеширование всех данных и создание файлов солей
+    // Шаг 2: Генерация ключа шифрования и запись в salt/
+    console.log('\nПодготовка ключа шифрования...');
+    const encryptionKey = createEncryptionKey();
+
+    // Шаг 3: Хеширование всех данных и создание файлов солей
     console.log('\nХеширование данных и создание файлов солей...');
     
     let saltIndex = 1;
@@ -167,8 +247,22 @@ function setupDatabaseAccess() {
     });
     
     console.log(`✓ Все данные хешированы, создано ${saltIndex - 1} файлов солей`);
+
+    // Шаг 4: Шифрование фактических значений для использования в рантайме
+    console.log('\nШифрование параметров подключения и учетных данных...');
+    const encryptedConfig = {
+      server: encryptWithKey(envData.db_server, encryptionKey.key),
+      database: encryptWithKey(envData.db_database, encryptionKey.key),
+      users: {}
+    };
+    envData.users.forEach(user => {
+      encryptedConfig.users[user.login] = {
+        username: encryptWithKey(user.login, encryptionKey.key),
+        password: encryptWithKey(user.password, encryptionKey.key)
+      };
+    });
     
-    // Шаг 3: Создание или обновление auth-db.json
+    // Шаг 5: Создание или обновление auth-db.json
     console.log('\nСоздание или обновление auth-db.json...');
     
     const authDb = {
@@ -179,6 +273,10 @@ function setupDatabaseAccess() {
         database_salt_file: databaseSaltFile
       },
       users: usersWithHashes,
+      encryption: {
+        key_file: encryptionKey.fileName
+      },
+      encrypted_config: encryptedConfig,
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString()
     };
@@ -187,7 +285,7 @@ function setupDatabaseAccess() {
     fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
     console.log('✓ Файл auth-db.json успешно создан/обновлен');
     
-    // Шаг 4: Вывод информации о созданных файлах
+    // Шаг 6: Вывод информации о созданных файлах
     console.log('\n=== Созданные файлы ===');
     console.log(`auth-db.json - Основной файл с хешами и ссылками на файлы солей`);
     console.log(`Путь к файлам солей: ${path.resolve(SALT_DIR)}`);

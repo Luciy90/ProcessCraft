@@ -66,7 +66,20 @@ function loadCredentialsFromStore(userType) {
     }
     
     // Расшифровываем имя пользователя
-    const decryptedUsername = decrypt(credentials.username);
+    let decryptedUsername;
+    try {
+      decryptedUsername = decrypt(credentials.username);
+    } catch (decryptErr) {
+      console.warn('Предупреждение: Не удалось расшифровать имя пользователя из хранилища. Переинициализируем хранилище с текущим ключом...');
+      // Переинициализируем хранилище с актуальным ключом и повторим попытку один раз
+      initializeCredentialsStore();
+      const freshData = fs.readFileSync(CREDENTIALS_FILE, 'utf8');
+      const freshStore = JSON.parse(freshData);
+      if (!freshStore[userType]) {
+        throw new Error(`Учетные данные не найдены после переинициализации для типа пользователя: ${userType}`);
+      }
+      decryptedUsername = decrypt(freshStore[userType].username);
+    }
     
     // Проверяем, что пользователь существует в системе аутентификации
     const user = getUserCredentials(decryptedUsername);

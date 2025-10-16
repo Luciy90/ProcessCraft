@@ -1,27 +1,44 @@
 // Пул подключений к базе данных SQL Server 2008
-require('dotenv').config();
 const sql = require('mssql');
 const fs = require('fs');
 const path = require('path');
 const { verifyDatabaseCredentials } = require('./setup-db-access');
+const { decrypt } = require('./encryption');
 
 // Путь к базе данных аутентификации
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 
-// Объект конфигурации для SQL Server
-// Проверяем, содержит ли сервер имя экземпляра или порт
-const serverConfig = process.env.DB_SERVER || 'OZO-62\\SQLEXPRESS';
+// Объект конфигурации для SQL Server из зашифрованных значений
+// Сервер и база берутся из auth-db.json -> encrypted_config
+let encryptedConfigCache = null;
+function getEncryptedConfig() {
+  if (!encryptedConfigCache) {
+    if (!fs.existsSync(AUTH_DB_FILE)) {
+      throw new Error('Файл auth-db.json не найден');
+    }
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
+    if (!authDb.encrypted_config) {
+      throw new Error('В auth-db.json отсутствует раздел encrypted_config. Запустите setup-db-access.js');
+    }
+    encryptedConfigCache = authDb.encrypted_config;
+  }
+  return encryptedConfigCache;
+}
 
 // Функция для создания новой конфигурации для каждого подключения
 function createConfig() {
+  const enc = getEncryptedConfig();
+  const serverPlain = decrypt(enc.server);
+  const databasePlain = decrypt(enc.database);
+  const serverStr = serverPlain;
   return {
-    server: serverConfig.split(',')[0], // Извлекаем имя сервера
-    database: process.env.DB_DATABASE || 'ProcessCraftDB',
+    server: serverStr.split(',')[0],
+    database: databasePlain,
     options: {
-      encrypt: false, // Требуется для совместимости с SQL Server 2008
-      trustServerCertificate: true, // В производственной среде измените на false, если используются надежные сертификаты
-      // Если указан порт, используем его, иначе используем порт по умолчанию
-      port: serverConfig.includes(',') ? parseInt(serverConfig.split(',')[1]) : 1433
+      encrypt: false,
+      trustServerCertificate: true,
+      port: serverStr.includes(',') ? parseInt(serverStr.split(',')[1]) : 1433
     },
     pool: {
       max: 10,
@@ -34,48 +51,25 @@ function createConfig() {
 // Функция для получения учетных данных пользователя по типу
 function getUserCredentialsFromAuthDb(userType) {
   try {
-    // Читаем auth-db.json
-    if (!fs.existsSync(AUTH_DB_FILE)) {
-      throw new Error('Файл auth-db.json не найден');
-    }
-    
+    const enc = getEncryptedConfig();
     const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse(authData);
-    
-    // Для суперадмина используем пользователя AppSuperAdmin
+    const server = decrypt(enc.server);
+    const database = decrypt(enc.database);
+
     if (userType === 'superadmin') {
-      const adminUsername = process.env.DB_USER_ADMIN || 'AppSuperAdmin';
-      const adminPassword = process.env.DB_PASSWORD_ADMIN || 'aA3$!Qp9_superAdminStrongPwd';
-      
-      // Проверяем учетные данные через хеши
-      if (verifyDatabaseCredentials(
-        process.env.DB_SERVER || 'OZO-62,1433',
-        process.env.DB_DATABASE || 'ProcessCraftBD',
-        adminUsername,
-        adminPassword
-      )) {
-        return {
-          username: adminUsername,
-          password: adminPassword
-        };
+      const adminEnc = enc.users['AppSuperAdmin'];
+      const adminUsername = decrypt(adminEnc.username);
+      const adminPassword = decrypt(adminEnc.password);
+      if (verifyDatabaseCredentials(server, database, adminUsername, adminPassword)) {
+        return { username: adminUsername, password: adminPassword };
       }
-    }
-    // Для обычного пользователя используем пользователя AppSuperUser
-    else if (userType === 'regular') {
-      const regularUsername = process.env.DB_USER_REGULAR || 'AppSuperUser';
-      const regularPassword = process.env.DB_PASSWORD_REGULAR || 'uU7@!Kx2_superUserStrongPwd';
-      
-      // Проверяем учетные данные через хеши
-      if (verifyDatabaseCredentials(
-        process.env.DB_SERVER || 'OZO-62,1433',
-        process.env.DB_DATABASE || 'ProcessCraftBD',
-        regularUsername,
-        regularPassword
-      )) {
-        return {
-          username: regularUsername,
-          password: regularPassword
-        };
+    } else if (userType === 'regular') {
+      const regularEnc = enc.users['AppSuperUser'];
+      const regularUsername = decrypt(regularEnc.username);
+      const regularPassword = decrypt(regularEnc.password);
+      if (verifyDatabaseCredentials(server, database, regularUsername, regularPassword)) {
+        return { username: regularUsername, password: regularPassword };
       }
     }
     
@@ -142,8 +136,8 @@ async function initializeConnection(userType = 'regular') {
   }
 }
 
-// Инициализация с обычным пользователем по умолчанию
-poolPromise = initializeConnection();
+// Инициализация не запускается автоматически, чтобы избежать хранения .env в рантайме
+poolPromise = null;
 
 // Экспорт пула и библиотеки sql
 module.exports = {

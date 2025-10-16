@@ -40,8 +40,12 @@ function validateAuthDbFile() {
     const authDb = JSON.parse(fileContent);
     
     // Проверяем структуру файла
-    if (!authDb.db_config || !authDb.users || !Array.isArray(authDb.users)) {
-      console.log('  Файл auth-db.json имеет неверную структуру');
+    const hasDbConfig = !!authDb.db_config && !!authDb.db_config.server_hash && !!authDb.db_config.database_hash;
+    const hasUsers = authDb.users && typeof authDb.users === 'object' && !Array.isArray(authDb.users);
+    const hasEncryption = authDb.encryption && typeof authDb.encryption.key_file === 'string';
+    const hasEncryptedConfig = authDb.encrypted_config && authDb.encrypted_config.server && authDb.encrypted_config.database;
+    if (!hasDbConfig || !hasUsers || !hasEncryption || !hasEncryptedConfig) {
+      console.log('  Файл auth-db.json имеет неверную структуру (отсутствуют db_config/users/encryption/encrypted_config)');
       return false;
     }
     
@@ -125,6 +129,18 @@ function testEncryption() {
     
     // Импортируем функции модуля шифрования
     const { encrypt, decrypt } = require('./encryption');
+    // Проверяем наличие ключа шифрования (через наличие encryption.key_file и файла ключа)
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
+    const keyPath = path.join(__dirname, 'salt', authDb.encryption && authDb.encryption.key_file ? authDb.encryption.key_file : '');
+    if (!authDb.encryption || !authDb.encryption.key_file || !fs.existsSync(keyPath)) {
+      console.log('  Ключ шифрования отсутствует. Запуск скрипта настройки...');
+      const setupOk = runSetupScript();
+      if (!setupOk) {
+        console.log('  ✗ Не удалось подготовить ключ шифрования');
+        return false;
+      }
+    }
     
     // Тест базового шифрования/дешифрования
     console.log('  4.1. Тестирование базового шифрования/дешифрования:');
