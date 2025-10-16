@@ -1,7 +1,12 @@
 // Пул подключений к базе данных SQL Server 2008
 require('dotenv').config();
 const sql = require('mssql');
-const { getUserCredentials, verifyUserCredentials } = require('./auth-service');
+const fs = require('fs');
+const path = require('path');
+const { verifyDatabaseCredentials } = require('./setup-db-access');
+
+// Путь к базе данных аутентификации
+const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 
 // Объект конфигурации для SQL Server
 // Проверяем, содержит ли сервер имя экземпляра или порт
@@ -26,56 +31,77 @@ function createConfig() {
   };
 }
 
+// Функция для получения учетных данных пользователя по типу
+function getUserCredentialsFromAuthDb(userType) {
+  try {
+    // Читаем auth-db.json
+    if (!fs.existsSync(AUTH_DB_FILE)) {
+      throw new Error('Файл auth-db.json не найден');
+    }
+    
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
+    
+    // Для суперадмина используем пользователя AppSuperAdmin
+    if (userType === 'superadmin') {
+      const adminUsername = process.env.DB_USER_ADMIN || 'AppSuperAdmin';
+      const adminPassword = process.env.DB_PASSWORD_ADMIN || 'aA3$!Qp9_superAdminStrongPwd';
+      
+      // Проверяем учетные данные через хеши
+      if (verifyDatabaseCredentials(
+        process.env.DB_SERVER || 'OZO-62,1433',
+        process.env.DB_DATABASE || 'ProcessCraftBD',
+        adminUsername,
+        adminPassword
+      )) {
+        return {
+          username: adminUsername,
+          password: adminPassword
+        };
+      }
+    }
+    // Для обычного пользователя используем пользователя AppSuperUser
+    else if (userType === 'regular') {
+      const regularUsername = process.env.DB_USER_REGULAR || 'AppSuperUser';
+      const regularPassword = process.env.DB_PASSWORD_REGULAR || 'uU7@!Kx2_superUserStrongPwd';
+      
+      // Проверяем учетные данные через хеши
+      if (verifyDatabaseCredentials(
+        process.env.DB_SERVER || 'OZO-62,1433',
+        process.env.DB_DATABASE || 'ProcessCraftBD',
+        regularUsername,
+        regularPassword
+      )) {
+        return {
+          username: regularUsername,
+          password: regularPassword
+        };
+      }
+    }
+    
+    throw new Error(`Не найдены учетные данные для типа пользователя: ${userType}`);
+  } catch (error) {
+    console.error('Ошибка при получении учетных данных:', error.message);
+    throw error;
+  }
+}
+
 // Функция для загрузки учетных данных на основе типа пользователя
 async function loadCredentials(userType = 'regular') {
   try {
     // Создаем новую конфигурацию для каждого вызова
     const config = createConfig();
     
-    // Если установлены переменные окружения, используем их напрямую (наивысший приоритет)
-    if (userType === 'regular' && process.env.DB_USER_REGULAR) {
-      config.user = process.env.DB_USER_REGULAR;
-      if (process.env.DB_PASSWORD_REGULAR) {
-        config.password = process.env.DB_PASSWORD_REGULAR;
-        console.log(`Использование учетных данных из переменных окружения для ${userType}`);
-        return config;
-      }
-    }
-    // Для суперадмина используем переменные окружения
-    else if (userType === 'superadmin' && process.env.DB_USER_ADMIN) {
-      config.user = process.env.DB_USER_ADMIN;
-      if (process.env.DB_PASSWORD_ADMIN) {
-        config.password = process.env.DB_PASSWORD_ADMIN;
-        console.log(`Использование учетных данных из переменных окружения для ${userType}`);
-        return config;
-      }
-    }
+    // Получаем учетные данные из auth-db.json
+    const credentials = getUserCredentialsFromAuthDb(userType);
+    config.user = credentials.username;
+    config.password = credentials.password;
     
-    // Для подключения к SQL Server нам нужны учетные данные
-    // В реальной реализации мы бы получали их из безопасного хранилища
-    // Сейчас используем учетные данные по умолчанию
-    console.log(`Использование учетных данных по умолчанию для ${userType}`);
-    
-    // Определяем учетные данные в зависимости от типа пользователя
-    if (userType === 'superadmin') {
-      config.user = 'AppSuperAdmin';
-      config.password = 'aA3$!Qp9_superAdminStrongPwd';
-    } else {
-      config.user = 'AppSuperUser';
-      config.password = 'uU7@#Kx2_superUserStrongPwd';
-    }
-    
+    console.log(`Использование учетных данных для ${userType} из auth-db.json`);
     return config;
   } catch (error) {
     console.error('Не удалось загрузить учетные данные:', error);
-    
-    // Откат к значениям по умолчанию
-    const config = createConfig();
-    config.user = 'AppSuperUser';
-    config.password = 'uU7@#Kx2_superUserStrongPwd';
-    console.log('Использование учетных данных по умолчанию для обычного пользователя');
-    
-    return config;
+    throw error;
   }
 }
 
@@ -124,8 +150,5 @@ module.exports = {
   sql,
   poolPromise,
   initializeConnection,
-  loadCredentials,
-  // Экспортируем функции аутентификации для использования в других модулях
-  getUserCredentials,
-  verifyUserCredentials
+  loadCredentials
 };

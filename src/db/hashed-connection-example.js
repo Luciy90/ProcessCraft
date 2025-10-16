@@ -3,79 +3,37 @@
  * Этот пример демонстрирует подход, при котором пароли хранятся в виде хешей,
  * и перед подключением к базе данных происходит проверка соответствия введенного пароля хешу
  */
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const sql = require('mssql');
-const { hashPassword, verifyPassword } = require('./auth-service');
+const { verifyDatabaseCredentials } = require('./setup-db-access');
 
-// Путь к файлу с хешами паролей базы данных
-const DB_HASHES_FILE = path.join(__dirname, 'db-hashes.json');
-
-/**
- * Инициализация файла с хешами паролей базы данных
- * В реальной системе это будет выполняться администратором при настройке
- */
-function initializeDbHashes() {
-  // Хешируем пароли для пользователей базы данных
-  const dbHashes = {
-    users: {
-      'AppSuperAdmin': {
-        username: 'AppSuperAdmin',
-        ...hashPassword('aA3$!Qp9_superAdminStrongPwd')
-      },
-      'AppSuperUser': {
-        username: 'AppSuperUser',
-        ...hashPassword('uU7@!Kx2_superUserStrongPwd')
-      }
-    },
-    createdAt: new Date().toISOString(),
-    lastUpdated: new Date().toISOString()
-  };
-  
-  // Сохраняем хеши в файл
-  fs.writeFileSync(DB_HASHES_FILE, JSON.stringify(dbHashes, null, 2));
-  console.log('Файл с хешами паролей базы данных инициализирован');
-  
-  return dbHashes;
-}
+// Путь к файлу с хешами паролей базы данных (используем существующий auth-db.json)
+const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 
 /**
- * Проверка пароля пользователя базы данных
+ * Проверка учетных данных пользователя базы данных через существующую систему
+ * @param {string} server - Имя сервера базы данных
+ * @param {string} database - Имя базы данных
  * @param {string} username - Имя пользователя базы данных
  * @param {string} password - Пароль для проверки
- * @returns {boolean} - Соответствует ли пароль хешу
+ * @returns {boolean} - Соответствуют ли учетные данные хешам
  */
-function verifyDbPassword(username, password) {
+function verifyDbCredentials(server, database, username, password) {
   try {
-    // Проверяем, существует ли файл с хешами
-    if (!fs.existsSync(DB_HASHES_FILE)) {
-      console.log('Файл с хешами паролей базы данных не найден, инициализация...');
-      initializeDbHashes();
-    }
-    
-    // Читаем файл с хешами
-    const hashesData = fs.readFileSync(DB_HASHES_FILE, 'utf8');
-    const dbHashes = JSON.parse(hashesData);
-    
-    // Получаем пользователя
-    const user = dbHashes.users[username];
-    if (!user) {
-      console.log(`Пользователь базы данных ${username} не найден`);
-      return false;
-    }
-    
-    // Проверяем пароль
-    const isValid = verifyPassword(password, user.hash, user.salt);
-    console.log(`Проверка пароля для ${username}: ${isValid ? 'ДЕЙСТВИТЕЛЕН' : 'НЕДЕЙСТВИТЕЛЕН'}`);
+    // Используем существующую функцию проверки учетных данных
+    const isValid = verifyDatabaseCredentials(server, database, username, password);
+    console.log(`Проверка учетных данных для ${username}: ${isValid ? 'ДЕЙСТВИТЕЛЕН' : 'НЕДЕЙСТВИТЕЛЕН'}`);
     return isValid;
   } catch (error) {
-    console.error('Ошибка при проверке пароля базы данных:', error);
+    console.error('Ошибка при проверке учетных данных базы данных:', error);
     return false;
   }
 }
 
 /**
- * Подключение к базе данных с проверкой хешированного пароля
+ * Подключение к базе данных с проверкой хешированных учетных данных
  * @param {string} username - Имя пользователя базы данных
  * @param {string} password - Пароль для проверки и использования
  * @param {object} connectionConfig - Конфигурация подключения к базе данных
@@ -85,14 +43,29 @@ async function connectWithHashedPassword(username, password, connectionConfig) {
   try {
     console.log(`Попытка подключения к базе данных от имени ${username} с проверкой хеша...`);
     
-    // Сначала проверяем пароль через хеши
-    const isPasswordValid = verifyDbPassword(username, password);
-    if (!isPasswordValid) {
-      console.log('✗ Проверка хеша пароля не пройдена, подключение отклонено');
+    // Сначала проверяем учетные данные через хеши в auth-db.json
+    const server = process.env.DB_SERVER;
+    const database = process.env.DB_DATABASE;
+    
+    // Проверяем, что необходимые переменные окружения установлены
+    if (!server || !database || !username || !password) {
+      console.log('✗ Отсутствуют необходимые переменные окружения для подключения к базе данных');
       return null;
     }
     
-    console.log('✓ Проверка хеша пароля пройдена, продолжаем подключение');
+    const isCredentialsValid = verifyDbCredentials(
+      server,
+      database,
+      username,
+      password
+    );
+    
+    if (!isCredentialsValid) {
+      console.log('✗ Проверка хеша учетных данных не пройдена, подключение отклонено');
+      return null;
+    }
+    
+    console.log('✓ Проверка хеша учетных данных пройдена, продолжаем подключение');
     
     // Если проверка пройдена, создаем конфигурацию подключения
     const config = {
@@ -119,15 +92,26 @@ async function connectWithHashedPassword(username, password, connectionConfig) {
 async function demonstrateSecureConnection() {
   console.log('Демонстрация безопасного подключения к базе данных через хеширование...\n');
   
-  // Инициализируем хеши паролей
-  console.log('1. Инициализация хешей паролей базы данных:');
-  initializeDbHashes();
+  // Проверяем, что необходимые переменные окружения установлены
+  if (!process.env.DB_SERVER || !process.env.DB_DATABASE || 
+      !process.env.DB_USER_ADMIN || !process.env.DB_PASSWORD_ADMIN ||
+      !process.env.DB_USER_REGULAR || !process.env.DB_PASSWORD_REGULAR) {
+    console.log('✗ Отсутствуют необходимые переменные окружения для демонстрации');
+    console.log('Необходимо установить следующие переменные окружения:');
+    console.log('- DB_SERVER');
+    console.log('- DB_DATABASE');
+    console.log('- DB_USER_ADMIN');
+    console.log('- DB_PASSWORD_ADMIN');
+    console.log('- DB_USER_REGULAR');
+    console.log('- DB_PASSWORD_REGULAR');
+    return;
+  }
   
-  // Конфигурация подключения к базе данных (используем правильный формат из .env)
-  const serverConfig = process.env.DB_SERVER || 'OZO-62,1433';
+  // Конфигурация подключения к базе данных (используем только данные из .env)
+  const serverConfig = process.env.DB_SERVER;
   const config = {
     server: serverConfig.split(',')[0], // Извлекаем имя сервера
-    database: process.env.DB_DATABASE || 'ProcessCraftBD',
+    database: process.env.DB_DATABASE,
     options: {
       encrypt: false,
       trustServerCertificate: true,
@@ -138,11 +122,11 @@ async function demonstrateSecureConnection() {
   
   console.log('\n2. Тестирование подключения суперадмина:');
   
-  // Подключение с правильным паролем
+  // Подключение с правильным паролем из переменных окружения
   console.log('\n2.1. Подключение с правильным паролем:');
   const adminPool = await connectWithHashedPassword(
-    'AppSuperAdmin',
-    'aA3$!Qp9_superAdminStrongPwd',
+    process.env.DB_USER_ADMIN,
+    process.env.DB_PASSWORD_ADMIN,
     config
   );
   
@@ -157,7 +141,7 @@ async function demonstrateSecureConnection() {
   // Попытка подключения с неправильным паролем
   console.log('\n2.2. Попытка подключения с неправильным паролем:');
   const adminPoolWrong = await connectWithHashedPassword(
-    'AppSuperAdmin',
+    process.env.DB_USER_ADMIN,
     'wrongPassword',
     config
   );
@@ -168,11 +152,11 @@ async function demonstrateSecureConnection() {
   
   console.log('\n3. Тестирование подключения обычного пользователя:');
   
-  // Подключение обычного пользователя с правильным паролем
+  // Подключение обычного пользователя с правильным паролем из переменных окружения
   console.log('\n3.1. Подключение с правильным паролем:');
   const userPool = await connectWithHashedPassword(
-    'AppSuperUser',
-    'uU7@!Kx2_superUserStrongPwd',
+    process.env.DB_USER_REGULAR,
+    process.env.DB_PASSWORD_REGULAR,
     config
   );
   
@@ -187,7 +171,7 @@ async function demonstrateSecureConnection() {
   // Попытка подключения обычного пользователя с неправильным паролем
   console.log('\n3.2. Попытка подключения с неправильным паролем:');
   const userPoolWrong = await connectWithHashedPassword(
-    'AppSuperUser',
+    process.env.DB_USER_REGULAR,
     'wrongPassword',
     config
   );
@@ -199,8 +183,9 @@ async function demonstrateSecureConnection() {
   console.log('\n---\n');
   console.log('Демонстрация безопасного подключения завершена!');
   console.log('\nКлючевые особенности подхода:');
-  console.log('- Пароли базы данных хранятся в виде хешей, а не в открытом виде');
-  console.log('- Перед подключением к базе данных происходит проверка соответствия пароля хешу');
+  console.log('- Учетные данные базы данных хранятся в auth-db.json с использованием хешей');
+  console.log('- Перед подключением к базе данных происходит проверка соответствия учетных данных хешам');
+  console.log('- Все учетные данные берутся исключительно из переменных окружения');
   console.log('- Даже если файл с хешами будет скомпрометирован, оригинальные пароли остаются в безопасности');
   console.log('- Все попытки подключения логируются и могут быть отслежены');
   console.log('- Подход совместим с существующей инфраструктурой SQL Server');

@@ -5,6 +5,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { hashData, readSaltFromFile } = require('./setup-db-access');
 
 // Путь к базе данных аутентификации
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
@@ -46,30 +47,19 @@ function verifyPassword(password, hash, salt) {
  * Инициализация базы данных аутентификации с нашими пользователями
  */
 function initializeAuthDatabase() {
-  // Хешируем пароли для наших пользователей
-  const superAdmin = {
-    username: 'AppSuperAdmin',
-    ...hashPassword('aA3$!Qp9_superAdminStrongPwd')
-  };
+  // Вместо хранения паролей в открытом виде, мы будем использовать хешированные значения
+  // из auth-db.json, который создается с помощью setup-db-access.js
   
-  const regularUser = {
-    username: 'AppSuperUser',
-    ...hashPassword('uU7@#Kx2_superUserStrongPwd')
-  };
-  
-  // Создаем базу данных аутентификации
+  // Создаем базу данных аутентификации с минимальной структурой
   const authDb = {
-    users: {
-      'AppSuperAdmin': superAdmin,
-      'AppSuperUser': regularUser
-    },
+    users: {},
     createdAt: new Date().toISOString(),
     lastUpdated: new Date().toISOString()
   };
   
   // Сохраняем в файл
   fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
-  console.log('База данных аутентификации инициализирована с хешированными паролями');
+  console.log('База данных аутентификации инициализирована');
   
   return authDb;
 }
@@ -160,18 +150,15 @@ function updateUserPassword(username, newPassword) {
     const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse(authData);
     
-    // Проверяем, существует ли пользователь
-    if (!authDb.users[username]) {
-      console.error(`Пользователь ${username} не найден`);
-      return false;
-    }
-    
     // Хешируем новый пароль
     const { hash, salt } = hashPassword(newPassword);
     
-    // Обновляем пользователя
-    authDb.users[username].hash = hash;
-    authDb.users[username].salt = salt;
+    // Обновляем или создаем пользователя
+    authDb.users[username] = {
+      username: username,
+      hash: hash,
+      salt: salt
+    };
     authDb.lastUpdated = new Date().toISOString();
     
     // Сохраняем в файл
@@ -185,10 +172,7 @@ function updateUserPassword(username, newPassword) {
   }
 }
 
-// Инициализируем базу данных аутентификации при загрузке модуля
-// Это гарантирует, что у нас есть правильные пароли
-initializeAuthDatabase();
-
+// Экспортируем функции для использования в других модулях
 module.exports = {
   hashPassword,
   verifyPassword,

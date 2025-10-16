@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getUserCredentials } = require('./auth-service');
+const { encrypt, decrypt } = require('./encryption');
 
 // Путь к файлу хранения учетных данных
 const CREDENTIALS_FILE = path.join(__dirname, 'user-credentials.json');
@@ -14,16 +15,16 @@ const CREDENTIALS_FILE = path.join(__dirname, 'user-credentials.json');
  * В реальном приложении это будет сделано через административный интерфейс
  */
 function initializeCredentialsStore() {
-  // Учетные данные для суперадмина приложения (только имя пользователя)
+  // Учетные данные для суперадмина приложения (только имя пользователя в зашифрованном виде)
   const superAdminCredentials = {
-    username: 'AppSuperAdmin',
+    username: encrypt('AppSuperAdmin'),
     userType: 'superadmin',
     createdAt: new Date().toISOString()
   };
   
-  // Учетные данные для обычного пользователя приложения (только имя пользователя)
+  // Учетные данные для обычного пользователя приложения (только имя пользователя в зашифрованном виде)
   const regularUserCredentials = {
-    username: 'AppSuperUser',
+    username: encrypt('AppSuperUser'),
     userType: 'regular',
     createdAt: new Date().toISOString()
   };
@@ -36,7 +37,7 @@ function initializeCredentialsStore() {
   };
   
   fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(credentialsStore, null, 2));
-  console.log('Хранилище учетных данных инициализировано (только имена пользователей)');
+  console.log('Хранилище учетных данных инициализировано (только имена пользователей в зашифрованном виде)');
   
   return credentialsStore;
 }
@@ -44,7 +45,7 @@ function initializeCredentialsStore() {
 /**
  * Загружает учетные данные из хранилища на основе типа пользователя
  * @param {string} userType - Тип пользователя ('superadmin' или 'regular')
- * @returns {Object} - Учетные данные пользователя (только имя пользователя)
+ * @returns {Object} - Учетные данные пользователя (только имя пользователя в расшифрованном виде)
  */
 function loadCredentialsFromStore(userType) {
   try {
@@ -64,15 +65,18 @@ function loadCredentialsFromStore(userType) {
       throw new Error(`Учетные данные не найдены для типа пользователя: ${userType}`);
     }
     
+    // Расшифровываем имя пользователя
+    const decryptedUsername = decrypt(credentials.username);
+    
     // Проверяем, что пользователь существует в системе аутентификации
-    const user = getUserCredentials(credentials.username);
+    const user = getUserCredentials(decryptedUsername);
     if (!user) {
-      throw new Error(`Пользователь ${credentials.username} не найден в системе аутентификации`);
+      throw new Error(`Пользователь ${decryptedUsername} не найден в системе аутентификации`);
     }
     
     // Возвращаем только имя пользователя (без пароля)
     return {
-      username: user.username,
+      username: decryptedUsername,
       userType: credentials.userType
     };
   } catch (error) {
@@ -101,9 +105,9 @@ function updateCredentialsInStore(userType, newCredentials) {
       throw new Error(`Пользователь ${newCredentials.username} не найден в системе аутентификации`);
     }
     
-    // Обновляем учетные данные
+    // Обновляем учетные данные (имя пользователя в зашифрованном виде)
     credentialsStore[userType] = {
-      username: newCredentials.username,
+      username: encrypt(newCredentials.username),
       userType: userType,
       createdAt: new Date().toISOString()
     };

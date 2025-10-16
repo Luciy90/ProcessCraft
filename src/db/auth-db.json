@@ -1,16 +1,24 @@
 {
+  "db_config": {
+    "server_hash": "194923a78e21d2c039f2cf40392cf824c69650f2d0316831e8e38392c8225b985d69b89377fba883b903afd1f77d13981ade71cac9cf46314707e2c4bc8df22a",
+    "server_salt_file": "salt1.json",
+    "database_hash": "89cf83e83160dad0bf1879399c4f9a34944b90e29454e9db5945b52102d00964ae6b6de886e89d1db4f4c2815e5e546d9c446b2f974947e7b1d5c59b421a5c08",
+    "database_salt_file": "salt2.json"
+  },
   "users": {
-    "AppSuperAdmin": {
-      "username": "AppSuperAdmin",
-      "hash": "121a1d1b4205d995384ce03460182dd02815779acb92d559e1124143cd0b96af96b92eb2d54180e3715620c9cc3902268fcf5951cb9babc94821258e068f6fa6",
-      "salt": "0b562a2b53f319136c5c3bc956b99a4772d6c02fd3daf4d6086ea4645190f852"
-    },
     "AppSuperUser": {
-      "username": "AppSuperUser",
-      "hash": "c3b9e1a374a4bb5c3e6016fe29aa361d552d93fd58984dd7ce93fbc355c0ce249969f3fd2500595fc9b35b05686f2793ec32134f7dfcbfda531f7c9c12c56978",
-      "salt": "703b48ef5945a209f35e8881b0c6e61e4df8484a0104476162919e9f6746c851"
+      "login_hash": "e8de74b0e4b2e91418a4bb997cc8a62a8649c425fbddb51ea6081ddf963104ca2a42768e3690547dd03c549a0e05f14a18653354857aa0c009c607a5292b13de",
+      "login_salt_file": "salt3.json",
+      "password_hash": "b18509c01172844b841657d2a9b5fd4d75ae1965ffc0ebccf7a704f51bfd0393040efdd2bf04f794ebdf109378d728e42b04c69cdcc3a4c9fba3b73e4876117c",
+      "password_salt_file": "salt4.json"
+    },
+    "AppSuperAdmin": {
+      "login_hash": "a769d051579122c4de5c8cce76a827038bcb857a4c7ab8a4f208959b3c58a7d27ca0607de8075390fe5fcc384915ea78c8f0078fec807c9c68c9832da46d690d",
+      "login_salt_file": "salt5.json",
+      "password_hash": "e3c64bdb519471af164c9d1d2a58d4395be094b8582aeda385b6db512e903223847dd2ba55433d2fa248fc8a40c5bb85c0290102588d258d3ee03fedcdf4540e",
+      "password_salt_file": "salt6.json"
     }
   },
-  "createdAt": "2025-10-15T11:02:37.502Z",
-  "lastUpdated": "2025-10-15T11:02:37.502Z"
+  "createdAt": "2025-10-16T10:57:32.848Z",
+  "lastUpdated": "2025-10-16T10:57:32.848Z"
 }
