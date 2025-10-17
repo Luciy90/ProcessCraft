@@ -22,7 +22,17 @@ function loadEncryptionKey() {
     if (!authDb.encryption || !authDb.encryption.key_file) {
       throw new Error('encryption.key_file is not defined in auth-db.json');
     }
-    const keyFilePath = path.join(__dirname, 'src/salt', authDb.encryption.key_file);
+    
+    // Проверяем, является ли key_file полным путем или только именем файла
+    let keyFilePath;
+    if (path.isAbsolute(authDb.encryption.key_file)) {
+      // Это уже полный путь
+      keyFilePath = authDb.encryption.key_file;
+    } else {
+      // Это имя файла, нужно создать полный путь
+      keyFilePath = path.join(__dirname, 'src/salt', authDb.encryption.key_file);
+    }
+    
     const keyFile = fs.readFileSync(keyFilePath, 'utf8');
     const keyObj = JSON.parse(keyFile);
     const keyHex = keyObj.salt; // store 32-byte hex in the file

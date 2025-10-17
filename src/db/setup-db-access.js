@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 const ENV_FILE = path.join(__dirname, '../../.env');
 // Используем абсолютный путь для директории солей, но без дублирования
-const SALT_DIR = path.resolve(__dirname, 'src/salt');
+const SALT_DIR = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
 
 /**
  * Гарантирует наличие файла auth-db.json (создаёт, если отсутствует или пустой)
@@ -59,7 +59,7 @@ function hashData(data, salt = null) {
  * Создание файла соль для данных
  * @param {number} index - Порядковый номер файла
  * @param {string} salt - Соль для сохранения
- * @returns {string} - Имя созданного файла
+ * @returns {string} - Полный путь к созданному файлу
  */
 function createSaltFile(index, salt) {
   // Убедимся, что директория для солей существует
@@ -79,7 +79,18 @@ function createSaltFile(index, salt) {
   fs.writeFileSync(saltFilePath, JSON.stringify(saltData, null, 2));
   console.log(`  ✓ Создан файл соли: ${saltFileName} в ${saltDir}`);
   
-  return saltFileName;
+  return saltFilePath; // Возвращаем полный путь
+}
+
+/**
+ * Получение полного пути к файлу соли
+ * @param {string} saltFileName - Имя файла соли
+ * @returns {string} - Полный путь к файлу соли
+ */
+function getSaltFilePath(saltFileName) {
+  // Используем DB_PATH_SALT из .env файла если доступен, иначе используем значение по умолчанию
+  const saltDir = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
+  return path.join(path.resolve(saltDir), saltFileName);
 }
 
 /**
@@ -99,7 +110,8 @@ function validateAndReadEnvFile() {
     const requiredVars = [
       'DB_SERVER', 'DB_DATABASE', 
       'DB_USER_REGULAR', 'DB_PASSWORD_REGULAR',
-      'DB_USER_ADMIN', 'DB_PASSWORD_ADMIN'
+      'DB_USER_ADMIN', 'DB_PASSWORD_ADMIN',
+      'DB_PATH_SALT'
     ];
     
     const missingVars = requiredVars.filter(envVar => !process.env[envVar]);
@@ -142,10 +154,11 @@ function validateAndReadEnvFile() {
 
 /**
  * Создание ключа шифрования
- * @returns {Object} - Объект с ключом и именем файла
+ * @returns {Object} - Объект с ключом и полным путем к файлу
  */
 function createEncryptionKey() {
-  const saltDirAbs = path.resolve(SALT_DIR);
+  const saltDir = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
+  const saltDirAbs = path.resolve(saltDir);
   if (!fs.existsSync(saltDirAbs)) {
     fs.mkdirSync(saltDirAbs, { recursive: true });
   }
@@ -154,18 +167,20 @@ function createEncryptionKey() {
   const keyBytes = crypto.randomBytes(32);
   const keyHex = keyBytes.toString('hex');
   const keyFileName = 'enc_key.json';
+  const keyFilePath = path.join(saltDirAbs, keyFileName);
   
   const keyData = {
     salt: keyHex,
     createdAt: new Date().toISOString()
   };
   
-  fs.writeFileSync(path.join(saltDirAbs, keyFileName), JSON.stringify(keyData, null, 2));
+  fs.writeFileSync(keyFilePath, JSON.stringify(keyData, null, 2));
   console.log(`  ✓ Ключ шифрования создан: ${keyFileName}`);
   
   return {
     key: keyBytes,
-    fileName: keyFileName
+    fileName: keyFileName,
+    filePath: keyFilePath  // Возвращаем полный путь
   };
 }
 
@@ -216,33 +231,34 @@ function setupDatabaseAccess() {
     
     // Хешируем имя сервера
     const serverHashed = hashData(envData.db_server);
-    const serverSaltFile = createSaltFile(saltIndex++, serverHashed.salt);
-    saltFiles.server = serverSaltFile;
+    const serverSaltFilePath = createSaltFile(saltIndex++, serverHashed.salt);
+    saltFiles.server = serverSaltFilePath;
     
     // Хешируем имя базы данных
     const databaseHashed = hashData(envData.db_database);
-    const databaseSaltFile = createSaltFile(saltIndex++, databaseHashed.salt);
-    saltFiles.database = databaseSaltFile;
+    const databaseSaltFilePath = createSaltFile(saltIndex++, databaseHashed.salt);
+    saltFiles.database = databaseSaltFilePath;
     
     // Хешируем данные пользователей
     const usersWithHashes = {};
     envData.users.forEach((user, index) => {
       // Хешируем логин
       const loginHashed = hashData(user.login);
-      const loginSaltFile = createSaltFile(saltIndex++, loginHashed.salt);
+      const loginSaltFilePath = createSaltFile(saltIndex++, loginHashed.salt);
       
       // Хешируем пароль
       const passwordHashed = hashData(user.password);
-      const passwordSaltFile = createSaltFile(saltIndex++, passwordHashed.salt);
+      const passwordSaltFilePath = createSaltFile(saltIndex++, passwordHashed.salt);
       
       // Сохраняем пользователя в объекте с логином как ключом
+      // ВНИМАНИЕ: Сохраняем полные пути к файлам
       usersWithHashes[user.login] = {
         // Remove the username field since it's redundant with the key
         // and would expose the username in plain text
         login_hash: loginHashed.hash,
-        login_salt_file: loginSaltFile,
+        login_salt_file: loginSaltFilePath,  // Полный путь
         password_hash: passwordHashed.hash,
-        password_salt_file: passwordSaltFile
+        password_salt_file: passwordSaltFilePath  // Полный путь
       };
     });
     
@@ -268,13 +284,13 @@ function setupDatabaseAccess() {
     const authDb = {
       db_config: {
         server_hash: serverHashed.hash,
-        server_salt_file: serverSaltFile,
+        server_salt_file: serverSaltFilePath,  // Полный путь
         database_hash: databaseHashed.hash,
-        database_salt_file: databaseSaltFile
+        database_salt_file: databaseSaltFilePath  // Полный путь
       },
       users: usersWithHashes,
       encryption: {
-        key_file: encryptionKey.fileName
+        key_file: encryptionKey.filePath  // Полный путь
       },
       encrypted_config: encryptedConfig,
       createdAt: new Date().toISOString(),
@@ -305,17 +321,18 @@ function setupDatabaseAccess() {
 
 /**
  * Чтение соли из файла
- * @param {string} saltFileName - Имя файла соли
+ * @param {string} saltFile - Имя файла соли или полный путь
  * @returns {string} - Соль
  */
-function readSaltFromFile(saltFileName) {
+function readSaltFromFile(saltFile) {
   try {
-    const saltFilePath = path.join(path.resolve(SALT_DIR), saltFileName);
+    // В новой реализации saltFile всегда должен содержать полный путь
+    const saltFilePath = saltFile;
     const saltData = fs.readFileSync(saltFilePath, 'utf8');
     const saltObj = JSON.parse(saltData);
     return saltObj.salt;
   } catch (error) {
-    throw new Error(`Не удалось прочитать файл соли ${saltFileName}: ${error.message}`);
+    throw new Error(`Не удалось прочитать файл соли ${saltFile}: ${error.message}`);
   }
 }
 

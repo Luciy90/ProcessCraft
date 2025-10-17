@@ -252,6 +252,12 @@ function testCredentialsVerification() {
     const regularUser = process.env.DB_USER_REGULAR;
     const regularPassword = process.env.DB_PASSWORD_REGULAR;
     
+    // Проверяем, что все необходимые переменные окружения установлены
+    if (!server || !database || !adminUser || !adminPassword || !regularUser || !regularPassword) {
+      console.log('  ✗ Отсутствуют необходимые переменные окружения для проверки учетных данных');
+      return false;
+    }
+    
     // Тестируем проверку учетных данных суперадмина
     console.log('  7.1. Тест проверки учетных данных суперадмина...');
     const adminValid = verifyDatabaseCredentials(server, database, adminUser, adminPassword);
@@ -279,6 +285,33 @@ function testCredentialsVerification() {
     }
     console.log('    ✓ Проверка с неправильным паролем корректно отклонена');
     
+    // Тестируем проверку с неправильным именем пользователя
+    console.log('  7.4. Тест проверки с неправильным именем пользователя...');
+    const invalidUser = verifyDatabaseCredentials(server, database, 'wrongUser', adminPassword);
+    if (invalidUser) {
+      console.log('    ✗ Проверка с неправильным именем пользователя не должна пройти');
+      return false;
+    }
+    console.log('    ✓ Проверка с неправильным именем пользователя корректно отклонена');
+    
+    // Тестируем проверку с неправильным сервером
+    console.log('  7.5. Тест проверки с неправильным сервером...');
+    const invalidServer = verifyDatabaseCredentials('wrongServer', database, adminUser, adminPassword);
+    if (invalidServer) {
+      console.log('    ✗ Проверка с неправильным сервером не должна пройти');
+      return false;
+    }
+    console.log('    ✓ Проверка с неправильным сервером корректно отклонена');
+    
+    // Тестируем проверку с неправильной базой данных
+    console.log('  7.6. Тест проверки с неправильной базой данных...');
+    const invalidDatabase = verifyDatabaseCredentials(server, 'wrongDatabase', adminUser, adminPassword);
+    if (invalidDatabase) {
+      console.log('    ✗ Проверка с неправильной базой данных не должна пройти');
+      return false;
+    }
+    console.log('    ✓ Проверка с неправильной базой данных корректно отклонена');
+    
     console.log('  ✓ Все тесты проверки учетных данных пройдены успешно');
     return true;
   } catch (error) {
@@ -296,73 +329,39 @@ async function testHashedAuthentication() {
     console.log('8. Тест подключения к базе данных через хеширование паролей...');
     
     // Импортируем необходимые функции
-    const { hashPassword, verifyPassword } = require('./auth-service');
     const { verifyDatabaseCredentials } = require('./setup-db-access');
+    const sql = require('mssql');
     
-    // 1. Демонстрация хеширования паролей
-    console.log('  8.1. Демонстрация хеширования паролей:');
-    
-    // Хешируем пароль суперадмина
-    const superAdminPassword = 'aA3$!Qp9_superAdminStrongPwd';
-    const superAdminHashed = hashPassword(superAdminPassword);
-    console.log('    ✓ Хешированный пароль суперадмина создан');
-    
-    // Хешируем пароль обычного пользователя
-    const regularUserPassword = 'uU7@!Kx2_superUserStrongPwd';
-    const regularUserHashed = hashPassword(regularUserPassword);
-    console.log('    ✓ Хешированный пароль обычного пользователя создан');
-    
-    // 2. Демонстрация проверки паролей
-    console.log('  8.2. Демонстрация проверки паролей:');
-    
-    // Проверяем правильный пароль суперадмина
-    const superAdminValid = verifyPassword(superAdminPassword, superAdminHashed.hash, superAdminHashed.salt);
-    if (!superAdminValid) {
-      console.log('    ✗ Проверка правильного пароля суперадмина не пройдена');
+    // Проверяем, что все необходимые переменные окружения установлены
+    if (!process.env.DB_SERVER || !process.env.DB_DATABASE || 
+        !process.env.DB_USER_ADMIN || !process.env.DB_PASSWORD_ADMIN ||
+        !process.env.DB_USER_REGULAR || !process.env.DB_PASSWORD_REGULAR) {
+      console.log('  ✗ Отсутствуют необходимые переменные окружения для тестирования подключения');
       return false;
     }
-    console.log('    ✓ Проверка правильного пароля суперадмина пройдена');
     
-    // Проверяем неправильный пароль суперадмина
-    const superAdminInvalid = verifyPassword('wrongPassword', superAdminHashed.hash, superAdminHashed.salt);
-    if (superAdminInvalid) {
-      console.log('    ✗ Проверка неправильного пароля суперадмина не пройдена');
-      return false;
-    }
-    console.log('    ✓ Проверка неправильного пароля суперадмина пройдена');
-    
-    // Проверяем правильный пароль обычного пользователя
-    const regularUserValid = verifyPassword(regularUserPassword, regularUserHashed.hash, regularUserHashed.salt);
-    if (!regularUserValid) {
-      console.log('    ✗ Проверка правильного пароля обычного пользователя не пройдена');
-      return false;
-    }
-    console.log('    ✓ Проверка правильного пароля обычного пользователя пройдена');
-    
-    // 3. Подключение к базе данных с использованием хешированных учетных данных
-    console.log('  8.3. Подключение к базе данных с использованием хешированных учетных данных:');
-    
-    // Конфигурация подключения
+    // Конфигурация подключения к базе данных
+    const serverConfig = process.env.DB_SERVER;
     const config = {
-      server: (process.env.DB_SERVER).split(',')[0],
+      server: serverConfig.split(',')[0], // Извлекаем имя сервера
       database: process.env.DB_DATABASE,
       options: {
         encrypt: false,
         trustServerCertificate: true,
-        port: (process.env.DB_SERVER).includes(',') ? 
-              parseInt((process.env.DB_SERVER).split(',')[1]) : 1433
+        // Если указан порт, используем его, иначе используем порт по умолчанию
+        port: serverConfig.includes(',') ? parseInt(serverConfig.split(',')[1]) : 1433
       }
     };
     
-    // Подключение от имени суперадмина (используя пароль из переменных окружения)
-    console.log('  8.4. Подключение от имени суперадмина:');
+    // 1. Тест подключения суперадмина с правильными учетными данными
+    console.log('  8.1. Подключение суперадмина с правильными учетными данными...');
     const adminUser = process.env.DB_USER_ADMIN;
     const adminPassword = process.env.DB_PASSWORD_ADMIN;
     
     // Проверяем соответствие учетных данных хешам в auth-db.json
     const adminCredentialsValid = verifyDatabaseCredentials(
-      config.server + (config.options.port ? ',' + config.options.port : ''),
-      config.database,
+      process.env.DB_SERVER,
+      process.env.DB_DATABASE,
       adminUser,
       adminPassword
     );
@@ -390,15 +389,30 @@ async function testHashedAuthentication() {
       return false;
     }
     
-    // Подключение от имени обычного пользователя (используя пароль из переменных окружения)
-    console.log('  8.5. Подключение от имени обычного пользователя:');
+    // 2. Тест подключения суперадмина с неправильным паролем (должен быть отклонен на этапе проверки хешей)
+    console.log('  8.2. Попытка подключения суперадмина с неправильным паролем...');
+    const adminInvalidPassword = verifyDatabaseCredentials(
+      process.env.DB_SERVER,
+      process.env.DB_DATABASE,
+      adminUser,
+      'wrongPassword'
+    );
+    
+    if (adminInvalidPassword) {
+      console.log('    ✗ Неправильный пароль не должен пройти проверку хешей');
+      return false;
+    }
+    console.log('    ✓ Правильно: неправильный пароль отклонен на этапе проверки хешей');
+    
+    // 3. Тест подключения обычного пользователя с правильными учетными данными
+    console.log('  8.3. Подключение обычного пользователя с правильными учетными данными...');
     const regularUser = process.env.DB_USER_REGULAR;
     const regularPassword = process.env.DB_PASSWORD_REGULAR;
     
     // Проверяем соответствие учетных данных хешам в auth-db.json
     const regularCredentialsValid = verifyDatabaseCredentials(
-      config.server + (config.options.port ? ',' + config.options.port : ''),
-      config.database,
+      process.env.DB_SERVER,
+      process.env.DB_DATABASE,
       regularUser,
       regularPassword
     );
@@ -425,6 +439,21 @@ async function testHashedAuthentication() {
       console.log('    ✗ Учетные данные обычного пользователя не прошли проверку хешей');
       return false;
     }
+    
+    // 4. Тест подключения обычного пользователя с неправильным паролем (должен быть отклонен на этапе проверки хешей)
+    console.log('  8.4. Попытка подключения обычного пользователя с неправильным паролем...');
+    const regularInvalidPassword = verifyDatabaseCredentials(
+      process.env.DB_SERVER,
+      process.env.DB_DATABASE,
+      regularUser,
+      'wrongPassword'
+    );
+    
+    if (regularInvalidPassword) {
+      console.log('    ✗ Неправильный пароль не должен пройти проверку хешей');
+      return false;
+    }
+    console.log('    ✓ Правильно: неправильный пароль отклонен на этапе проверки хешей');
     
     console.log('  ✓ Все тесты подключения через хеширование паролей пройдены успешно');
     return true;
