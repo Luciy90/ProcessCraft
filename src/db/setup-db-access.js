@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 const ENV_FILE = path.join(__dirname, '../../.env');
 // Используем абсолютный путь для директории солей, но без дублирования
-const SALT_DIR = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
+const SALT_DIR = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
 
 /**
  * Гарантирует наличие файла auth-db.json (создаёт, если отсутствует или пустой)
@@ -63,7 +63,7 @@ function hashData(data, salt = null) {
  */
 function createSaltFile(index, salt) {
   // Убедимся, что директория для солей существует
-  const saltDir = path.resolve(SALT_DIR);
+  const saltDir = path.resolve(process.env.DB_PATH_SALT || path.join(__dirname, 'salt'));
   if (!fs.existsSync(saltDir)) {
     fs.mkdirSync(saltDir, { recursive: true });
   }
@@ -89,7 +89,7 @@ function createSaltFile(index, salt) {
  */
 function getSaltFilePath(saltFileName) {
   // Используем DB_PATH_SALT из .env файла если доступен, иначе используем значение по умолчанию
-  const saltDir = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
+  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
   return path.join(path.resolve(saltDir), saltFileName);
 }
 
@@ -157,7 +157,7 @@ function validateAndReadEnvFile() {
  * @returns {Object} - Объект с ключом и полным путем к файлу
  */
 function createEncryptionKey() {
-  const saltDir = process.env.DB_PATH_SALT || path.resolve(__dirname, 'src/salt');
+  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
   const saltDirAbs = path.resolve(saltDir);
   if (!fs.existsSync(saltDirAbs)) {
     fs.mkdirSync(saltDirAbs, { recursive: true });

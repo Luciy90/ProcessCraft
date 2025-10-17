@@ -19,7 +19,7 @@ ProcessCraft использует Microsoft SQL Server 2008 в качестве 
 
 ### Обычный пользователь приложения
 - **Имя пользователя**: AppSuperUser
-- **Пароль**: uU7@#Kx2_superUserStrongPwd (хешируется и не хранится в открытом виде)
+- **Пароль**: uU7@!Kx2_superUserStrongPwd (хешируется и не хранится в открытом виде)
 - **Назначение**: Для стандартных операций приложения с ограниченными правами доступа к базе данных
 - **Тип учетной записи**: regular
 
@@ -35,12 +35,28 @@ ProcessCraft использует Microsoft SQL Server 2008 в качестве 
 - Хранение хешей паролей в отдельной базе данных
 
 #### 2. База данных аутентификации (`src/db/auth-db.json`)
-Содержит хеши паролей и соли (структура примерная):
+Содержит хеши паролей и соли:
 ```json
 {
   "users": {
-    "AppSuperAdmin": { "username": "AppSuperAdmin", "hash": "...", "salt": "..." },
-    "AppSuperUser": { "username": "AppSuperUser", "hash": "...", "salt": "..." }
+    "AppSuperAdmin": { 
+      "username": "AppSuperAdmin", 
+      "hash": "...", 
+      "salt": "...",
+      "login_hash": "...",
+      "login_salt_file": "...",
+      "password_hash": "...",
+      "password_salt_file": "..."
+    },
+    "AppSuperUser": { 
+      "username": "AppSuperUser", 
+      "hash": "...", 
+      "salt": "...",
+      "login_hash": "...",
+      "login_salt_file": "...",
+      "password_hash": "...",
+      "password_salt_file": "..."
+    }
   }
 }
 ```
@@ -49,8 +65,22 @@ ProcessCraft использует Microsoft SQL Server 2008 в качестве 
 Хранит только имена пользователей и типы учетных записей без паролей:
 ```json
 {
-  "superadmin": { "username": "AppSuperAdmin", "userType": "superadmin" },
-  "regular": { "username": "AppSuperUser", "userType": "regular" }
+  "superadmin": { 
+    "username": { 
+      "encryptedData": "...", 
+      "iv": "...", 
+      "authTag": "..." 
+    }, 
+    "userType": "superadmin" 
+  },
+  "regular": { 
+    "username": { 
+      "encryptedData": "...", 
+      "iv": "...", 
+      "authTag": "..." 
+    }, 
+    "userType": "regular" 
+  }
 }
 ```
 
@@ -76,7 +106,49 @@ ProcessCraft использует Microsoft SQL Server 2008 в качестве 
 Обеспечивает шифрование и дешифрование учетных данных базы данных с использованием AES-256-GCM. Ключ шифрования загружается из файла `src/db/salt/enc_key.json`, ссылка на который хранится в `src/db/auth-db.json`.
 
 #### 2. Зашифрованная конфигурация подключения
-Шифротексты параметров `server`, `database`, а также пар `username/password` для поддерживаемых аккаунтов хранятся в разделе `encrypted_config` файла `src/db/auth-db.json`.
+Шифротексты параметров `server`, `database`, а также пар `username/password` для поддерживаемых аккаунтов хранятся в разделе `encrypted_config` файла `src/db/auth-db.json`:
+```json
+{
+  "encrypted_config": {
+    "server": {
+      "encryptedData": "...",
+      "iv": "...",
+      "authTag": "..."
+    },
+    "database": {
+      "encryptedData": "...",
+      "iv": "...",
+      "authTag": "..."
+    },
+    "users": {
+      "AppSuperAdmin": {
+        "username": {
+          "encryptedData": "...",
+          "iv": "...",
+          "authTag": "..."
+        },
+        "password": {
+          "encryptedData": "...",
+          "iv": "...",
+          "authTag": "..."
+        }
+      },
+      "AppSuperUser": {
+        "username": {
+          "encryptedData": "...",
+          "iv": "...",
+          "authTag": "..."
+        },
+        "password": {
+          "encryptedData": "...",
+          "iv": "...",
+          "authTag": "..."
+        }
+      }
+    }
+  }
+}
+```
 
 ### Особенности шифрования
 - **Алгоритм**: AES-256-GCM (аутентифицированное шифрование)
@@ -127,10 +199,20 @@ const plaintext = decrypt(ciphertext);
 
 ### Запуск тестов
 ```bash
-node src/db/test-auth-service.js
-node src/db/test-encryption.js
-node src/db/test-connection.js
+node src/db/system-test.js
 ```
+
+Этот скрипт тестирует все компоненты системы безопасности:
+1. Проверка существования и валидности auth-db.json
+2. Запуск скрипта настройки доступа к СУБД
+3. Тестирование сервиса аутентификации
+4. Тестирование модуля шифрования/дешифрования
+5. Тест подключения к базе данных
+6. Тест хеширования и проверки учетных данных
+7. Тест проверки учетных данных через хеши
+8. Тест подключения к базе данных через хеширование паролей
+9. Тестирование хранилища учетных данных
+10. Тестирование операций БД
 
 ## Безопасность
 

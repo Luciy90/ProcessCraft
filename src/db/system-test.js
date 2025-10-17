@@ -18,6 +18,35 @@ const ENV_FILE = path.join(__dirname, '../../.env');
 let hasEnvFile = fs.existsSync(ENV_FILE);
 
 /**
+ * Загрузка расшифрованных учетных данных из auth-db.json
+ * @returns {object} - Расшифрованные учетные данные
+ */
+function loadDecryptedCredentials() {
+  const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+  const authDb = JSON.parse(authData);
+  const { decrypt } = require('./encryption');
+  
+  const server = decrypt(authDb.encrypted_config.server);
+  const database = decrypt(authDb.encrypted_config.database);
+  
+  const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
+  const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
+  
+  return {
+    server,
+    database,
+    admin: {
+      username: decrypt(adminEnc.username),
+      password: decrypt(adminEnc.password)
+    },
+    regular: {
+      username: decrypt(regularEnc.username),
+      password: decrypt(regularEnc.password)
+    }
+  };
+}
+
+/**
  * Проверка существования и валидности auth-db.json
  * @returns {boolean} - true если файл существует и не пуст, false в противном случае
  */
@@ -258,26 +287,16 @@ function testCredentialsVerification() {
     console.log('7. Тест проверки учетных данных через хеши...');
     
     // Импортируем функции проверки учетных данных
-    const { verifyDatabaseCredentials, readSaltFromFile, hashData } = require('./setup-db-access');
+    const { verifyDatabaseCredentials } = require('./setup-db-access');
     
-    // Читаем данные из auth-db.json
-    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
-    const authDb = JSON.parse(authData);
-    
-    // Получаем сервер и базу данных из зашифрованных данных
-    const { decrypt } = require('./encryption');
-    const server = decrypt(authDb.encrypted_config.server);
-    const database = decrypt(authDb.encrypted_config.database);
-    
-    // Получаем учетные данные пользователей из зашифрованных данных
-    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
-    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
-    
-    const { decrypt: decryptUser } = require('./encryption');
-    const adminUser = decryptUser(adminEnc.username);
-    const adminPassword = decryptUser(adminEnc.password);
-    const regularUser = decryptUser(regularEnc.username);
-    const regularPassword = decryptUser(regularEnc.password);
+    // Загружаем расшифрованные учетные данные
+    const credentials = loadDecryptedCredentials();
+    const server = credentials.server;
+    const database = credentials.database;
+    const adminUser = credentials.admin.username;
+    const adminPassword = credentials.admin.password;
+    const regularUser = credentials.regular.username;
+    const regularPassword = credentials.regular.password;
     
     // Тестируем проверку учетных данных суперадмина
     console.log('  7.1. Тест проверки учетных данных суперадмина...');
@@ -351,16 +370,16 @@ async function testHashedAuthentication() {
     
     // Импортируем необходимые функции
     const { verifyDatabaseCredentials } = require('./setup-db-access');
-    const { decrypt } = require('./encryption');
     const sql = require('mssql');
     
-    // Читаем данные из auth-db.json
-    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
-    const authDb = JSON.parse(authData);
-    
-    // Получаем сервер и базу данных из зашифрованных данных
-    const serverPlain = decrypt(authDb.encrypted_config.server);
-    const databasePlain = decrypt(authDb.encrypted_config.database);
+    // Загружаем расшифрованные учетные данные
+    const credentials = loadDecryptedCredentials();
+    const serverPlain = credentials.server;
+    const databasePlain = credentials.database;
+    const adminUser = credentials.admin.username;
+    const adminPassword = credentials.admin.password;
+    const regularUser = credentials.regular.username;
+    const regularPassword = credentials.regular.password;
     
     // Конфигурация подключения к базе данных
     const config = {
@@ -373,15 +392,6 @@ async function testHashedAuthentication() {
         port: serverPlain.includes(',') ? parseInt(serverPlain.split(',')[1]) : 1433
       }
     };
-    
-    // Получаем учетные данные пользователей из зашифрованных данных
-    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
-    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
-    
-    const adminUser = decrypt(adminEnc.username);
-    const adminPassword = decrypt(adminEnc.password);
-    const regularUser = decrypt(regularEnc.username);
-    const regularPassword = decrypt(regularEnc.password);
     
     // 1. Тест подключения суперадмина с правильными учетными данными
     console.log('  8.1. Подключение суперадмина с правильными учетными данными...');
@@ -541,16 +551,16 @@ async function testDatabaseOperations() {
 
     // Импортируем необходимые функции
     const { verifyDatabaseCredentials, hashData, readSaltFromFile } = require('./setup-db-access');
-    const { decrypt } = require('./encryption');
     const sql = require('mssql');
 
-    // Читаем данные из auth-db.json
-    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
-    const authDb = JSON.parse(authData);
-
-    // Получаем сервер и базу данных из зашифрованных данных
-    const serverPlain = decrypt(authDb.encrypted_config.server);
-    const databasePlain = decrypt(authDb.encrypted_config.database);
+    // Загружаем расшифрованные учетные данные
+    const credentials = loadDecryptedCredentials();
+    const serverPlain = credentials.server;
+    const databasePlain = credentials.database;
+    const adminUser = credentials.admin.username;
+    const adminPassword = credentials.admin.password;
+    const regularUser = credentials.regular.username;
+    const regularPassword = credentials.regular.password;
 
     // Конфигурация подключения к базе данных
     const config = {
@@ -563,15 +573,6 @@ async function testDatabaseOperations() {
         port: serverPlain.includes(',') ? parseInt(serverPlain.split(',')[1]) : 1433
       }
     };
-
-    // Получаем учетные данные пользователей из зашифрованных данных
-    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
-    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
-
-    const adminUser = decrypt(adminEnc.username);
-    const adminPassword = decrypt(adminEnc.password);
-    const regularUser = decrypt(regularEnc.username);
-    const regularPassword = decrypt(regularEnc.password);
 
     // Функция для проверки соответствия учетных данных хешам в auth-db.json
     function verifyCredentialsAgainstHashes(username, password) {
@@ -743,8 +744,7 @@ async function testDatabaseOperations() {
     console.log('    10.3.7. Обновление записи от имени обычного пользователя...');
     try {
       await regularPool.request()
-        .input('id', sql.Int, 2)
-        .input('description', sql.NVarChar(255), 'Обновлено обычным пользователем')
+        .input('id', sql.Int, 2)        .input('description', sql.NVarChar(255), 'Обновлено обычным пользователем')
         .query(`UPDATE ${testTableName} SET description = @description WHERE id = @id`);
       console.log('      ✓ Запись успешно обновлена обычным пользователем');
     } catch (err) {

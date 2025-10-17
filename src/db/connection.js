@@ -137,7 +137,7 @@ async function initializeConnection(userType = 'regular') {
 }
 
 // Инициализация не запускается автоматически, чтобы избежать хранения .env в рантайме
-poolPromise = null;
+// Удалено неиспользуемое значение по умолчанию для избежания путаницы
 
 // Экспорт пула и библиотеки sql
 module.exports = {

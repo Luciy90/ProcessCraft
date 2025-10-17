@@ -28,7 +28,7 @@ DB_USER_ADMIN=AppSuperAdmin
 DB_PASSWORD_ADMIN=aA3$!Qp9_superAdminStrongPwd
 
 # Path for storing salt files
-DB_PATH_SALT=./src/db/salt
+DB_PATH_SALT=src/db/salt
 
 ; ключ шифрования генерируется автоматически скриптом настройки, это значение не требуется
 ```
