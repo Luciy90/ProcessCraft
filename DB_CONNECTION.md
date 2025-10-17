@@ -27,11 +27,21 @@ DB_PASSWORD_REGULAR=uU7@!Kx2_superUserStrongPwd
 DB_USER_ADMIN=AppSuperAdmin
 DB_PASSWORD_ADMIN=aA3$!Qp9_superAdminStrongPwd
 
-# Path for storing salt files
+# Path for storing salt files (optional, defaults to src/db/salt)
 DB_PATH_SALT=src/db/salt
-
-; ключ шифрования генерируется автоматически скриптом настройки, это значение не требуется
 ```
+
+### Обязательные переменные окружения
+Следующие переменные должны быть определены в файле `.env`:
+- `DB_SERVER` - Адрес сервера базы данных (например, `localhost,1433`)
+- `DB_DATABASE` - Имя базы данных
+- `DB_USER_REGULAR` - Имя обычного пользователя базы данных
+- `DB_PASSWORD_REGULAR` - Пароль обычного пользователя базы данных
+- `DB_USER_ADMIN` - Имя администратора базы данных
+- `DB_PASSWORD_ADMIN` - Пароль администратора базы данных
+
+### Опциональные переменные окружения
+- `DB_PATH_SALT` - Путь к директории для хранения файлов солей (по умолчанию: `src/db/salt`)
 
 ### Настройки пула подключений
 

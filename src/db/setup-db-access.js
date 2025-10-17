@@ -106,12 +106,11 @@ function validateAndReadEnvFile() {
       throw new Error('Не найден файл .env');
     }
     
-    // Проверяем обязательные переменные
+    // Проверяем обязательные переменные (DB_PATH_SALT теперь опциональный)
     const requiredVars = [
       'DB_SERVER', 'DB_DATABASE', 
       'DB_USER_REGULAR', 'DB_PASSWORD_REGULAR',
-      'DB_USER_ADMIN', 'DB_PASSWORD_ADMIN',
-      'DB_PATH_SALT'
+      'DB_USER_ADMIN', 'DB_PASSWORD_ADMIN'
     ];
     
     const missingVars = requiredVars.filter(envVar => !process.env[envVar]);

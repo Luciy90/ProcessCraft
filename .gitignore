@@ -55,6 +55,9 @@ data/
 # Кэш
 .cache/
 .parcel-cache/
+src/db/salt/
+src/db/auth-db.json
+src/db/user-credentials.json
 
 # Тесты
 coverage/
