@@ -12,6 +12,10 @@ const sql = require('mssql');
 // Пути к файлам
 const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 const SETUP_SCRIPT = path.join(__dirname, 'setup-db-access.js');
+const ENV_FILE = path.join(__dirname, '../../.env');
+
+// Флаг для отслеживания наличия .env файла
+let hasEnvFile = fs.existsSync(ENV_FILE);
 
 /**
  * Проверка существования и валидности auth-db.json
@@ -61,6 +65,12 @@ function validateAuthDbFile() {
  * Запуск скрипта настройки доступа к СУБД
  */
 function runSetupScript() {
+  // Если .env файл отсутствует, не пытаемся запускать скрипт настройки
+  if (!hasEnvFile) {
+    console.log('  Пропуск скрипта настройки: отсутствует .env файл');
+    return false;
+  }
+  
   try {
     console.log('2. Запуск скрипта настройки доступа к СУБД...');
     
@@ -126,6 +136,12 @@ function testAuthService() {
 function testEncryption() {
   try {
     console.log('4. Тестирование модуля шифрования/дешифрования...');
+    
+    // Если .env файл отсутствует, пропускаем тест, так как он требует настройки через .env
+    if (!hasEnvFile) {
+      console.log('  Пропуск теста: отсутствует .env файл, необходимый для настройки шифрования');
+      return true;
+    }
     
     // Импортируем функции модуля шифрования
     const { encrypt, decrypt } = require('./encryption');
@@ -242,21 +258,26 @@ function testCredentialsVerification() {
     console.log('7. Тест проверки учетных данных через хеши...');
     
     // Импортируем функции проверки учетных данных
-    const { verifyDatabaseCredentials } = require('./setup-db-access');
+    const { verifyDatabaseCredentials, readSaltFromFile, hashData } = require('./setup-db-access');
     
-    // Получаем параметры подключения из .env (используем те же значения, что и при хешировании)
-    const server = process.env.DB_SERVER;
-    const database = process.env.DB_DATABASE;
-    const adminUser = process.env.DB_USER_ADMIN;
-    const adminPassword = process.env.DB_PASSWORD_ADMIN;
-    const regularUser = process.env.DB_USER_REGULAR;
-    const regularPassword = process.env.DB_PASSWORD_REGULAR;
+    // Читаем данные из auth-db.json
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
     
-    // Проверяем, что все необходимые переменные окружения установлены
-    if (!server || !database || !adminUser || !adminPassword || !regularUser || !regularPassword) {
-      console.log('  ✗ Отсутствуют необходимые переменные окружения для проверки учетных данных');
-      return false;
-    }
+    // Получаем сервер и базу данных из зашифрованных данных
+    const { decrypt } = require('./encryption');
+    const server = decrypt(authDb.encrypted_config.server);
+    const database = decrypt(authDb.encrypted_config.database);
+    
+    // Получаем учетные данные пользователей из зашифрованных данных
+    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
+    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
+    
+    const { decrypt: decryptUser } = require('./encryption');
+    const adminUser = decryptUser(adminEnc.username);
+    const adminPassword = decryptUser(adminEnc.password);
+    const regularUser = decryptUser(regularEnc.username);
+    const regularPassword = decryptUser(regularEnc.password);
     
     // Тестируем проверку учетных данных суперадмина
     console.log('  7.1. Тест проверки учетных данных суперадмина...');
@@ -330,38 +351,45 @@ async function testHashedAuthentication() {
     
     // Импортируем необходимые функции
     const { verifyDatabaseCredentials } = require('./setup-db-access');
+    const { decrypt } = require('./encryption');
     const sql = require('mssql');
     
-    // Проверяем, что все необходимые переменные окружения установлены
-    if (!process.env.DB_SERVER || !process.env.DB_DATABASE || 
-        !process.env.DB_USER_ADMIN || !process.env.DB_PASSWORD_ADMIN ||
-        !process.env.DB_USER_REGULAR || !process.env.DB_PASSWORD_REGULAR) {
-      console.log('  ✗ Отсутствуют необходимые переменные окружения для тестирования подключения');
-      return false;
-    }
+    // Читаем данные из auth-db.json
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
+    
+    // Получаем сервер и базу данных из зашифрованных данных
+    const serverPlain = decrypt(authDb.encrypted_config.server);
+    const databasePlain = decrypt(authDb.encrypted_config.database);
     
     // Конфигурация подключения к базе данных
-    const serverConfig = process.env.DB_SERVER;
     const config = {
-      server: serverConfig.split(',')[0], // Извлекаем имя сервера
-      database: process.env.DB_DATABASE,
+      server: serverPlain.split(',')[0], // Извлекаем имя сервера
+      database: databasePlain,
       options: {
         encrypt: false,
         trustServerCertificate: true,
         // Если указан порт, используем его, иначе используем порт по умолчанию
-        port: serverConfig.includes(',') ? parseInt(serverConfig.split(',')[1]) : 1433
+        port: serverPlain.includes(',') ? parseInt(serverPlain.split(',')[1]) : 1433
       }
     };
     
+    // Получаем учетные данные пользователей из зашифрованных данных
+    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
+    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
+    
+    const adminUser = decrypt(adminEnc.username);
+    const adminPassword = decrypt(adminEnc.password);
+    const regularUser = decrypt(regularEnc.username);
+    const regularPassword = decrypt(regularEnc.password);
+    
     // 1. Тест подключения суперадмина с правильными учетными данными
     console.log('  8.1. Подключение суперадмина с правильными учетными данными...');
-    const adminUser = process.env.DB_USER_ADMIN;
-    const adminPassword = process.env.DB_PASSWORD_ADMIN;
     
     // Проверяем соответствие учетных данных хешам в auth-db.json
     const adminCredentialsValid = verifyDatabaseCredentials(
-      process.env.DB_SERVER,
-      process.env.DB_DATABASE,
+      serverPlain,
+      databasePlain,
       adminUser,
       adminPassword
     );
@@ -392,8 +420,8 @@ async function testHashedAuthentication() {
     // 2. Тест подключения суперадмина с неправильным паролем (должен быть отклонен на этапе проверки хешей)
     console.log('  8.2. Попытка подключения суперадмина с неправильным паролем...');
     const adminInvalidPassword = verifyDatabaseCredentials(
-      process.env.DB_SERVER,
-      process.env.DB_DATABASE,
+      serverPlain,
+      databasePlain,
       adminUser,
       'wrongPassword'
     );
@@ -406,13 +434,11 @@ async function testHashedAuthentication() {
     
     // 3. Тест подключения обычного пользователя с правильными учетными данными
     console.log('  8.3. Подключение обычного пользователя с правильными учетными данными...');
-    const regularUser = process.env.DB_USER_REGULAR;
-    const regularPassword = process.env.DB_PASSWORD_REGULAR;
     
     // Проверяем соответствие учетных данных хешам в auth-db.json
     const regularCredentialsValid = verifyDatabaseCredentials(
-      process.env.DB_SERVER,
-      process.env.DB_DATABASE,
+      serverPlain,
+      databasePlain,
       regularUser,
       regularPassword
     );
@@ -443,8 +469,8 @@ async function testHashedAuthentication() {
     // 4. Тест подключения обычного пользователя с неправильным паролем (должен быть отклонен на этапе проверки хешей)
     console.log('  8.4. Попытка подключения обычного пользователя с неправильным паролем...');
     const regularInvalidPassword = verifyDatabaseCredentials(
-      process.env.DB_SERVER,
-      process.env.DB_DATABASE,
+      serverPlain,
+      databasePlain,
       regularUser,
       'wrongPassword'
     );
@@ -512,10 +538,41 @@ function testCredentialsStore() {
 async function testDatabaseOperations() {
   try {
     console.log('10. Тестирование операций БД...');
-    
+
     // Импортируем необходимые функции
-    const { hashData, readSaltFromFile } = require('./setup-db-access');
-    
+    const { verifyDatabaseCredentials, hashData, readSaltFromFile } = require('./setup-db-access');
+    const { decrypt } = require('./encryption');
+    const sql = require('mssql');
+
+    // Читаем данные из auth-db.json
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse(authData);
+
+    // Получаем сервер и базу данных из зашифрованных данных
+    const serverPlain = decrypt(authDb.encrypted_config.server);
+    const databasePlain = decrypt(authDb.encrypted_config.database);
+
+    // Конфигурация подключения к базе данных
+    const config = {
+      server: serverPlain.split(',')[0], // Извлекаем имя сервера
+      database: databasePlain,
+      options: {
+        encrypt: false,
+        trustServerCertificate: true,
+        // Если указан порт, используем его, иначе используем порт по умолчанию
+        port: serverPlain.includes(',') ? parseInt(serverPlain.split(',')[1]) : 1433
+      }
+    };
+
+    // Получаем учетные данные пользователей из зашифрованных данных
+    const adminEnc = authDb.encrypted_config.users['AppSuperAdmin'];
+    const regularEnc = authDb.encrypted_config.users['AppSuperUser'];
+
+    const adminUser = decrypt(adminEnc.username);
+    const adminPassword = decrypt(adminEnc.password);
+    const regularUser = decrypt(regularEnc.username);
+    const regularPassword = decrypt(regularEnc.password);
+
     // Функция для проверки соответствия учетных данных хешам в auth-db.json
     function verifyCredentialsAgainstHashes(username, password) {
       try {
@@ -528,24 +585,30 @@ async function testDatabaseOperations() {
         const authDb = JSON.parse(authData);
         
         // Ищем пользователя по хешу логина
-        const user = authDb.users[username];
-        if (!user) {
+        let foundUser = null;
+        let foundUsername = null;
+        
+        // Перебираем всех пользователей в auth-db.json
+        for (const [userKey, user] of Object.entries(authDb.users)) {
+          // Проверяем логин
+          const loginSalt = readSaltFromFile(path.join(__dirname, 'salt', path.basename(user.login_salt_file)));
+          const loginHashed = hashData(username, loginSalt);
+          if (loginHashed.hash === user.login_hash) {
+            foundUser = user;
+            foundUsername = userKey;
+            break;
+          }
+        }
+        
+        if (!foundUser) {
           console.log('✗ Пользователь не найден');
           return false;
         }
         
-        // Проверяем логин
-        const loginSalt = readSaltFromFile(user.login_salt_file);
-        const loginHashed = hashData(username, loginSalt);
-        if (loginHashed.hash !== user.login_hash) {
-          console.log('✗ Неверное имя пользователя');
-          return false;
-        }
-        
         // Проверяем пароль
-        const passwordSalt = readSaltFromFile(user.password_salt_file);
+        const passwordSalt = readSaltFromFile(path.join(__dirname, 'salt', path.basename(foundUser.password_salt_file)));
         const passwordHashed = hashData(password, passwordSalt);
-        if (passwordHashed.hash !== user.password_hash) {
+        if (passwordHashed.hash !== foundUser.password_hash) {
           console.log('✗ Неверный пароль');
           return false;
         }
@@ -557,23 +620,9 @@ async function testDatabaseOperations() {
         return false;
       }
     }
-    
-    // Конфигурация подключения с точными учетными данными из MySQL.md
-    const config = {
-      server: (process.env.DB_SERVER).split(',')[0],
-      database: process.env.DB_DATABASE,
-      options: {
-        encrypt: false,
-        trustServerCertificate: true,
-        port: (process.env.DB_SERVER).includes(',') ? 
-              parseInt((process.env.DB_SERVER).split(',')[1]) : 1433
-      }
-    };
-    
+
     // Подключение от имени суперадмина
     console.log('  10.1. Подключение от имени суперадмина ...');
-    const adminUser = process.env.DB_USER_ADMIN;
-    const adminPassword = process.env.DB_PASSWORD_ADMIN;
     
     // Проверяем соответствие учетных данных хешам
     if (!verifyCredentialsAgainstHashes(adminUser, adminPassword)) {
@@ -588,11 +637,9 @@ async function testDatabaseOperations() {
     const adminPool = new sql.ConnectionPool(adminConfig);
     await adminPool.connect();
     console.log('    ✓ Подключение суперадмина успешно!');
-    
+
     // Подключение от имени обычного пользователя
     console.log('  10.2. Подключение от имени обычного пользователя...');
-    const regularUser = process.env.DB_USER_REGULAR;
-    const regularPassword = process.env.DB_PASSWORD_REGULAR;
     
     // Проверяем соответствие учетных данных хешам
     if (!verifyCredentialsAgainstHashes(regularUser, regularPassword)) {
@@ -608,10 +655,10 @@ async function testDatabaseOperations() {
     const regularPool = new sql.ConnectionPool(regularConfig);
     await regularPool.connect();
     console.log('    ✓ Подключение обычного пользователя успешно!');
-    
+
     // Тестирование операций БД
     console.log('  10.3. Тестирование операций БД:');
-    
+
     // 10.3.1. Создание тестовой таблицы (только суперадмин)
     const testTableName = `TestTable_${Date.now()}`;
     console.log(`    10.3.1. Создание тестовой таблицы ${testTableName} от имени суперадмина...`);
@@ -631,7 +678,7 @@ async function testDatabaseOperations() {
       await adminPool.close();
       return false;
     }
-    
+
     // 10.3.2. Вставка тестовой записи от имени суперадмина
     console.log('    10.3.2. Вставка тестовой записи от имени суперадмина...');
     try {
@@ -643,7 +690,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✗ Ошибка вставки записи суперадмином:', err.message);
     }
-    
+
     // 10.3.3. Вставка тестовой записи от имени обычного пользователя
     console.log('    10.3.3. Вставка тестовой записи от имени обычного пользователя...');
     try {
@@ -655,7 +702,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✗ Ошибка вставки записи обычным пользователем:', err.message);
     }
-    
+
     // 10.3.4. Выборка данных от имени суперадмина
     console.log('    10.3.4. Выборка данных из тестовой таблицы от имени суперадмина...');
     try {
@@ -665,9 +712,9 @@ async function testDatabaseOperations() {
         console.log(`        Запись ${index + 1}: ID=${row.id}, Name="${row.name}", Description="${row.description}"`);
       });
     } catch (err) {
-      console.log('      ✗ Ошибка выборки данных суперадмином:', err.message);
+      console.log('      ✗ Ошибка выборки данных суперадмина:', err.message);
     }
-    
+
     // 10.3.5. Выборка данных от имени обычного пользователя
     console.log('    10.3.5. Выборка данных из тестовой таблицы от имени обычного пользователя...');
     try {
@@ -679,7 +726,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✗ Ошибка выборки данных обычным пользователем:', err.message);
     }
-    
+
     // 10.3.6. Обновление записи от имени суперадмина
     console.log('    10.3.6. Обновление записи от имени суперадмина...');
     try {
@@ -689,9 +736,9 @@ async function testDatabaseOperations() {
         .query(`UPDATE ${testTableName} SET description = @description WHERE id = @id`);
       console.log('      ✓ Запись успешно обновлена суперадмином');
     } catch (err) {
-      console.log('      ✗ Ошибка обновления записи суперадмином:', err.message);
+      console.log('      ✗ Ошибка обновления записи суперадмина:', err.message);
     }
-    
+
     // 10.3.7. Обновление записи от имени обычного пользователя
     console.log('    10.3.7. Обновление записи от имени обычного пользователя...');
     try {
@@ -703,7 +750,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✗ Ошибка обновления записи обычным пользователем:', err.message);
     }
-    
+
     // 10.3.8. Удаление тестовой записи от имени суперадмина
     console.log('    10.3.8. Удаление тестовой записи от имени суперадмина...');
     try {
@@ -712,9 +759,9 @@ async function testDatabaseOperations() {
         .query(`DELETE FROM ${testTableName} WHERE id = @id`);
       console.log(`      ✓ Удалено ${result.rowsAffected[0]} записей суперадмином`);
     } catch (err) {
-      console.log('      ✗ Ошибка удаления записи суперадмином:', err.message);
+      console.log('      ✗ Ошибка удаления записи суперадмина:', err.message);
     }
-    
+
     // 10.3.9. Попытка создания таблицы обычным пользователем (должна завершиться ошибкой)
     console.log('    10.3.9. Попытка создания таблицы обычным пользователем...');
     try {
@@ -732,7 +779,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✓ Правильно: Обычный пользователь не имеет прав на создание таблиц');
     }
-    
+
     // 10.3.10. Попытка удаления таблицы обычным пользователем (должна завершиться ошибкой)
     console.log('    10.3.10. Попытка удаления таблицы обычным пользователем...');
     try {
@@ -742,7 +789,7 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✓ Правильно: Обычный пользователь не имеет прав на удаление таблиц');
     }
-    
+
     // 10.3.11. Удаление тестовой таблицы от имени суперадмина
     console.log('    10.3.11. Удаление тестовой таблицы от имени суперадмина...');
     try {
@@ -751,11 +798,11 @@ async function testDatabaseOperations() {
     } catch (err) {
       console.log('      ✗ Ошибка удаления таблицы суперадмином:', err.message);
     }
-    
+
     // Закрытие подключений
     await regularPool.close();
     await adminPool.close();
-    
+
     console.log('  ✓ Все тесты операций БД пройдены успешно');
     console.log('    Резюме:');
     console.log('    - SuperAdmin может создавать, читать, обновлять и удалять таблицы');
@@ -763,7 +810,7 @@ async function testDatabaseOperations() {
     console.log('    - Regular User НЕ может создавать или удалять таблицы');
     console.log('    - Оба пользователя успешно подключены к базе данных');
     console.log('    - Все учетные данные проверены на соответствие хешам в auth-db.json');
-    
+
     return true;
   } catch (err) {
     console.log(`  ✗ Ошибка при тестировании операций БД: ${err.message}`);
@@ -777,6 +824,12 @@ async function testDatabaseOperations() {
 async function runAllTests() {
   try {
     console.log('=== Единый тест проверки работоспособности приложения с СУБД ===\n');
+    
+    // Проверяем наличие .env файла и выводим уведомление
+    if (!hasEnvFile) {
+      console.log('⚠️  ВНИМАНИЕ: Файл .env не найден. Некоторые тесты будут пропущены.');
+      console.log('   Для полного тестирования создайте файл .env с необходимыми параметрами подключения.\n');
+    }
     
     // Шаг 1: Проверка существования и валидности auth-db.json
     const isAuthDbValid = validateAuthDbFile();

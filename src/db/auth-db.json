@@ -1,21 +1,21 @@
 {
   "db_config": {
-    "server_hash": "2d43f3f7691a8926889657be90f57e3197a99579bc72f805ffde770c758158dcca5f2e1e2b587c413c4195c7d11b4b9c24b5a9ca294c9bf39227a30aac4286dd",
+    "server_hash": "f0a2d2834c7be4c0125eebb814d758543704f902a64115579473fdb5987fd6614b9a67b12bc29e5b130e0f91c45900b076171549244b23815ac761927b932d3a",
     "server_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt1.json",
-    "database_hash": "df944c778a6ea23da00b4effd287077207e15d64e52a917758450aa413ce75ec0499fe4009e6315c443739cf636a0839ca5dd512f9683813cef718004a1b514b",
+    "database_hash": "32978703361f2c7f7cee1a6e0b8bf91edb94ae6af481470e333e9e6a8438fce180ae16471e9dededa56b33bf7e37e3cc3956d6776cc24dcce76feb501ec37fec",
     "database_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt2.json"
   },
   "users": {
     "AppSuperUser": {
-      "login_hash": "20c0dc75e9489c03745eda17d0295d1f21cb78cc7b3fbf18a7ea26147255e811e7127a51401c6eb2b8c78f6cbe65aa8be7fd3fe56036f376ce12457bf2eb24ad",
+      "login_hash": "ac60ff5f031db3957c95a21377150799dd7d209cdc7178186e3b107a70af5c910e3c550416355a9f3f8951acefb5e9d88dc3fa3b508939b16337a7b766f5316b",
       "login_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt3.json",
-      "password_hash": "10661caa2accbb9ddf1a2e3805e5e83421352298216157d898a064a414a470351da693851a742a639dfb6226be75d36bee71d2ade7133da287b8ad9a856521d7",
+      "password_hash": "5e10de9083df544c0c1aeaf88ef553753bc3847892a0afb5ce84f4ec809cab9ee4c3ca7e03d3bda9fed9bee357c147adc4b62af410c7473ac1b27f7e70fada46",
       "password_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt4.json"
     },
     "AppSuperAdmin": {
-      "login_hash": "ce8f4a19c987ae057a48cbb711ae2c42952df322e1e39a9e4e85e26d3ca7684e4737869df94ba5f602a6d9d40a89cff13fdb9a862ba96e23fc4c3fdca404cdaf",
+      "login_hash": "07ea4818558222d0112d41a8dc9619e0ee0259796fb5280c4df06ed33776da036eaa90dbf0a6177ff409c04286711a90e8076235cb3b9cb92c28309efbea089d",
       "login_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt5.json",
-      "password_hash": "58fa455e9cbeb082ce5b4a2b621c4cd4fc5558f16b5e4847bb1d50874563df5c1f4b715ebaf574b68a20814a0a4999ac4658f950ce4b8d331e22b6c953de509b",
+      "password_hash": "eaf50cfffecebf9065bab2602aeafa865de2dc4bc53007c2ef32cc976869cb962be93cf38f288a9563bb859f0681aa7f72f2692816ae56c332d1c264dc9b80c0",
       "password_salt_file": "C:\\Users\\KodochigovV\\Documents\\Projects\\ProcessCraft\\src\\db\\salt\\salt6.json"
     }
   },
@@ -24,42 +24,42 @@
   },
   "encrypted_config": {
     "server": {
-      "encryptedData": "bdc755210c00a7a0b360de3ad58f",
-      "iv": "cbba89ca5cc1b4f5f57e2c1a4f25594e",
-      "authTag": "133e27737cff7ea87ab4b25d184d6f18"
+      "encryptedData": "935cc193b638157c27fa2f10ee23",
+      "iv": "c3077e2f0b058def5b9cb98b805d3f59",
+      "authTag": "bb5780bbdf86e6f6cd4e56d4bc822264"
     },
     "database": {
-      "encryptedData": "2520e0cd1c68cdc88c5daefdafc9",
-      "iv": "c3f756893268c0a0d0a09ddbc4673f4b",
-      "authTag": "50453ab73373a485c56b83eb26c0c6b6"
+      "encryptedData": "73e3bf185f4d0304e34fe2394343",
+      "iv": "5427d3b98a5c17fddf3f40b0e81f7669",
+      "authTag": "5fd28389baea9058415d6fd430be64ef"
     },
     "users": {
       "AppSuperUser": {
         "username": {
-          "encryptedData": "ca7362fcb38f2c87fee378e3",
-          "iv": "29022fd684528c76149deb1ec32682eb",
-          "authTag": "e9779705e4b708f3f8b1a9026a3e030c"
+          "encryptedData": "10f19ab8c180d743bf336ee9",
+          "iv": "eb1ee54b6bdbde4f871c9dd4a90d020c",
+          "authTag": "af926cd446265206b786b2af4698c86e"
         },
         "password": {
-          "encryptedData": "e2f68b6e32846c996a6c36b9f1102a8d9ee2a05a3c4731e076f797",
-          "iv": "910d472ef9239c07c7fbb039e30d5ca4",
-          "authTag": "b3a3e628a3b5f7b157cd11273511e2b2"
+          "encryptedData": "8348d10a648c2d7fa6e3ac6c937e0e4a9382631d83f6ba4615f792",
+          "iv": "ab157fda9a0643fc38b3c65ecc8efe71",
+          "authTag": "3f44a4456a38d4e8a862de7525576e75"
         }
       },
       "AppSuperAdmin": {
         "username": {
-          "encryptedData": "05549b414c68ddc006a9cd7e1e",
-          "iv": "4ca5cf22b9c05e47cd809be129029e53",
-          "authTag": "0895d00f8d13b90d52cbcf5e07f5a8bd"
+          "encryptedData": "97f054ef662352fd22ecdbef71",
+          "iv": "45633111820d7d0fd8f89f4a04ecec4a",
+          "authTag": "1fa711b0730162689e02abb630c5fba7"
         },
         "password": {
-          "encryptedData": "3b8b6539b03701a59f52e8c567aa0434c983e7864847ad4bb0c80a83",
-          "iv": "2f1def0002d4e69c790950ed99d12c9b",
-          "authTag": "02cd11e4d66ba17ac634175f4ae10d7d"
+          "encryptedData": "f5117d3b152635abbab9fe378d2c7da60f0b8fb732c3c1db2d32b26a",
+          "iv": "667bbf62a081d60baf167b13cb93739f",
+          "authTag": "1d4088d3645ca7215ef15d8ebf863ca6"
         }
       }
     }
   },
-  "createdAt": "2025-10-17T09:31:18.065Z",
-  "lastUpdated": "2025-10-17T09:31:18.065Z"
+  "createdAt": "2025-10-17T10:10:27.159Z",
+  "lastUpdated": "2025-10-17T10:10:27.159Z"
 }
