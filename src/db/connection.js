@@ -10,9 +10,9 @@ const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
 
 // Объект конфигурации для SQL Server из зашифрованных значений
 // Сервер и база берутся из auth-db.json -> encrypted_config
-let encryptedConfigCache = null;
+const encryptedConfigCache = { value: null };
 function getEncryptedConfig() {
-  if (!encryptedConfigCache) {
+  if (!encryptedConfigCache.value) {
     if (!fs.existsSync(AUTH_DB_FILE)) {
       throw new Error('Файл auth-db.json не найден');
     }
@@ -21,9 +21,9 @@ function getEncryptedConfig() {
     if (!authDb.encrypted_config) {
       throw new Error('В auth-db.json отсутствует раздел encrypted_config. Запустите setup-db-access.js');
     }
-    encryptedConfigCache = authDb.encrypted_config;
+    encryptedConfigCache.value = authDb.encrypted_config;
   }
-  return encryptedConfigCache;
+  return encryptedConfigCache.value;
 }
 
 // Функция для создания новой конфигурации для каждого подключения
@@ -58,16 +58,16 @@ function getUserCredentialsFromAuthDb(userType) {
     const database = decrypt(enc.database);
 
     if (userType === 'superadmin') {
-      const adminEnc = enc.users['AppSuperAdmin'];
-      const adminUsername = decrypt(adminEnc.username);
-      const adminPassword = decrypt(adminEnc.password);
+      const adminEnc = enc.users?.['AppSuperAdmin'];
+      const adminUsername = decrypt(adminEnc?.username);
+      const adminPassword = decrypt(adminEnc?.password);
       if (verifyDatabaseCredentials(server, database, adminUsername, adminPassword)) {
         return { username: adminUsername, password: adminPassword };
       }
     } else if (userType === 'regular') {
-      const regularEnc = enc.users['AppSuperUser'];
-      const regularUsername = decrypt(regularEnc.username);
-      const regularPassword = decrypt(regularEnc.password);
+      const regularEnc = enc.users?.['AppSuperUser'];
+      const regularUsername = decrypt(regularEnc?.username);
+      const regularPassword = decrypt(regularEnc?.password);
       if (verifyDatabaseCredentials(server, database, regularUsername, regularPassword)) {
         return { username: regularUsername, password: regularPassword };
       }
@@ -88,8 +88,8 @@ async function loadCredentials(userType = 'regular') {
     
     // Получаем учетные данные из auth-db.json
     const credentials = getUserCredentialsFromAuthDb(userType);
-    config.user = credentials.username;
-    config.password = credentials.password;
+    config.user = credentials?.username;
+    config.password = credentials?.password;
     
     console.log(`Использование учетных данных для ${userType} из auth-db.json`);
     return config;
@@ -102,7 +102,7 @@ async function loadCredentials(userType = 'regular') {
 // Проверка обязательных переменных окружения
 const validateConfig = () => {
   const requiredVars = ['DB_SERVER', 'DB_DATABASE'];
-  const missingVars = requiredVars.filter(envVar => !process.env[envVar]);
+  const missingVars = requiredVars.filter(envVar => !process.env?.[envVar]);
   
   if (missingVars.length > 0) {
     console.warn(`Предупреждение: Отсутствуют переменные окружения: ${missingVars.join(', ')}. Использование значений по умолчанию.`);
@@ -113,12 +113,10 @@ const validateConfig = () => {
 validateConfig();
 
 // Connection pools for different user types
-let regularPool = null;
-let adminPool = null;
-
-// Promise guards to prevent race conditions during pool initialization
-let regularPoolInitPromise = null;
-let adminPoolInitPromise = null;
+const pools = {
+  regular: { pool: null, initPromise: null },
+  admin: { pool: null, initPromise: null }
+};
 
 // Инициализация подключения с учетными данными
 async function initializeConnection(userType = 'regular') {
@@ -136,9 +134,9 @@ async function initializeConnection(userType = 'regular') {
     
     // Store the pool based on user type
     if (userType === 'regular') {
-      regularPool = pool;
+      pools.regular.pool = pool;
     } else if (userType === 'superadmin') {
-      adminPool = pool;
+      pools.admin.pool = pool;
     }
     
     return pool;
@@ -151,38 +149,38 @@ async function initializeConnection(userType = 'regular') {
 // Функция для получения соответствующего пула в зависимости от типа подключения
 async function getConnectionPool(connectionType = 'regular') {
   // Initialize pools if they don't exist with synchronization to prevent race conditions
-  if (connectionType === 'superadmin' && !adminPool) {
+  if (connectionType === 'superadmin' && !pools.admin.pool) {
     // If initialization is already in progress, wait for it to complete
-    if (adminPoolInitPromise) {
-      return adminPoolInitPromise;
+    if (pools.admin.initPromise) {
+      return pools.admin.initPromise;
     }
     
     // Start initialization and store the promise
-    adminPoolInitPromise = initializeConnection('superadmin');
+    pools.admin.initPromise = initializeConnection('superadmin');
     try {
-      await adminPoolInitPromise;
+      await pools.admin.initPromise;
     } finally {
       // Clear the promise after initialization completes (success or failure)
-      adminPoolInitPromise = null;
+      pools.admin.initPromise = null;
     }
-  } else if (connectionType === 'regular' && !regularPool) {
+  } else if (connectionType === 'regular' && !pools.regular.pool) {
     // If initialization is already in progress, wait for it to complete
-    if (regularPoolInitPromise) {
-      return regularPoolInitPromise;
+    if (pools.regular.initPromise) {
+      return pools.regular.initPromise;
     }
     
     // Start initialization and store the promise
-    regularPoolInitPromise = initializeConnection('regular');
+    pools.regular.initPromise = initializeConnection('regular');
     try {
-      await regularPoolInitPromise;
+      await pools.regular.initPromise;
     } finally {
       // Clear the promise after initialization completes (success or failure)
-      regularPoolInitPromise = null;
+      pools.regular.initPromise = null;
     }
   }
   
   // Return the appropriate pool
-  return connectionType === 'superadmin' ? adminPool : regularPool;
+  return connectionType === 'superadmin' ? pools.admin.pool : pools.regular.pool;
 }
 
 // Экспорт пула и библиотеки sql

@@ -23,8 +23,8 @@ const usersRootDir = path.join(serverRootPath, 'users');
 function ensureUsersDir() {
   try {
     // Создаем базовую папку Server и подпапку users
-    if (!fs.existsSync(serverRootPath)) fs.mkdirSync(serverRootPath, { recursive: true });
-    if (!fs.existsSync(usersRootDir)) fs.mkdirSync(usersRootDir, { recursive: true });
+    if (!fs.existsSync?.(serverRootPath)) fs.mkdirSync?.(serverRootPath, { recursive: true });
+    if (!fs.existsSync?.(usersRootDir)) fs.mkdirSync?.(usersRootDir, { recursive: true });
   } catch (e) {
     console.error('Не удалось создать папку пользователей:', e);
   }
@@ -45,9 +45,9 @@ function getUserSectionFile(username, section) {
 
 function readJsonSafe(filePath) {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw);
+    if (!fs.existsSync?.(filePath)) return null;
+    const raw = fs.readFileSync?.(filePath, 'utf-8');
+    return JSON.parse?.(raw);
   } catch (e) {
     console.error('Ошибка чтения JSON:', filePath, e);
     return null;
@@ -56,8 +56,8 @@ function readJsonSafe(filePath) {
 
 function writeJsonSafe(filePath, data) {
   try {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.mkdirSync?.(path.dirname?.(filePath), { recursive: true });
+    fs.writeFileSync?.(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return true;
   } catch (e) {
     console.error('Ошибка записи JSON:', filePath, e);
@@ -67,41 +67,41 @@ function writeJsonSafe(filePath, data) {
 
 // Обеспечить существование файлов разделов для каждого пользователя
 function ensureUserSectionFiles(username) {
-  const dir = getUserDir(username);
-  if (!fs.existsSync(dir)) return;
+  const dir = getUserDir?.(username);
+  if (!fs.existsSync?.(dir)) return;
   const defaults = {
     visits: { total: 0, last: null, history: [] },
     tasks: { current: [], backlog: [] },
     activity: { items: [] }
   };
-  for (const section of Object.keys(defaults)) {
-    const file = getUserSectionFile(username, section);
-    if (!fs.existsSync(file)) writeJsonSafe(file, defaults[section]);
+  for (const section of Object.keys?.(defaults)) {
+    const file = getUserSectionFile?.(username, section);
+    if (!fs.existsSync?.(file)) writeJsonSafe?.(file, defaults[section]);
   }
 }
 
 // Функция для создания файла доступа к модулям для пользователя
 async function createAccessToModulesFile(username) {
   try {
-    const userDir = getUserDir(username);
-    const accessFile = path.join(userDir, 'accessToModules.json');
+    const userDir = getUserDir?.(username);
+    const accessFile = path.join?.(userDir, 'accessToModules.json');
     
     // Создаем директорию пользователя если её нет
-    if (!fs.existsSync(userDir)) {
-      fs.mkdirSync(userDir, { recursive: true });
+    if (!fs.existsSync?.(userDir)) {
+      fs.mkdirSync?.(userDir, { recursive: true });
     }
     
     // Получаем список модулей из index.json
-    const modulesIndexPath = path.join(__dirname, '../renderer/js/modules/index.json');
+    const modulesIndexPath = path.join?.(__dirname, '../renderer/js/modules/index.json');
     let moduleIds = [];
     
-    if (fs.existsSync(modulesIndexPath)) {
+    if (fs.existsSync?.(modulesIndexPath)) {
       try {
-        const modulesData = JSON.parse(fs.readFileSync(modulesIndexPath, 'utf-8'));
-        moduleIds = modulesData.modules.map(modulePath => {
+        const modulesData = JSON.parse?.(fs.readFileSync?.(modulesIndexPath, 'utf-8'));
+        moduleIds = modulesData.modules?.map?.(modulePath => {
           // Извлекаем moduleId из пути к модулю
-          const parts = modulePath.split('/');
-          return parts.length > 1 ? parts[0] : modulePath.replace('.js', '');
+          const parts = modulePath.split?.('/');
+          return parts.length > 1 ? parts?.[0] : modulePath.replace?.('.js', '');
         });
       } catch (error) {
         console.warn('Ошибка чтения modules/index.json:', error);
@@ -118,7 +118,7 @@ async function createAccessToModulesFile(username) {
     }
     
     // Записываем файл доступа
-    fs.writeFileSync(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
+    fs.writeFileSync?.(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
     console.log(`Файл доступа к модулям создан для пользователя: ${username}`);
   } catch (error) {
     console.error(`Ошибка создания файла доступа к модулям для пользователя ${username}:`, error);
@@ -127,13 +127,13 @@ async function createAccessToModulesFile(username) {
 
 // Вспомогательная функция для определения пути к обложке с резервным вариантом
 function resolveCoverPath(username) {
-  const userAssetsDir = path.join(__dirname, '../../Server/users', username, 'assets');
+  const userAssetsDir = path.join?.(__dirname, '../../Server/users', username, 'assets');
   const coverExtensions = ['jpg', 'jpeg', 'png'];
   
   // Проверка наличия пользовательских изображений обложки
   for (const ext of coverExtensions) {
-    const coverPath = path.join(userAssetsDir, `cover.${ext}`);
-    if (fs.existsSync(coverPath)) {
+    const coverPath = path.join?.(userAssetsDir, `cover.${ext}`);
+    if (fs.existsSync?.(coverPath)) {
       return coverPath;
     }
   }
@@ -151,56 +151,56 @@ function getUserProfileFile(username) {
 async function updateUserProfile(username, updates) {
   try {
     // Получаем пул подключений суперадминистратора для привилегированной операции
-    const pool = await getConnectionPool('superadmin');
+    const pool = await getConnectionPool?.('superadmin');
     
     // Формируем запрос на обновление в зависимости от переданных данных
     const fields = [];
     const values = [];
     
     if (updates.displayName !== undefined) {
-      fields.push('DisplayName = @displayName');
-      values.push({ name: 'displayName', type: 'NVarChar', value: updates.displayName, size: 100 });
+      fields.push?.('DisplayName = @displayName');
+      values.push?.({ name: 'displayName', type: 'NVarChar', value: updates.displayName, size: 100 });
     }
     
     if (updates.email !== undefined) {
-      fields.push('Email = @email');
-      values.push({ name: 'email', type: 'VarChar', value: updates.email, size: 100 });
+      fields.push?.('Email = @email');
+      values.push?.({ name: 'email', type: 'VarChar', value: updates.email, size: 100 });
     }
     
     if (updates.phone !== undefined) {
-      fields.push('Phone = @phone');
-      values.push({ name: 'phone', type: 'VarChar', value: updates.phone, size: 20 });
+      fields.push?.('Phone = @phone');
+      values.push?.({ name: 'phone', type: 'VarChar', value: updates.phone, size: 20 });
     }
     
     if (updates.department !== undefined) {
-      fields.push('Department = @department');
-      values.push({ name: 'department', type: 'NVarChar', value: updates.department, size: 100 });
+      fields.push?.('Department = @department');
+      values.push?.({ name: 'department', type: 'NVarChar', value: updates.department, size: 100 });
     }
     
     if (updates.position !== undefined) {
-      fields.push('Position = @position');
-      values.push({ name: 'position', type: 'NVarChar', value: updates.position, size: 100 });
+      fields.push?.('Position = @position');
+      values.push?.({ name: 'position', type: 'NVarChar', value: updates.position, size: 100 });
     }
     
     if (updates.avatarPath !== undefined) {
-      fields.push('AvatarPath = @avatarPath');
-      values.push({ name: 'avatarPath', type: 'VarChar', value: updates.avatarPath, size: 255 });
+      fields.push?.('AvatarPath = @avatarPath');
+      values.push?.({ name: 'avatarPath', type: 'VarChar', value: updates.avatarPath, size: 255 });
     }
     
     if (updates.coverPath !== undefined) {
-      fields.push('CoverPath = @coverPath');
-      values.push({ name: 'coverPath', type: 'VarChar', value: updates.coverPath, size: 255 });
+      fields.push?.('CoverPath = @coverPath');
+      values.push?.({ name: 'coverPath', type: 'VarChar', value: updates.coverPath, size: 255 });
     }
     
     if (updates.avatarColor !== undefined) {
-      fields.push('AvatarColorHue = @avatarColorHue');
-      values.push({ name: 'avatarColorHue', type: 'Int', value: updates.avatarColor.hue });
+      fields.push?.('AvatarColorHue = @avatarColorHue');
+      values.push?.({ name: 'avatarColorHue', type: 'Int', value: updates.avatarColor.hue });
       
-      fields.push('AvatarColorSaturation = @avatarColorSaturation');
-      values.push({ name: 'avatarColorSaturation', type: 'Int', value: updates.avatarColor.saturation });
+      fields.push?.('AvatarColorSaturation = @avatarColorSaturation');
+      values.push?.({ name: 'avatarColorSaturation', type: 'Int', value: updates.avatarColor.saturation });
       
-      fields.push('AvatarColorBrightness = @avatarColorBrightness');
-      values.push({ name: 'avatarColorBrightness', type: 'Int', value: updates.avatarColor.brightness });
+      fields.push?.('AvatarColorBrightness = @avatarColorBrightness');
+      values.push?.({ name: 'avatarColorBrightness', type: 'Int', value: updates.avatarColor.brightness });
     }
     
     // Если нет полей для обновления, возвращаем успех
@@ -209,31 +209,31 @@ async function updateUserProfile(username, updates) {
     }
     
     // Добавляем обновление времени
-    fields.push('UpdatedAt = GETDATE()');
+    fields.push?.('UpdatedAt = GETDATE()');
     
     // Формируем SQL запрос
     const query = `
       UPDATE Users 
-      SET ${fields.join(', ')}
+      SET ${fields.join?.(', ')}
       WHERE UserName = @username
     `;
     
     // Добавляем имя пользователя к параметрам
-    values.push({ name: 'username', type: 'VarChar', value: username, size: 50 });
+    values.push?.({ name: 'username', type: 'VarChar', value: username, size: 50 });
     
     // Выполняем запрос
-    const request = pool.request();
-    values.forEach(param => {
+    const request = pool.request?.();
+    values.forEach?.(param => {
       if (param.type === 'NVarChar') {
-        request.input(param.name, sql[param.type](param.size), param.value);
+        request.input?.(param.name, sql[param.type]?.(param.size), param.value);
       } else if (param.type === 'VarChar') {
-        request.input(param.name, sql[param.type](param.size), param.value);
+        request.input?.(param.name, sql[param.type]?.(param.size), param.value);
       } else {
-        request.input(param.name, sql[param.type], param.value);
+        request.input?.(param.name, sql[param.type], param.value);
       }
     });
     
-    await request.query(query);
+    await request.query?.(query);
     
     return { ok: true };
   } catch (error) {
@@ -246,12 +246,12 @@ async function updateUserProfile(username, updates) {
 async function deactivateUser(username) {
   try {
     // Получаем пул подключений суперадминистратора для привилегированной операции
-    const pool = await getConnectionPool('superadmin');
+    const pool = await getConnectionPool?.('superadmin');
     
     // Обновляем флаг IsActive на 0
-    await pool.request()
-      .input('username', sql.VarChar(50), username)
-      .query(`
+    await pool.request?.()
+      .input?.('username', sql.VarChar(50), username)
+      .query?.(`
         UPDATE Users 
         SET IsActive = 0, UpdatedAt = GETDATE()
         WHERE UserName = @username
@@ -268,12 +268,12 @@ async function deactivateUser(username) {
 function registerUserHandlers() {
   // Список пользователей
   ipcMain.handle('users:list', async () => {
-    ensureUsersDir();
+    ensureUsersDir?.();
     try {
       // Получаем всех активных пользователей из базы данных
-      const usersData = await getAllActiveUsers('regular');
+      const usersData = await getAllActiveUsers?.('regular');
       
-      const users = usersData.map(user => ({
+      const users = usersData?.map?.(user => ({
         username: user.username,
         displayName: user.displayName,
         role: user.isSuperAdmin ? 'SuperAdmin' : 'User',
@@ -291,11 +291,11 @@ function registerUserHandlers() {
     if (!username) return { ok: false, error: 'username required' };
     
     try {
-      const userData = await getUserByUsername(username, 'regular');
+      const userData = await getUserByUsername?.(username, 'regular');
       if (!userData) return { ok: false, error: 'not_found' };
       
       // Ensure user section files exist
-      ensureUserSectionFiles(username);
+      ensureUserSectionFiles?.(username);
       
       return { 
         ok: true, 
@@ -325,10 +325,10 @@ function registerUserHandlers() {
   // Универсальные методы получения/сохранения для разделов
   ipcMain.handle('users:getSection', async (event, payload) => {
     try {
-      const { username, section } = payload || {};
+      const { username, section } = payload ?? {};
       if (!username || !section) return { ok: false, error: 'username_section_required' };
-      ensureUserSectionFiles(username);
-      const data = readJsonSafe(getUserSectionFile(username, section));
+      ensureUserSectionFiles?.(username);
+      const data = readJsonSafe?.(getUserSectionFile?.(username, section));
       return { ok: true, data: data ?? null };
     } catch (e) {
       return { ok: false, error: String(e) };
@@ -337,10 +337,10 @@ function registerUserHandlers() {
 
   ipcMain.handle('users:saveSection', async (event, payload) => {
     try {
-      const { username, section, data } = payload || {};
+      const { username, section, data } = payload ?? {};
       if (!username || !section) return { ok: false, error: 'username_section_required' };
-      ensureUserSectionFiles(username);
-      writeJsonSafe(getUserSectionFile(username, section), data || {});
+      ensureUserSectionFiles?.(username);
+      writeJsonSafe?.(getUserSectionFile?.(username, section), data || {});
       return { ok: true };
     } catch (e) {
       return { ok: false, error: String(e) };
@@ -350,16 +350,16 @@ function registerUserHandlers() {
   // Получить профиль пользователя
   ipcMain.handle('users:getProfile', async (event, username) => {
     if (!username) return { ok: false, error: 'username required' };
-    const data = readJsonSafe(getUserProfileFile(username)) || { activity: [], stats: {} };
+    const data = readJsonSafe?.(getUserProfileFile?.(username)) || { activity: [], stats: {} };
     return { ok: true, profile: data };
   });
 
   // Сохранить профиль пользователя
   ipcMain.handle('users:saveProfile', async (event, payload) => {
     try {
-      const { username, profile } = payload || {};
+      const { username, profile } = payload ?? {};
       if (!username) return { ok: false, error: 'username_required' };
-      writeJsonSafe(getUserProfileFile(username), profile || {});
+      writeJsonSafe?.(getUserProfileFile?.(username), profile || {});
       return { ok: true };
     } catch (e) {
       return { ok: false, error: String(e) };
@@ -369,16 +369,16 @@ function registerUserHandlers() {
   // Создать пользователя
   ipcMain.handle('users:create', async (event, payload) => {
     try {
-      const { username, password, displayName, role, email, phone, department, position, currentUser } = payload || {};
+      const { username, password, displayName, role, email, phone, department, position, currentUser } = payload ?? {};
       if (!username || !password) return { ok: false, error: 'username_password_required' };
       
       // Проверяем права текущего пользователя на создание пользователей
-      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+      if (!currentUser || !hasRole?.(currentUser, 'Admin')) {
         return { ok: false, error: 'insufficient_permissions' };
       }
       
       // Check if user already exists
-      const existingUser = await getUserByUsername(username, 'superadmin');
+      const existingUser = await getUserByUsername?.(username, 'superadmin');
       if (existingUser) return { ok: false, error: 'user_exists' };
       
       // Create user data object
@@ -394,19 +394,19 @@ function registerUserHandlers() {
       };
       
       // Create new user in database
-      const success = await createNewUser(userData);
+      const success = await createNewUser?.(userData);
       if (!success) return { ok: false, error: 'creation_failed' };
       
       // Create user directory and files
-      const dir = getUserDir(username);
-      fs.mkdirSync(dir, { recursive: true });
-      fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
+      const dir = getUserDir?.(username);
+      fs.mkdirSync?.(dir, { recursive: true });
+      fs.mkdirSync?.(path.join?.(dir, 'assets'), { recursive: true });
       
       // Create access to modules file
-      await createAccessToModulesFile(username);
+      await createAccessToModulesFile?.(username);
       
       // Get created user data
-      const createdUser = await getUserByUsername(username, 'superadmin');
+      const createdUser = await getUserByUsername?.(username, 'superadmin');
       
       return { 
         ok: true, 
@@ -436,23 +436,23 @@ function registerUserHandlers() {
   // Сохранить/обновить пользователя
   ipcMain.handle('users:save', async (event, payload) => {
     try {
-      const { username, updates, currentUser } = payload || {};
+      const { username, updates, currentUser } = payload ?? {};
       if (!username) return { ok: false, error: 'username_required' };
       
       // Проверяем права текущего пользователя на редактирование пользователей
-      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+      if (!currentUser || !hasRole?.(currentUser, 'Admin')) {
         return { ok: false, error: 'insufficient_permissions' };
       }
       
       // Update user profile in database
-      const result = await updateUserProfile(username, updates);
+      const result = await updateUserProfile?.(username, updates);
       if (!result.ok) return result;
       
       // Also update JSON files for backward compatibility
-      const current = readJsonSafe(getUserFile(username));
+      const current = readJsonSafe?.(getUserFile?.(username));
       if (!current) return { ok: false, error: 'not_found' };
       const next = { ...current, ...updates, updatedAt: new Date().toISOString() };
-      writeJsonSafe(getUserFile(username), next);
+      writeJsonSafe?.(getUserFile?.(username), next);
       return { ok: true, user: next };
     } catch (e) {
       return { ok: false, error: String(e) };
@@ -462,37 +462,37 @@ function registerUserHandlers() {
   // Удалить пользователя (только для SuperAdmin - проверка на стороне UI)
   ipcMain.handle('users:delete', async (event, payload) => {
     try {
-      const { username, currentUser } = payload || {};
+      const { username, currentUser } = payload ?? {};
       if (!username) return { ok: false, error: 'username_required' };
       
       // Проверяем права текущего пользователя на удаление пользователей
-      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+      if (!currentUser || !hasRole?.(currentUser, 'Admin')) {
         return { ok: false, error: 'insufficient_permissions' };
       }
       
       // Деактивируем пользователя в базе данных (мягкое удаление)
-      const result = await deactivateUser(username);
+      const result = await deactivateUser?.(username);
       if (!result.ok) return result;
       
       // Также удаляем директорию пользователя для обратной совместимости
-      const dir = getUserDir(username);
-      if (!fs.existsSync(dir)) return { ok: false, error: 'not_found' };
+      const dir = getUserDir?.(username);
+      if (!fs.existsSync?.(dir)) return { ok: false, error: 'not_found' };
       
       // рекурсивное удаление директории пользователя
       if (fs.rmSync) {
-        fs.rmSync(dir, { recursive: true, force: true });
+        fs.rmSync?.(dir, { recursive: true, force: true });
       } else {
         // fallback
         const rimraf = (p) => {
-          if (fs.existsSync(p)) {
-            for (const entry of fs.readdirSync(p)) {
-              const cur = path.join(p, entry);
-              if (fs.lstatSync(cur).isDirectory()) rimraf(cur); else fs.unlinkSync(cur);
+          if (fs.existsSync?.(p)) {
+            for (const entry of fs.readdirSync?.(p)) {
+              const cur = path.join?.(p, entry);
+              if (fs.lstatSync?.(cur).isDirectory?.()) rimraf?.(cur); else fs.unlinkSync?.(cur);
             }
-            fs.rmdirSync(p);
+            fs.rmdirSync?.(p);
           }
         };
-        rimraf(dir);
+        rimraf?.(dir);
       }
       
       return { ok: true };

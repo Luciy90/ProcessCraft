@@ -122,11 +122,11 @@ function testAuthService() {
   try {
     console.log('3. Тестирование сервиса аутентификации...');
     
-    // Импортируем функции сервиса аутентификации
+    // Импортируем функции сервиса аутентификации из auth-process.js
     const { 
       hashPassword,
       verifyPassword
-    } = require('./auth-service');
+    } = require('./request/auth-process');
     
     // Тест хеширования пароля
     console.log('  3.1. Тестирование хеширования пароля:');
@@ -136,14 +136,14 @@ function testAuthService() {
     
     // Тест проверки пароля
     console.log('  3.2. Тестирование проверки пароля:');
-    const isValid = verifyPassword(password, hash, salt);
+    const isValid = verifyPassword(password, hash);
     if (!isValid) {
       console.log('    ✗ Результат проверки пароля не пройден');
       return false;
     }
     console.log('    ✓ Результат проверки пароля пройден');
     
-    const isInvalid = verifyPassword('wrongPassword', hash, salt);
+    const isInvalid = verifyPassword('wrongPassword', hash);
     if (isInvalid) {
       console.log('    ✗ Результат проверки неверного пароля не пройден');
       return false;
@@ -246,14 +246,14 @@ function testHashingAndVerification() {
   try {
     console.log('6. Тест хеширования и проверки учетных данных...');
     
-    // Импортируем функции хеширования
-    const { hashPassword, verifyPassword } = require('./auth-service');
+    // Импортируем функции хеширования из auth-process.js
+    const { hashPassword, verifyPassword } = require('./request/auth-process');
     
     // Тестируем хеширование и проверку пароля
     console.log('  6.1. Тест хеширования и проверки пароля...');
     const password = 'testPassword123!';
     const hashed = hashPassword(password);
-    const isValid = verifyPassword(password, hashed.hash, hashed.salt);
+    const isValid = verifyPassword(password, hashed.hash);
     
     if (!isValid) {
       console.log('    ✗ Проверка хешированного пароля не пройдена');
@@ -263,7 +263,7 @@ function testHashingAndVerification() {
     
     // Тестируем проверку неправильного пароля
     console.log('  6.2. Тест проверки неправильного пароля...');
-    const isInvalid = verifyPassword('wrongPassword', hashed.hash, hashed.salt);
+    const isInvalid = verifyPassword('wrongPassword', hashed.hash);
     if (isInvalid) {
       console.log('    ✗ Проверка неправильного пароля не должна пройти');
       return false;
@@ -507,36 +507,24 @@ function testCredentialsStore() {
   try {
     console.log('9. Тестирование хранилища учетных данных...');
     
-    // Импортируем функции хранилища учетных данных
-    const { initializeCredentialsStore, loadCredentialsFromStore } = require('./credentials-store');
+    // Поскольку мы удаляем credentials-store.js, заменяем этот тест тестом для SQL Server
+    console.log('  9.1. Тестирование подключения к SQL Server...');
     
-    // Инициализация хранилища учетных данных
-    console.log('  9.1. Инициализация хранилища учетных данных:');
-    const credentialsStore = initializeCredentialsStore();
-    console.log('    ✓ Хранилище учетных данных успешно инициализировано');
+    // Импортируем необходимые функции
+    const { initializeConnection } = require('./connection');
     
-    // Загрузка учетных данных суперадмина
-    console.log('  9.2. Загрузка учетных данных суперадмина:');
-    const superAdminCredentials = loadCredentialsFromStore('superadmin');
-    if (!superAdminCredentials) {
-      console.log('    ✗ Учетные данные суперадмина не загружены');
+    // Тестируем подключение к SQL Server
+    const pool = initializeConnection('superadmin');
+    if (!pool) {
+      console.log('    ✗ Не удалось инициализировать подключение к SQL Server');
       return false;
     }
-    console.log('    ✓ Учетные данные суперадмина загружены');
+    console.log('    ✓ Подключение к SQL Server успешно инициализировано');
     
-    // Загрузка учетных данных обычного пользователя
-    console.log('  9.3. Загрузка учетных данных обычного пользователя:');
-    const regularUserCredentials = loadCredentialsFromStore('regular');
-    if (!regularUserCredentials) {
-      console.log('    ✗ Учетные данные обычного пользователя не загружены');
-      return false;
-    }
-    console.log('    ✓ Учетные данные обычного пользователя загружены');
-    
-    console.log('  ✓ Все тесты хранилища учетных данных пройдены успешно');
+    console.log('  ✓ Все тесты SQL Server пройдены успешно');
     return true;
   } catch (error) {
-    console.log(`  ✗ Ошибка при тестировании хранилища учетных данных: ${error.message}`);
+    console.log(`  ✗ Ошибка при тестировании SQL Server: ${error.message}`);
     return false;
   }
 }

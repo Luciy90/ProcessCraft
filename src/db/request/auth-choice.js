@@ -38,15 +38,15 @@ async function getUserByUsername(username, connectionType = 'regular') {
         WHERE u.UserName = @username AND u.IsActive = 1
       `);
     
-    if (result.recordset.length === 0) {
+    if (result.recordset?.length === 0) {
       return null;
     }
     
-    const userData = result.recordset[0];
+    const userData = result.recordset?.[0];
     
     // Получение ролей пользователя
     const rolesResult = await pool.request()
-      .input('userId', sql.Int, userData.UserID)
+      .input('userId', sql.Int, userData?.UserID)
       .query(`
         SELECT r.RoleName
         FROM UserRoles ur
@@ -54,30 +54,30 @@ async function getUserByUsername(username, connectionType = 'regular') {
         WHERE ur.UserID = @userId
       `);
     
-    const roles = rolesResult.recordset.map(role => role.RoleName);
+    const roles = rolesResult.recordset?.map(role => role?.RoleName) ?? [];
     
     // Преобразование данных цвета аватара обратно в объект
     const user = {
-      userID: userData.UserID,
-      displayName: userData.DisplayName,
-      username: userData.UserName,
-      email: userData.Email,
-      phone: userData.Phone,
-      department: userData.Department,
-      position: userData.Position,
-      passwordHash: userData.PasswordHash,
-      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
-      isActive: userData.IsActive === true || userData.IsActive === 1,
-      avatarPath: userData.AvatarPath,
+      userID: userData?.UserID,
+      displayName: userData?.DisplayName,
+      username: userData?.UserName,
+      email: userData?.Email,
+      phone: userData?.Phone,
+      department: userData?.Department,
+      position: userData?.Position,
+      passwordHash: userData?.PasswordHash,
+      isSuperAdmin: userData?.IsSuperAdmin === true || userData?.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData?.IsActive === true || userData?.IsActive === 1,
+      avatarPath: userData?.AvatarPath,
       avatarColor: {
-        hue: userData.AvatarColorHue,
-        saturation: userData.AvatarColorSaturation,
-        brightness: userData.AvatarColorBrightness
+        hue: userData?.AvatarColorHue,
+        saturation: userData?.AvatarColorSaturation,
+        brightness: userData?.AvatarColorBrightness
       },
-      coverPath: userData.CoverPath,
-      createdAt: userData.CreatedAt,
-      lastLoginAt: userData.LastLoginAt,
-      updatedAt: userData.UpdatedAt,
+      coverPath: userData?.CoverPath,
+      createdAt: userData?.CreatedAt,
+      lastLoginAt: userData?.LastLoginAt,
+      updatedAt: userData?.UpdatedAt,
       roles: roles // Добавляем массив ролей
     };
     
@@ -96,7 +96,7 @@ async function getUserByUsername(username, connectionType = 'regular') {
 async function getPoolForUser(userProfile) {
   try {
     // Строго проверяем флаг IsSuperAdmin для выбора пула
-    if (userProfile && userProfile.isSuperAdmin === true) {
+    if (userProfile?.isSuperAdmin === true) {
       // Используем пул AppSuperAdmin для пользователей с флагом IsSuperAdmin
       return await getConnectionPool('superadmin');
     } else {
@@ -145,27 +145,27 @@ async function getAllActiveUsers(connectionType = 'regular') {
       `);
     
     // Преобразование данных для каждого пользователя
-    const users = result.recordset.map(userData => ({
-      userID: userData.UserID,
-      displayName: userData.DisplayName,
-      username: userData.UserName,
-      email: userData.Email,
-      phone: userData.Phone,
-      department: userData.Department,
-      position: userData.Position,
-      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
-      isActive: userData.IsActive === true || userData.IsActive === 1,
-      avatarPath: userData.AvatarPath,
+    const users = result.recordset?.map(userData => ({
+      userID: userData?.UserID,
+      displayName: userData?.DisplayName,
+      username: userData?.UserName,
+      email: userData?.Email,
+      phone: userData?.Phone,
+      department: userData?.Department,
+      position: userData?.Position,
+      isSuperAdmin: userData?.IsSuperAdmin === true || userData?.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData?.IsActive === true || userData?.IsActive === 1,
+      avatarPath: userData?.AvatarPath,
       avatarColor: {
-        hue: userData.AvatarColorHue,
-        saturation: userData.AvatarColorSaturation,
-        brightness: userData.AvatarColorBrightness
+        hue: userData?.AvatarColorHue,
+        saturation: userData?.AvatarColorSaturation,
+        brightness: userData?.AvatarColorBrightness
       },
-      coverPath: userData.CoverPath,
-      createdAt: userData.CreatedAt,
-      lastLoginAt: userData.LastLoginAt,
-      updatedAt: userData.UpdatedAt
-    }));
+      coverPath: userData?.CoverPath,
+      createdAt: userData?.CreatedAt,
+      lastLoginAt: userData?.LastLoginAt,
+      updatedAt: userData?.UpdatedAt
+    })) ?? [];
     
     return users;
   } catch (error) {
@@ -215,27 +215,27 @@ async function getInactiveUsers(connectionType = 'superadmin') {
       `);
     
     // Преобразование данных для каждого пользователя
-    const users = result.recordset.map(userData => ({
-      userID: userData.UserID,
-      displayName: userData.DisplayName,
-      username: userData.UserName,
-      email: userData.Email,
-      phone: userData.Phone,
-      department: userData.Department,
-      position: userData.Position,
-      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
-      isActive: userData.IsActive === true || userData.IsActive === 1,
-      avatarPath: userData.AvatarPath,
+    const users = result.recordset?.map(userData => ({
+      userID: userData?.UserID,
+      displayName: userData?.DisplayName,
+      username: userData?.UserName,
+      email: userData?.Email,
+      phone: userData?.Phone,
+      department: userData?.Department,
+      position: userData?.Position,
+      isSuperAdmin: userData?.IsSuperAdmin === true || userData?.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData?.IsActive === true || userData?.IsActive === 1,
+      avatarPath: userData?.AvatarPath,
       avatarColor: {
-        hue: userData.AvatarColorHue,
-        saturation: userData.AvatarColorSaturation,
-        brightness: userData.AvatarColorBrightness
+        hue: userData?.AvatarColorHue,
+        saturation: userData?.AvatarColorSaturation,
+        brightness: userData?.AvatarColorBrightness
       },
-      coverPath: userData.CoverPath,
-      createdAt: userData.CreatedAt,
-      lastLoginAt: userData.LastLoginAt,
-      updatedAt: userData.UpdatedAt
-    }));
+      coverPath: userData?.CoverPath,
+      createdAt: userData?.CreatedAt,
+      lastLoginAt: userData?.LastLoginAt,
+      updatedAt: userData?.UpdatedAt
+    })) ?? [];
     
     return users;
   } catch (error) {

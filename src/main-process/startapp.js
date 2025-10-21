@@ -19,26 +19,26 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false
     },
-    icon: path.join(__dirname, '../../assets/icon.png'),
+    icon: path.join?.(__dirname, '../../assets/icon.png'),
     title: 'ProcessCraft - Управление производством',
     show: false
   });
 
   // Загрузка главной страницы
-  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  mainWindow.loadFile?.(path.join?.(__dirname, '../renderer/index.html'));
 
   // Показать окно когда готово
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+  mainWindow.once?.('ready-to-show', () => {
+    mainWindow.show?.();
     
     // Открыть DevTools в режиме разработки
     if (isDev) {
-      mainWindow.webContents.openDevTools();
+      mainWindow.webContents.openDevTools?.();
     }
   });
 
   // Обработка закрытия окна
-  mainWindow.on('closed', () => {
+  mainWindow.on?.('closed', () => {
     mainWindow = null;
   });
 }
@@ -53,14 +53,14 @@ function createMenu() {
           label: 'Новый заказ',
           accelerator: 'CmdOrCtrl+N',
           click: () => {
-            mainWindow.webContents.send('menu-new-order');
+            mainWindow.webContents.send?.('menu-new-order');
           }
         },
         {
           label: 'Открыть...',
           accelerator: 'CmdOrCtrl+O',
           click: () => {
-            mainWindow.webContents.send('menu-open');
+            mainWindow.webContents.send?.('menu-open');
           }
         },
         { type: 'separator' },
@@ -68,7 +68,7 @@ function createMenu() {
           label: 'Выход',
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
           click: () => {
-            app.quit();
+            app.quit?.();
           }
         }
       ]
@@ -93,7 +93,7 @@ function createMenu() {
         {
           label: 'О приложении',
           click: () => {
-            dialog.showMessageBox(mainWindow, {
+            dialog.showMessageBox?.(mainWindow, {
               type: 'info',
               title: 'О ProcessCraft',
               message: 'ProcessCraft v1.0.0',
@@ -105,8 +105,8 @@ function createMenu() {
     }
   ];
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate?.(template);
+  Menu.setApplicationMenu?.(menu);
 }
 
 // Инициализация приложения
@@ -114,68 +114,68 @@ function initializeApp(updateAccessConfigWithMarkers, ensureUsersDir, getUserDir
   // При старте в Electron — обновим modules/index.json автоматически
   try {
     const child = require('child_process');
-    const scriptsPath = path.join(__dirname, '../../scripts/build-modules-index.js');
-    if (fs.existsSync(scriptsPath)) {
+    const scriptsPath = path.join?.(__dirname, '../../scripts/build-modules-index.js');
+    if (fs.existsSync?.(scriptsPath)) {
       // Выполняем синхронно, чтобы индекс был готов до загрузки renderer
       try {
-        child.execFileSync(process.execPath, [scriptsPath], { stdio: 'inherit' });
-        console.log('modules/index.json успешно перестроен');
+        child.execFileSync?.(process.execPath, [scriptsPath], { stdio: 'inherit' });
+        console.log?.('modules/index.json успешно перестроен');
       } catch (e) {
-        console.warn('Не удалось перестроить modules/index.json (продолжаем):', e.message);
+        console.warn?.('Не удалось перестроить modules/index.json (продолжаем):', e.message);
       }
     }
   } catch (e) {
-    console.warn('Этап перестроения модулей пропущен:', e.message);
+    console.warn?.('Этап перестроения модулей пропущен:', e.message);
   }
 
-  createWindow();
-  createMenu();
+  createWindow?.();
+  createMenu?.();
   
   // Создаем дефолтного администратора, если его еще нет
   try {
-    ensureUsersDir();
-    const adminDir = getUserDir('Admin');
-    const adminFile = getUserFile('Admin');
-    if (!fs.existsSync(adminFile)) {
+    ensureUsersDir?.();
+    const adminDir = getUserDir?.('Admin');
+    const adminFile = getUserFile?.('Admin');
+    if (!fs.existsSync?.(adminFile)) {
       const userData = {
         username: 'Admin',
         password: '1111', // ПРИМЕЧАНИЕ: минимальная версия продукта, заменить на хэш позже
         displayName: 'Администратор',
         role: 'SuperAdmin',
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString?.(),
         lastLoginAt: null,
         avatarPath: null,
         stats: {}
       };
-      fs.mkdirSync(adminDir, { recursive: true });
-      fs.mkdirSync(path.join(adminDir, 'assets'), { recursive: true });
-      writeJsonSafe(adminFile, userData);
-      console.log('Создан дефолтный пользователь Admin');
+      fs.mkdirSync?.(adminDir, { recursive: true });
+      fs.mkdirSync?.(path.join?.(adminDir, 'assets'), { recursive: true });
+      writeJsonSafe?.(adminFile, userData);
+      console.log?.('Создан дефолтный пользователь Admin');
     }
   } catch (e) {
-    console.error('Не удалось создать дефолтного пользователя Admin:', e);
+    console.error?.('Не удалось создать дефолтного пользователя Admin:', e);
   }
 
   // Автообновление файла доступа при запуске приложения
   try {
-    updateAccessConfigWithMarkers();
+    updateAccessConfigWithMarkers?.();
   } catch (e) {
-    console.error('Не удалось обновить файл доступа:', e);
+    console.error?.('Не удалось обновить файл доступа:', e);
   }
 
   // Обработка активации приложения на macOS
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+  app.on?.('activate', () => {
+    if (BrowserWindow.getAllWindows?.().length === 0) {
+      createWindow?.();
     }
   });
 }
 
 // Закрытие приложения когда все окна закрыты
 function handleAppQuit() {
-  app.on('window-all-closed', () => {
+  app.on?.('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-      app.quit();
+      app.quit?.();
     }
   });
 }

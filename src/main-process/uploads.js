@@ -8,7 +8,7 @@ function registerUploadHandlers() {
     try {
       // Проверка типа файла
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(fileData.type)) {
+      if (!validTypes.includes?.(fileData.type)) {
         return {
           status: 'error',
           error_code: 'invalid_file_type',
@@ -17,10 +17,10 @@ function registerUploadHandlers() {
       }
 
       // Создание директории для пользовательских ресурсов, если она не существует
-      const userAssetsDir = path.join(__dirname, '../../Server/users', username, 'assets');
-      if (!fs.existsSync(userAssetsDir)) {
+      const userAssetsDir = path.join?.(__dirname, '../../Server/users', username, 'assets');
+      if (!fs.existsSync?.(userAssetsDir)) {
         try {
-          fs.mkdirSync(userAssetsDir, { recursive: true });
+          fs.mkdirSync?.(userAssetsDir, { recursive: true });
         } catch (err) {
           return {
             status: 'error',
@@ -40,21 +40,21 @@ function registerUploadHandlers() {
 
       // Удаление старых файлов обложек с различными расширениями
       const oldFiles = ['cover.jpg', 'cover.jpeg', 'cover.png'];
-      oldFiles.forEach(oldFile => {
-        const oldFilePath = path.join(userAssetsDir, oldFile);
-        if (fs.existsSync(oldFilePath)) {
+      oldFiles.forEach?.(oldFile => {
+        const oldFilePath = path.join?.(userAssetsDir, oldFile);
+        if (fs.existsSync?.(oldFilePath)) {
           try {
-            fs.unlinkSync(oldFilePath);
-            console.log(`Удален старый файл обложки: ${oldFile}`);
+            fs.unlinkSync?.(oldFilePath);
+            console.log?.(`Удален старый файл обложки: ${oldFile}`);
           } catch (err) {
-            console.warn(`Failed to remove old cover file ${oldFile}:`, err);
+            console.warn?.(`Failed to remove old cover file ${oldFile}:`, err);
           }
         }
       });
 
       // Создание нового имени файла с фиксированным именем
       const newFileName = `cover.${extension}`;
-      const filePath = path.join(userAssetsDir, newFileName);
+      const filePath = path.join?.(userAssetsDir, newFileName);
 
       // Сохранение файла
       try {
@@ -62,18 +62,18 @@ function registerUploadHandlers() {
         let buffer;
         if (typeof fileData.data === 'string') {
           // Если это строка base64, преобразуем в буфер
-          buffer = Buffer.from(fileData.data, 'base64');
-        } else if (Buffer.isBuffer(fileData.data)) {
+          buffer = Buffer.from?.(fileData.data, 'base64');
+        } else if (Buffer.isBuffer?.(fileData.data)) {
           // Если это уже буфер, используем его напрямую
           buffer = fileData.data;
         } else {
           // Если это массив или другой формат, пытаемся преобразовать
-          buffer = Buffer.from(fileData.data);
+          buffer = Buffer.from?.(fileData.data);
         }
         
-        fs.writeFileSync(filePath, buffer);
+        fs.writeFileSync?.(filePath, buffer);
       } catch (err) {
-        console.error('Ошибка сохранения файла:', err);
+        console.error?.('Ошибка сохранения файла:', err);
         return {
           status: 'error',
           error_code: 'save_failed',
@@ -83,15 +83,15 @@ function registerUploadHandlers() {
 
       // Обновление user.json с новым путем к обложке
       try {
-        const userJsonPath = path.join(__dirname, '../../Server/users', username, 'user.json');
-        if (fs.existsSync(userJsonPath)) {
-          const userData = JSON.parse(fs.readFileSync(userJsonPath, 'utf8'));
+        const userJsonPath = path.join?.(__dirname, '../../Server/users', username, 'user.json');
+        if (fs.existsSync?.(userJsonPath)) {
+          const userData = JSON.parse?.(fs.readFileSync?.(userJsonPath, 'utf8'));
           userData.coverPath = filePath;
-          userData.updatedAt = new Date().toISOString();
-          fs.writeFileSync(userJsonPath, JSON.stringify(userData, null, 2));
+          userData.updatedAt = new Date().toISOString?.();
+          fs.writeFileSync?.(userJsonPath, JSON.stringify(userData, null, 2));
         }
       } catch (err) {
-        console.warn('Не удалось обновить user.json с путем к обложке:', err);
+        console.warn?.('Не удалось обновить user.json с путем к обложке:', err);
         // Продолжаем, так как файл был успешно сохранен
       }
 
@@ -101,7 +101,7 @@ function registerUploadHandlers() {
         file_path: filePath
       };
     } catch (err) {
-      console.error('Ошибка загрузки обложки:', err);
+      console.error?.('Ошибка загрузки обложки:', err);
       return {
         status: 'error',
         error_code: 'unknown_error',
@@ -114,7 +114,7 @@ function registerUploadHandlers() {
     try {
       // Проверка типа файла
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(fileData.type)) {
+      if (!validTypes.includes?.(fileData.type)) {
         return {
           status: 'error',
           error_code: 'invalid_file_type',
@@ -123,10 +123,10 @@ function registerUploadHandlers() {
       }
 
       // Создание директории для пользовательских ресурсов, если она не существует
-      const userAssetsDir = path.join(__dirname, '../../Server/users', username, 'assets');
-      if (!fs.existsSync(userAssetsDir)) {
+      const userAssetsDir = path.join?.(__dirname, '../../Server/users', username, 'assets');
+      if (!fs.existsSync?.(userAssetsDir)) {
         try {
-          fs.mkdirSync(userAssetsDir, { recursive: true });
+          fs.mkdirSync?.(userAssetsDir, { recursive: true });
         } catch (err) {
           return {
             status: 'error',
@@ -146,21 +146,21 @@ function registerUploadHandlers() {
 
       // Удаление старых файлов аватаров с различными расширениями
       const oldFiles = ['avatar.jpg', 'avatar.jpeg', 'avatar.png'];
-      oldFiles.forEach(oldFile => {
-        const oldFilePath = path.join(userAssetsDir, oldFile);
-        if (fs.existsSync(oldFilePath)) {
+      oldFiles.forEach?.(oldFile => {
+        const oldFilePath = path.join?.(userAssetsDir, oldFile);
+        if (fs.existsSync?.(oldFilePath)) {
           try {
-            fs.unlinkSync(oldFilePath);
-            console.log(`Удален старый файл аватара: ${oldFile}`);
+            fs.unlinkSync?.(oldFilePath);
+            console.log?.(`Удален старый файл аватара: ${oldFile}`);
           } catch (err) {
-            console.warn(`Не удалось удалить старый файл аватара ${oldFile}:`, err);
+            console.warn?.(`Не удалось удалить старый файл аватара ${oldFile}:`, err);
           }
         }
       });
 
       // Создание нового имени файла с фиксированным именем
       const newFileName = `avatar.${extension}`;
-      const filePath = path.join(userAssetsDir, newFileName);
+      const filePath = path.join?.(userAssetsDir, newFileName);
 
       // Сохранение файла
       try {
@@ -168,18 +168,18 @@ function registerUploadHandlers() {
         let buffer;
         if (typeof fileData.data === 'string') {
           // Если это строка base64, преобразуем в буфер
-          buffer = Buffer.from(fileData.data, 'base64');
-        } else if (Buffer.isBuffer(fileData.data)) {
+          buffer = Buffer.from?.(fileData.data, 'base64');
+        } else if (Buffer.isBuffer?.(fileData.data)) {
           // Если это уже буфер, используем его напрямую
           buffer = fileData.data;
         } else {
           // Если это массив или другой формат, пытаемся преобразовать
-          buffer = Buffer.from(fileData.data);
+          buffer = Buffer.from?.(fileData.data);
         }
         
-        fs.writeFileSync(filePath, buffer);
+        fs.writeFileSync?.(filePath, buffer);
       } catch (err) {
-        console.error('Ошибка сохранения файла:', err);
+        console.error?.('Ошибка сохранения файла:', err);
         return {
           status: 'error',
           error_code: 'save_failed',
@@ -189,15 +189,15 @@ function registerUploadHandlers() {
 
       // Обновление user.json с новым путем к аватару
       try {
-        const userJsonPath = path.join(__dirname, '../../Server/users', username, 'user.json');
-        if (fs.existsSync(userJsonPath)) {
-          const userData = JSON.parse(fs.readFileSync(userJsonPath, 'utf8'));
+        const userJsonPath = path.join?.(__dirname, '../../Server/users', username, 'user.json');
+        if (fs.existsSync?.(userJsonPath)) {
+          const userData = JSON.parse?.(fs.readFileSync?.(userJsonPath, 'utf8'));
           userData.avatarPath = filePath;
-          userData.updatedAt = new Date().toISOString();
-          fs.writeFileSync(userJsonPath, JSON.stringify(userData, null, 2));
+          userData.updatedAt = new Date().toISOString?.();
+          fs.writeFileSync?.(userJsonPath, JSON.stringify(userData, null, 2));
         }
       } catch (err) {
-        console.warn('Не удалось обновить user.json:', err);
+        console.warn?.('Не удалось обновить user.json:', err);
         // Продолжаем, так как файл был успешно сохранен
       }
 
@@ -207,7 +207,7 @@ function registerUploadHandlers() {
         file_path: filePath
       };
     } catch (err) {
-      console.error('Ошибка загрузки аватара:', err);
+      console.error?.('Ошибка загрузки аватара:', err);
       return {
         status: 'error',
         error_code: 'unknown_error',

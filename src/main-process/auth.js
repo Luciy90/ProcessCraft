@@ -21,24 +21,24 @@ function registerAuthHandlers() {
   // Логин
   ipcMain.handle('auth:login', async (event, credentials) => {
     try {
-      const { username, password } = credentials || {};
+      const { username, password } = credentials ?? {};
       if (!username || !password) return { ok: false, error: 'credentials_required' };
       
       // Получаем пользователя из базы данных с ролями
-      const userData = await getUserByUsername(username, 'regular');
+      const userData = await getUserByUsername?.(username, 'regular');
       if (!userData) return { ok: false, error: 'not_found' };
       
       // Проверяем пароль
-      const isValid = verifyPassword(password, userData.passwordHash);
+      const isValid = verifyPassword?.(password, userData.passwordHash);
       if (!isValid) return { ok: false, error: 'invalid_password' };
       
       // Обновление времени последнего входа
-      await updateLastLogin(username);
+      await updateLastLogin?.(username);
       
       // Определение пути к обложке с резервной логикой
       let coverPath = userData.coverPath;
-      if (!coverPath || !fs.existsSync(coverPath)) {
-        coverPath = resolveCoverPath(username);
+      if (!coverPath || !fs.existsSync?.(coverPath)) {
+        coverPath = resolveCoverPath?.(username);
       }
       
       return {

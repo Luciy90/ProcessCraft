@@ -10,11 +10,11 @@ const { getConnectionPool } = require('../connection');
 function hashPassword(password, salt = null) {
   // Генерация соли, если не предоставлена
   if (!salt) {
-    salt = crypto.randomBytes(32).toString('hex');
+    salt = crypto.randomBytes?.(32).toString?.('hex');
   }
   
   // Хеширование пароля с использованием PBKDF2 с SHA-512
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  const hash = crypto.pbkdf2Sync?.(password, salt, 10000, 64, 'sha512').toString?.('hex');
   
   // Объединение соли и хеша для хранения
   const merged = `${salt}$${hash}`;
@@ -34,16 +34,16 @@ function hashPassword(password, salt = null) {
 function verifyPassword(password, storedHash) {
   try {
     // Извлечение соли и хеша из сохраненного значения
-    const parts = storedHash.split('$');
-    if (parts.length !== 2) {
+    const parts = storedHash.split?.('$');
+    if (parts?.length !== 2) {
       return false;
     }
     
-    const salt = parts[0];
-    const hash = parts[1];
+    const salt = parts?.[0];
+    const hash = parts?.[1];
     
     // Хеширование предоставленного пароля с извлеченной солью
-    const hashedPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    const hashedPassword = crypto.pbkdf2Sync?.(password, salt, 10000, 64, 'sha512').toString?.('hex');
     
     // Сравнение хешей
     return hashedPassword === hash;
@@ -65,13 +65,13 @@ async function updateUserPassword(username, newPassword) {
     const { hash } = hashPassword(newPassword);
     
     // Получение пула подключений суперадминистратора для привилегированной операции
-    const pool = await getConnectionPool('superadmin');
+    const pool = await getConnectionPool?.('superadmin');
     
     // Обновление хеша пароля в базе данных
-    await pool.request()
-      .input('passwordHash', sql.VarChar(255), hash)
-      .input('username', sql.VarChar(50), username)
-      .query(`
+    await pool.request?.()
+      .input?.('passwordHash', sql.VarChar(255), hash)
+      .input?.('username', sql.VarChar(50), username)
+      .query?.(`
         UPDATE Users 
         SET PasswordHash = @passwordHash, UpdatedAt = GETDATE()
         WHERE UserName = @username
@@ -101,28 +101,28 @@ async function createNewUser(userData) {
       position,
       isSuperAdmin = false,
       avatarColor = { hue: 0, saturation: 80, brightness: 80 }
-    } = userData;
+    } = userData ?? {};
     
     // Хеширование пароля
     const { hash } = hashPassword(password);
     
     // Получение пула подключений суперадминистратора для привилегированной операции
-    const pool = await getConnectionPool('superadmin');
+    const pool = await getConnectionPool?.('superadmin');
     
     // Вставка нового пользователя в базу данных
-    await pool.request()
-      .input('displayName', sql.NVarChar(100), displayName)
-      .input('username', sql.VarChar(50), username)
-      .input('email', sql.VarChar(100), email)
-      .input('phone', sql.VarChar(20), phone)
-      .input('department', sql.NVarChar(100), department)
-      .input('position', sql.NVarChar(100), position)
-      .input('passwordHash', sql.VarChar(255), hash)
-      .input('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0)
-      .input('avatarColorHue', sql.Int, avatarColor.hue)
-      .input('avatarColorSaturation', sql.Int, avatarColor.saturation)
-      .input('avatarColorBrightness', sql.Int, avatarColor.brightness)
-      .query(`
+    await pool.request?.()
+      .input?.('displayName', sql.NVarChar(100), displayName)
+      .input?.('username', sql.VarChar(50), username)
+      .input?.('email', sql.VarChar(100), email)
+      .input?.('phone', sql.VarChar(20), phone)
+      .input?.('department', sql.NVarChar(100), department)
+      .input?.('position', sql.NVarChar(100), position)
+      .input?.('passwordHash', sql.VarChar(255), hash)
+      .input?.('isSuperAdmin', sql.Bit, isSuperAdmin ? 1 : 0)
+      .input?.('avatarColorHue', sql.Int, avatarColor?.hue)
+      .input?.('avatarColorSaturation', sql.Int, avatarColor?.saturation)
+      .input?.('avatarColorBrightness', sql.Int, avatarColor?.brightness)
+      .query?.(`
         INSERT INTO Users (
           DisplayName, UserName, Email, Phone, Department, Position, 
           PasswordHash, IsSuperAdmin, AvatarColorHue, AvatarColorSaturation, AvatarColorBrightness,
@@ -149,12 +149,12 @@ async function createNewUser(userData) {
 async function updateLastLogin(username) {
   try {
     // Получение обычного пула подключений
-    const pool = await getConnectionPool('regular');
+    const pool = await getConnectionPool?.('regular');
     
     // Обновление времени последнего входа
-    await pool.request()
-      .input('username', sql.VarChar(50), username)
-      .query(`
+    await pool.request?.()
+      .input?.('username', sql.VarChar(50), username)
+      .query?.(`
         UPDATE Users 
         SET LastLoginAt = GETDATE()
         WHERE UserName = @username

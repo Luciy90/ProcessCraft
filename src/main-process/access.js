@@ -11,7 +11,7 @@ const fs = require('fs');
 function hasRole(userProfile, roleName) {
   try {
     // Проверяем, что userProfile существует и имеет массив ролей
-    if (!userProfile || !Array.isArray(userProfile.roles)) {
+    if (!userProfile?.roles?.length) {
       return false;
     }
     
@@ -32,7 +32,7 @@ function hasRole(userProfile, roleName) {
 function hasAnyRole(userProfile, roleNames) {
   try {
     // Проверяем, что userProfile существует и имеет массив ролей
-    if (!userProfile || !Array.isArray(userProfile.roles) || !Array.isArray(roleNames)) {
+    if (!userProfile?.roles?.length || !roleNames?.length) {
       return false;
     }
     
@@ -52,7 +52,7 @@ function hasAnyRole(userProfile, roleNames) {
 function getUserRoles(userProfile) {
   try {
     // Проверяем, что userProfile существует и имеет массив ролей
-    if (!userProfile || !Array.isArray(userProfile.roles)) {
+    if (!userProfile?.roles?.length) {
       return [];
     }
     
@@ -74,13 +74,13 @@ const accessConfigPath = path.join(serverRootPath, 'users', 'access.json');
  */
 function loadAccessConfig() {
   try {
-    if (!fs.existsSync(accessConfigPath)) {
+    if (!fs.existsSync?.(accessConfigPath)) {
       console.error('[AccessControl] Файл конфигурации доступа не найден:', accessConfigPath);
       return null;
     }
     
-    const raw = fs.readFileSync(accessConfigPath, 'utf-8');
-    if (!raw || raw.trim().length === 0) {
+    const raw = fs.readFileSync?.(accessConfigPath, 'utf-8');
+    if (!raw || raw.trim()?.length === 0) {
       console.warn('[AccessControl] Файл access.json пуст, вернём дефолтную конфигурацию');
       return {
         roles: {
@@ -100,7 +100,7 @@ function loadAccessConfig() {
     } catch (parseErr) {
       console.error('[AccessControl] Ошибка парсинга access.json, содержимое файла может быть повреждено. Попытаемся восстановить дефолтную конфигурацию. Parse error:', parseErr.message);
       // Логируем небольшую часть содержимого для диагностики
-      try { console.error('[AccessControl] access.json excerpt:', raw.slice(0, 1000)); } catch (e) {}
+      try { console.error('[AccessControl] access.json excerpt:', raw.slice?.(0, 1000)); } catch (e) {}
       return {
         roles: {
           "SuperAdmin": {},
@@ -150,8 +150,8 @@ function loadAccessConfig() {
  */
 function saveAccessConfig(config) {
   try {
-    fs.mkdirSync(path.dirname(accessConfigPath), { recursive: true });
-    fs.writeFileSync(accessConfigPath, JSON.stringify(config, null, 2), 'utf-8');
+    fs.mkdirSync?.(path.dirname?.(accessConfigPath), { recursive: true });
+    fs.writeFileSync?.(accessConfigPath, JSON.stringify(config, null, 2), 'utf-8');
     console.log('[AccessControl] Конфигурация доступа успешно сохранена');
     return true;
   } catch (error) {
@@ -207,7 +207,7 @@ function updateRoles(config) {
   
   // Добавляем отсутствующие обязательные роли
   requiredRoles.forEach(role => {
-    if (!config.roles.hasOwnProperty(role)) {
+    if (!config.roles.hasOwnProperty?.(role)) {
       config.roles[role] = {};
     }
   });
@@ -223,15 +223,15 @@ function updateRoles(config) {
 function findHtmlFiles(dirPath) {
   try {
     const files = [];
-    const items = fs.readdirSync(dirPath, { withFileTypes: true });
+    const items = fs.readdirSync?.(dirPath, { withFileTypes: true });
     
     for (const item of items) {
-      const fullPath = path.join(dirPath, item.name);
+      const fullPath = path.join?.(dirPath, item.name);
       
-      if (item.isDirectory()) {
+      if (item.isDirectory?.()) {
         // Рекурсивно ищем в поддиректориях
         files.push(...findHtmlFiles(fullPath));
-      } else if (item.isFile() && (item.name.endsWith('.html') || item.name.endsWith('.js'))) {
+      } else if (item.isFile?.() && (item.name.endsWith?.('.html') || item.name.endsWith?.('.js'))) {
         // Добавляем HTML и JS файлы
         files.push(fullPath);
       }
@@ -257,22 +257,22 @@ function extractAccessMarkers(content) {
     const markerRegex = /data-access-marker=["']([^"']+)["']/g;
     let match;
 
-    while ((match = markerRegex.exec(content)) !== null) {
+    while ((match = markerRegex.exec?.(content)) !== null) {
       const id = match[1];
 
       // Попробуем найти description и down рядом с найденным маркером (в пределах той же строки)
-      const lineStart = content.lastIndexOf('\n', match.index) + 1;
-      const lineEnd = content.indexOf('\n', match.index);
-      const line = content.substring(lineStart, lineEnd === -1 ? content.length : lineEnd);
+      const lineStart = content.lastIndexOf?.('\n', match.index) + 1;
+      const lineEnd = content.indexOf?.('\n', match.index);
+      const line = content.substring?.(lineStart, lineEnd === -1 ? content.length : lineEnd);
 
       // Попытка извлечь description и down из той же строки
       let description = null;
       let down = null;
       const descRegex = /data-access-description=["']([^"']*)["']/;
       const downRegex = /data-access-down=["']([^"']+)["']/;
-      const dmatch = descRegex.exec(line);
+      const dmatch = descRegex.exec?.(line);
       if (dmatch) description = dmatch[1];
-      const downMatch = downRegex.exec(line);
+      const downMatch = downRegex.exec?.(line);
       if (downMatch) down = downMatch[1];
 
       markers.push({ id, description, down });
@@ -295,7 +295,7 @@ function buildMarkersHierarchy(foundMarkers) {
   const markerMap = {};
   foundMarkers.forEach(marker => {
     // Для пустых или некорректных значений description подставляем "Требует заполнения"
-    const description = (!marker.description || marker.description.trim() === '') ? 'Требует заполнения' : marker.description;
+    const description = (!marker.description || marker.description.trim?.() === '') ? 'Требует заполнения' : marker.description;
     
     markerMap[marker.id] = {
       description: description,
@@ -307,7 +307,7 @@ function buildMarkersHierarchy(foundMarkers) {
   const hierarchy = {};
   
   foundMarkers.forEach(marker => {
-    if (marker.down && markerMap[marker.down]) {
+    if (marker.down && markerMap?.[marker.down]) {
       // Добавляем как дочерний элемент
       const childEntry = {};
       childEntry[marker.id] = markerMap[marker.id];
@@ -320,7 +320,7 @@ function buildMarkersHierarchy(foundMarkers) {
   
   // Удаляем дочерние маркеры из верхнего уровня
   foundMarkers.forEach(marker => {
-    if (marker.down && hierarchy[marker.id]) {
+    if (marker.down && hierarchy?.[marker.id]) {
       delete hierarchy[marker.id];
     }
   });
@@ -345,14 +345,14 @@ function updateAccessStructure(config) {
   
   // Удаляем записи для ролей, которых нет в объекте roles
   for (const role in config.access) {
-    if (!config.roles.hasOwnProperty(role)) {
+    if (!config.roles.hasOwnProperty?.(role)) {
       delete config.access[role];
     }
   }
   
   // Добавляем отсутствующие роли в access
   for (const role in config.roles) {
-    if (!config.access.hasOwnProperty(role)) {
+    if (!config.access.hasOwnProperty?.(role)) {
       config.access[role] = [];
     }
   }
@@ -394,7 +394,7 @@ function updateAccessConfigWithMarkers() {
 
     // 3. Анализ HTML и построение структуры маркеров
     // Выполнить поиск всех HTML-файлов в каталоге src, в том числе файлов, встроенных в JS
-    const searchRoot = path.join(__dirname, '../renderer');
+    const searchRoot = path.join?.(__dirname, '../renderer');
     const files = findHtmlFiles(searchRoot);
     console.log(`[AccessControl] Найдено файлов для анализа: ${files.length}`);
 
@@ -402,7 +402,7 @@ function updateAccessConfigWithMarkers() {
     const allMarkers = [];
     for (const filePath of files) {
       try {
-        const content = fs.readFileSync(filePath, 'utf-8');
+        const content = fs.readFileSync?.(filePath, 'utf-8');
         const markers = extractAccessMarkers(content);
         allMarkers.push(...markers);
         console.log(`[AccessControl] В файле ${filePath} найдено маркеров: ${markers.length}`);
@@ -459,7 +459,7 @@ function registerAccessControlHandlers() {
   // IPC обработчик для обновления прав доступа (только для явных запросов)
   ipcMain.handle('access:updateAccess', async (event, payload) => {
     try {
-      const { access } = payload || {};
+      const { access } = payload ?? {};
       
       // Загружаем текущую конфигурацию
       const config = loadAccessConfig();
@@ -471,7 +471,7 @@ function registerAccessControlHandlers() {
       if (access && typeof access === 'object') {
         // Обновляем права доступа для каждой роли отдельно
         for (const role in access) {
-          if (Array.isArray(access[role]) && config.access.hasOwnProperty(role)) {
+          if (Array.isArray(access[role]) && config.access.hasOwnProperty?.(role)) {
             // Заменяем права доступа для этой роли на переданные
             config.access[role] = [...access[role]];
           }
@@ -482,7 +482,7 @@ function registerAccessControlHandlers() {
       // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
       if (config.roles && typeof config.roles === 'object' && !Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
         for (const role in config.roles) {
-          if (!config.access.hasOwnProperty(role)) {
+          if (!config.access.hasOwnProperty?.(role)) {
             config.access[role] = [];
           }
         }
@@ -506,7 +506,7 @@ function registerAccessControlHandlers() {
   // IPC обработчик для проверки ролей пользователя
   ipcMain.handle('access:hasRole', async (event, payload) => {
     try {
-      const { userProfile, roleName } = payload || {};
+      const { userProfile, roleName } = payload ?? {};
       
       // Проверяем наличие роли у пользователя
       const hasRoleResult = hasRole(userProfile, roleName);
@@ -521,7 +521,7 @@ function registerAccessControlHandlers() {
   // IPC обработчик для проверки любых ролей пользователя
   ipcMain.handle('access:hasAnyRole', async (event, payload) => {
     try {
-      const { userProfile, roleNames } = payload || {};
+      const { userProfile, roleNames } = payload ?? {};
       
       // Проверяем наличие хотя бы одной роли у пользователя
       const hasAnyRoleResult = hasAnyRole(userProfile, roleNames);

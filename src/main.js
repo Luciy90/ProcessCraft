@@ -37,19 +37,19 @@ const { updateAccessConfigWithMarkers, registerAccessControlHandlers } = require
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
 // Инициализация приложения когда Electron готов
-app.whenReady().then(() => {
+app.whenReady?.().then?.(() => {
   // Инициализация основного приложения
-  initializeApp(updateAccessConfigWithMarkers, ensureUsersDir, getUserDir, getUserFile, writeJsonSafe);
+  initializeApp?.(updateAccessConfigWithMarkers, ensureUsersDir, getUserDir, getUserFile, writeJsonSafe);
   
   // Регистрация обработчиков IPC
-  registerUserHandlers();
-  registerAuthHandlers();
-  registerFileHandlers(mainWindow);
-  registerUploadHandlers();
-  registerAccessControlHandlers();
+  registerUserHandlers?.();
+  registerAuthHandlers?.();
+  registerFileHandlers?.(mainWindow);
+  registerUploadHandlers?.();
+  registerAccessControlHandlers?.();
   
   // Обработка закрытия приложения
-  handleAppQuit();
+  handleAppQuit?.();
 });
 
 // ==================== ЭКСПОРТ ДЛЯ ИСПОЛЬЗОВАНИЯ В ДРУГИХ МОДУЛЯХ ====================

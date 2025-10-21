@@ -8,36 +8,36 @@ const path = require('path');
 
 // Load encryption key from salt file referenced in auth-db.json
 function loadEncryptionKey() {
-  const AUTH_DB_FILE = path.join(__dirname, 'auth-db.json');
+  const AUTH_DB_FILE = path.join?.(__dirname, 'auth-db.json');
   try {
     // Проверяем, существует ли файл auth-db.json
-    if (!fs.existsSync(AUTH_DB_FILE)) {
+    if (!fs.existsSync?.(AUTH_DB_FILE)) {
       // Если файл не существует, возвращаем null
       // Это может произойти во время первоначальной настройки
       return null;
     }
     
-    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
-    const authDb = JSON.parse(authData);
+    const authData = fs.readFileSync?.(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse?.(authData);
     if (!authDb.encryption || !authDb.encryption.key_file) {
       throw new Error('encryption.key_file is not defined in auth-db.json');
     }
     
     // Проверяем, является ли key_file полным путем или только именем файла
     let keyFilePath;
-    if (path.isAbsolute(authDb.encryption.key_file)) {
+    if (path.isAbsolute?.(authDb.encryption.key_file)) {
       // Это уже полный путь
       keyFilePath = authDb.encryption.key_file;
     } else {
       // Это имя файла, нужно создать полный путь
-      keyFilePath = path.join(__dirname, 'src/salt', authDb.encryption.key_file);
+      keyFilePath = path.join?.(__dirname, 'src/salt', authDb.encryption.key_file);
     }
     
-    const keyFile = fs.readFileSync(keyFilePath, 'utf8');
-    const keyObj = JSON.parse(keyFile);
+    const keyFile = fs.readFileSync?.(keyFilePath, 'utf8');
+    const keyObj = JSON.parse?.(keyFile);
     const keyHex = keyObj.salt; // store 32-byte hex in the file
-    const key = Buffer.from(keyHex, 'hex');
-    if (key.length !== 32) {
+    const key = Buffer.from?.(keyHex, 'hex');
+    if (key?.length !== 32) {
       throw new Error('Encryption key must be 32 bytes');
     }
     return key;
@@ -67,29 +67,29 @@ function getKey() {
  */
 function encrypt(text) {
   // Проверяем, доступен ли ключ шифрования
-  const key = getKey();
+  const key = getKey?.();
   if (!key) {
     throw new Error('Encryption key is not available. Run setup-db-access.js first.');
   }
   
   // Генерируем случайный вектор инициализации
-  const iv = crypto.randomBytes(16);
+  const iv = crypto.randomBytes?.(16);
   
   // Создаем шифр с использованием createCipheriv
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const cipher = crypto.createCipheriv?.('aes-256-gcm', key, iv);
   
   // Шифруем текст
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+  let encrypted = cipher.update?.(text, 'utf8', 'hex');
+  encrypted += cipher.final?.('hex');
   
   // Получаем тег аутентификации
-  const authTag = cipher.getAuthTag();
+  const authTag = cipher.getAuthTag?.();
   
   // Возвращаем зашифрованные данные с IV и тегом аутентификации
   return {
     encryptedData: encrypted,
-    iv: iv.toString('hex'),
-    authTag: authTag.toString('hex')
+    iv: iv.toString?.('hex'),
+    authTag: authTag.toString?.('hex')
   };
 }
 
@@ -100,7 +100,7 @@ function encrypt(text) {
  */
 function decrypt(encryptedObj) {
   // Проверяем, доступен ли ключ шифрования
-  const key = getKey();
+  const key = getKey?.();
   if (!key) {
     throw new Error('Encryption key is not available. Run setup-db-access.js first.');
   }
@@ -108,14 +108,14 @@ function decrypt(encryptedObj) {
   const { encryptedData, iv, authTag } = encryptedObj;
   
   // Создаем дешифратор с использованием createDecipheriv
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'hex'));
+  const decipher = crypto.createDecipheriv?.('aes-256-gcm', key, Buffer.from?.(iv, 'hex'));
   
   // Устанавливаем тег аутентификации
-  decipher.setAuthTag(Buffer.from(authTag, 'hex'));
+  decipher.setAuthTag?.(Buffer.from?.(authTag, 'hex'));
   
   // Дешифруем данные
-  let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
+  let decrypted = decipher.update?.(encryptedData, 'hex', 'utf8');
+  decrypted += decipher.final?.('utf8');
   
   return decrypted;
 }
@@ -132,8 +132,8 @@ function createEncryptedCredentials(userType, credentials) {
   
   return {
     userType,
-    encryptedUsername: encrypt(credentials.username),
-    encryptedPassword: encrypt(credentials.password),
+    encryptedUsername: encrypt?.(credentials.username),
+    encryptedPassword: encrypt?.(credentials.password),
     createdAt: new Date().toISOString()
   };
 }
@@ -145,8 +145,8 @@ function createEncryptedCredentials(userType, credentials) {
  */
 function decryptCredentials(encryptedCredentials) {
   try {
-    const username = decrypt(encryptedCredentials.encryptedUsername);
-    const password = decrypt(encryptedCredentials.encryptedPassword);
+    const username = decrypt?.(encryptedCredentials.encryptedUsername);
+    const password = decrypt?.(encryptedCredentials.encryptedPassword);
     
     return {
       userType: encryptedCredentials.userType,

@@ -19,14 +19,14 @@ const SALT_DIR = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
  */
 function ensureAuthDbFile() {
   try {
-    const exists = fs.existsSync(AUTH_DB_FILE);
-    const isEmpty = exists ? fs.statSync(AUTH_DB_FILE).size === 0 : true;
+    const exists = fs.existsSync?.(AUTH_DB_FILE);
+    const isEmpty = exists ? fs.statSync?.(AUTH_DB_FILE)?.size === 0 : true;
     if (!exists || isEmpty) {
       const placeholder = {
         initializing: true,
         createdAt: new Date().toISOString()
       };
-      fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(placeholder, null, 2));
+      fs.writeFileSync?.(AUTH_DB_FILE, JSON.stringify(placeholder, null, 2));
       console.log('✓ Создан базовый файл auth-db.json');
     }
   } catch (e) {
@@ -43,11 +43,11 @@ function ensureAuthDbFile() {
 function hashData(data, salt = null) {
   // Генерируем соль, если она не предоставлена
   if (!salt) {
-    salt = crypto.randomBytes(32).toString('hex');
+    salt = crypto.randomBytes?.(32).toString?.('hex');
   }
   
   // Хешируем данные с использованием PBKDF2
-  const hash = crypto.pbkdf2Sync(data, salt, 10000, 64, 'sha512').toString('hex');
+  const hash = crypto.pbkdf2Sync?.(data, salt, 10000, 64, 'sha512').toString?.('hex');
   
   return {
     hash,
@@ -63,20 +63,20 @@ function hashData(data, salt = null) {
  */
 function createSaltFile(index, salt) {
   // Убедимся, что директория для солей существует
-  const saltDir = path.resolve(process.env.DB_PATH_SALT || path.join(__dirname, 'salt'));
-  if (!fs.existsSync(saltDir)) {
-    fs.mkdirSync(saltDir, { recursive: true });
+  const saltDir = path.resolve?.(process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt'));
+  if (!fs.existsSync?.(saltDir)) {
+    fs.mkdirSync?.(saltDir, { recursive: true });
   }
   
   const saltFileName = `salt${index}.json`;
-  const saltFilePath = path.join(saltDir, saltFileName);
+  const saltFilePath = path.join?.(saltDir, saltFileName);
   
   const saltData = {
     salt: salt,
     createdAt: new Date().toISOString()
   };
   
-  fs.writeFileSync(saltFilePath, JSON.stringify(saltData, null, 2));
+  fs.writeFileSync?.(saltFilePath, JSON.stringify(saltData, null, 2));
   console.log(`  ✓ Создан файл соли: ${saltFileName} в ${saltDir}`);
   
   return saltFilePath; // Возвращаем полный путь
@@ -89,8 +89,8 @@ function createSaltFile(index, salt) {
  */
 function getSaltFilePath(saltFileName) {
   // Используем DB_PATH_SALT из .env файла если доступен, иначе используем значение по умолчанию
-  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
-  return path.join(path.resolve(saltDir), saltFileName);
+  const saltDir = process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt');
+  return path.join?.(path.resolve?.(saltDir), saltFileName);
 }
 
 /**
@@ -102,7 +102,7 @@ function validateAndReadEnvFile() {
   
   try {
     // Проверяем существование файла
-    if (!fs.existsSync(ENV_FILE)) {
+    if (!fs.existsSync?.(ENV_FILE)) {
       throw new Error('Не найден файл .env');
     }
     
@@ -113,7 +113,7 @@ function validateAndReadEnvFile() {
       'DB_USER_ADMIN', 'DB_PASSWORD_ADMIN'
     ];
     
-    const missingVars = requiredVars.filter(envVar => !process.env[envVar]);
+    const missingVars = requiredVars.filter?.(envVar => !process.env?.[envVar]);
     if (missingVars.length > 0) {
       throw new Error(`Повреждена структура .env — отсутствуют ключи: ${missingVars.join(', ')}`);
     }
@@ -156,24 +156,24 @@ function validateAndReadEnvFile() {
  * @returns {Object} - Объект с ключом и полным путем к файлу
  */
 function createEncryptionKey() {
-  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
-  const saltDirAbs = path.resolve(saltDir);
-  if (!fs.existsSync(saltDirAbs)) {
-    fs.mkdirSync(saltDirAbs, { recursive: true });
+  const saltDir = process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt');
+  const saltDirAbs = path.resolve?.(saltDir);
+  if (!fs.existsSync?.(saltDirAbs)) {
+    fs.mkdirSync?.(saltDirAbs, { recursive: true });
   }
   
   // Создаем 32-байтный ключ
-  const keyBytes = crypto.randomBytes(32);
-  const keyHex = keyBytes.toString('hex');
+  const keyBytes = crypto.randomBytes?.(32);
+  const keyHex = keyBytes.toString?.('hex');
   const keyFileName = 'enc_key.json';
-  const keyFilePath = path.join(saltDirAbs, keyFileName);
+  const keyFilePath = path.join?.(saltDirAbs, keyFileName);
   
   const keyData = {
     salt: keyHex,
     createdAt: new Date().toISOString()
   };
   
-  fs.writeFileSync(keyFilePath, JSON.stringify(keyData, null, 2));
+  fs.writeFileSync?.(keyFilePath, JSON.stringify(keyData, null, 2));
   console.log(`  ✓ Ключ шифрования создан: ${keyFileName}`);
   
   return {
@@ -190,18 +190,18 @@ function createEncryptionKey() {
  * @returns {Object} - Зашифрованные данные
  */
 function encryptWithKey(text, key) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const iv = crypto.randomBytes?.(16);
+  const cipher = crypto.createCipheriv?.('aes-256-gcm', key, iv);
   
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+  let encrypted = cipher.update?.(text, 'utf8', 'hex');
+  encrypted += cipher.final?.('hex');
   
-  const authTag = cipher.getAuthTag();
+  const authTag = cipher.getAuthTag?.();
   
   return {
     encryptedData: encrypted,
-    iv: iv.toString('hex'),
-    authTag: authTag.toString('hex')
+    iv: iv.toString?.('hex'),
+    authTag: authTag.toString?.('hex')
   };
 }
 
@@ -213,14 +213,14 @@ function setupDatabaseAccess() {
   
   try {
     // Предварительно гарантируем наличие файла auth-db.json
-    ensureAuthDbFile();
+    ensureAuthDbFile?.();
 
     // Шаг 1: Проверка и чтение .env файла
-    const envData = validateAndReadEnvFile();
+    const envData = validateAndReadEnvFile?.();
     
     // Шаг 2: Генерация ключа шифрования и запись в salt/
     console.log('\nПодготовка ключа шифрования...');
-    const encryptionKey = createEncryptionKey();
+    const encryptionKey = createEncryptionKey?.();
 
     // Шаг 3: Хеширование всех данных и создание файлов солей
     console.log('\nХеширование данных и создание файлов солей...');
@@ -229,25 +229,25 @@ function setupDatabaseAccess() {
     const saltFiles = {};
     
     // Хешируем имя сервера
-    const serverHashed = hashData(envData.db_server);
-    const serverSaltFilePath = createSaltFile(saltIndex++, serverHashed.salt);
+    const serverHashed = hashData?.(envData.db_server);
+    const serverSaltFilePath = createSaltFile?.(saltIndex++, serverHashed.salt);
     saltFiles.server = serverSaltFilePath;
     
     // Хешируем имя базы данных
-    const databaseHashed = hashData(envData.db_database);
-    const databaseSaltFilePath = createSaltFile(saltIndex++, databaseHashed.salt);
+    const databaseHashed = hashData?.(envData.db_database);
+    const databaseSaltFilePath = createSaltFile?.(saltIndex++, databaseHashed.salt);
     saltFiles.database = databaseSaltFilePath;
     
     // Хешируем данные пользователей
     const usersWithHashes = {};
-    envData.users.forEach((user, index) => {
+    envData.users.forEach?.((user, index) => {
       // Хешируем логин
-      const loginHashed = hashData(user.login);
-      const loginSaltFilePath = createSaltFile(saltIndex++, loginHashed.salt);
+      const loginHashed = hashData?.(user.login);
+      const loginSaltFilePath = createSaltFile?.(saltIndex++, loginHashed.salt);
       
       // Хешируем пароль
-      const passwordHashed = hashData(user.password);
-      const passwordSaltFilePath = createSaltFile(saltIndex++, passwordHashed.salt);
+      const passwordHashed = hashData?.(user.password);
+      const passwordSaltFilePath = createSaltFile?.(saltIndex++, passwordHashed.salt);
       
       // Сохраняем пользователя в объекте с логином как ключом
       // ВНИМАНИЕ: Сохраняем полные пути к файлам
@@ -266,14 +266,14 @@ function setupDatabaseAccess() {
     // Шаг 4: Шифрование фактических значений для использования в рантайме
     console.log('\nШифрование параметров подключения и учетных данных...');
     const encryptedConfig = {
-      server: encryptWithKey(envData.db_server, encryptionKey.key),
-      database: encryptWithKey(envData.db_database, encryptionKey.key),
+      server: encryptWithKey?.(envData.db_server, encryptionKey.key),
+      database: encryptWithKey?.(envData.db_database, encryptionKey.key),
       users: {}
     };
-    envData.users.forEach(user => {
+    envData.users.forEach?.(user => {
       encryptedConfig.users[user.login] = {
-        username: encryptWithKey(user.login, encryptionKey.key),
-        password: encryptWithKey(user.password, encryptionKey.key)
+        username: encryptWithKey?.(user.login, encryptionKey.key),
+        password: encryptWithKey?.(user.password, encryptionKey.key)
       };
     });
     
@@ -297,7 +297,7 @@ function setupDatabaseAccess() {
     };
     
     // Сохраняем в файл (перезаписываем, если существует)
-    fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
+    fs.writeFileSync?.(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
     console.log('✓ Файл auth-db.json успешно создан/обновлен');
     
     // Шаг 6: Вывод информации о созданных файлах
@@ -327,8 +327,8 @@ function readSaltFromFile(saltFile) {
   try {
     // В новой реализации saltFile всегда должен содержать полный путь
     const saltFilePath = saltFile;
-    const saltData = fs.readFileSync(saltFilePath, 'utf8');
-    const saltObj = JSON.parse(saltData);
+    const saltData = fs.readFileSync?.(saltFilePath, 'utf8');
+    const saltObj = JSON.parse?.(saltData);
     return saltObj.salt;
   } catch (error) {
     throw new Error(`Не удалось прочитать файл соли ${saltFile}: ${error.message}`);
@@ -346,43 +346,43 @@ function readSaltFromFile(saltFile) {
 function verifyDatabaseCredentials(server, database, username, password) {
   try {
     // Читаем auth-db.json
-    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
-    const authDb = JSON.parse(authData);
+    const authData = fs.readFileSync?.(AUTH_DB_FILE, 'utf8');
+    const authDb = JSON.parse?.(authData);
     
     // Проверяем сервер
-    const serverSalt = readSaltFromFile(authDb.db_config.server_salt_file);
-    const serverHashed = hashData(server, serverSalt);
+    const serverSalt = readSaltFromFile?.(authDb.db_config.server_salt_file);
+    const serverHashed = hashData?.(server, serverSalt);
     if (serverHashed.hash !== authDb.db_config.server_hash) {
       console.log('✗ Неверное имя сервера');
       return false;
     }
     
     // Проверяем базу данных
-    const databaseSalt = readSaltFromFile(authDb.db_config.database_salt_file);
-    const databaseHashed = hashData(database, databaseSalt);
+    const databaseSalt = readSaltFromFile?.(authDb.db_config.database_salt_file);
+    const databaseHashed = hashData?.(database, databaseSalt);
     if (databaseHashed.hash !== authDb.db_config.database_hash) {
       console.log('✗ Неверное имя базы данных');
       return false;
     }
     
     // Проверяем пользователя
-    const user = authDb.users[username];
+    const user = authDb.users?.[username];
     if (!user) {
       console.log('✗ Пользователь не найден');
       return false;
     }
     
     // Проверяем логин
-    const loginSalt = readSaltFromFile(user.login_salt_file);
-    const loginHashed = hashData(username, loginSalt);
+    const loginSalt = readSaltFromFile?.(user.login_salt_file);
+    const loginHashed = hashData?.(username, loginSalt);
     if (loginHashed.hash !== user.login_hash) {
       console.log('✗ Неверное имя пользователя');
       return false;
     }
     
     // Проверяем пароль
-    const passwordSalt = readSaltFromFile(user.password_salt_file);
-    const passwordHashed = hashData(password, passwordSalt);
+    const passwordSalt = readSaltFromFile?.(user.password_salt_file);
+    const passwordHashed = hashData?.(password, passwordSalt);
     if (passwordHashed.hash !== user.password_hash) {
       console.log('✗ Неверный пароль');
       return false;
