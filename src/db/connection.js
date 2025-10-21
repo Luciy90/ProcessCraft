@@ -116,6 +116,10 @@ validateConfig();
 let regularPool = null;
 let adminPool = null;
 
+// Promise guards to prevent race conditions during pool initialization
+let regularPoolInitPromise = null;
+let adminPoolInitPromise = null;
+
 // Инициализация подключения с учетными данными
 async function initializeConnection(userType = 'regular') {
   const configWithCredentials = await loadCredentials(userType);
@@ -144,13 +148,37 @@ async function initializeConnection(userType = 'regular') {
   }
 }
 
-// Function to get the appropriate pool based on connection type
+// Функция для получения соответствующего пула в зависимости от типа подключения
 async function getConnectionPool(connectionType = 'regular') {
-  // Initialize pools if they don't exist
+  // Initialize pools if they don't exist with synchronization to prevent race conditions
   if (connectionType === 'superadmin' && !adminPool) {
-    adminPool = await initializeConnection('superadmin');
+    // If initialization is already in progress, wait for it to complete
+    if (adminPoolInitPromise) {
+      return adminPoolInitPromise;
+    }
+    
+    // Start initialization and store the promise
+    adminPoolInitPromise = initializeConnection('superadmin');
+    try {
+      await adminPoolInitPromise;
+    } finally {
+      // Clear the promise after initialization completes (success or failure)
+      adminPoolInitPromise = null;
+    }
   } else if (connectionType === 'regular' && !regularPool) {
-    regularPool = await initializeConnection('regular');
+    // If initialization is already in progress, wait for it to complete
+    if (regularPoolInitPromise) {
+      return regularPoolInitPromise;
+    }
+    
+    // Start initialization and store the promise
+    regularPoolInitPromise = initializeConnection('regular');
+    try {
+      await regularPoolInitPromise;
+    } finally {
+      // Clear the promise after initialization completes (success or failure)
+      regularPoolInitPromise = null;
+    }
   }
   
   // Return the appropriate pool
