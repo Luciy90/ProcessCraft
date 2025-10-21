@@ -37,7 +37,7 @@ function registerAuthHandlers() {
       
       // Определение пути к обложке с резервной логикой
       let coverPath = userData.coverPath;
-      if (!coverPath || !fs.existsSync?.(coverPath)) {
+      if (!coverPath || !fs.existsSync(coverPath)) {
         coverPath = resolveCoverPath?.(username);
       }
       
@@ -60,4 +60,4 @@ function registerAuthHandlers() {
   });
 }
 
-module.exports = { registerAuthHandlers };
+module.exports = { registerAuthHandlers }; 

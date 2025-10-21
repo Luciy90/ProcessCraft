@@ -23,8 +23,8 @@ const usersRootDir = path.join(serverRootPath, 'users');
 function ensureUsersDir() {
   try {
     // Создаем базовую папку Server и подпапку users
-    if (!fs.existsSync?.(serverRootPath)) fs.mkdirSync?.(serverRootPath, { recursive: true });
-    if (!fs.existsSync?.(usersRootDir)) fs.mkdirSync?.(usersRootDir, { recursive: true });
+    if (!fs.existsSync(serverRootPath)) fs.mkdirSync(serverRootPath, { recursive: true });
+    if (!fs.existsSync(usersRootDir)) fs.mkdirSync(usersRootDir, { recursive: true });
   } catch (e) {
     console.error('Не удалось создать папку пользователей:', e);
   }
@@ -45,8 +45,8 @@ function getUserSectionFile(username, section) {
 
 function readJsonSafe(filePath) {
   try {
-    if (!fs.existsSync?.(filePath)) return null;
-    const raw = fs.readFileSync?.(filePath, 'utf-8');
+    if (!fs.existsSync(filePath)) return null;
+    const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse?.(raw);
   } catch (e) {
     console.error('Ошибка чтения JSON:', filePath, e);
@@ -56,8 +56,8 @@ function readJsonSafe(filePath) {
 
 function writeJsonSafe(filePath, data) {
   try {
-    fs.mkdirSync?.(path.dirname?.(filePath), { recursive: true });
-    fs.writeFileSync?.(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return true;
   } catch (e) {
     console.error('Ошибка записи JSON:', filePath, e);
@@ -68,7 +68,7 @@ function writeJsonSafe(filePath, data) {
 // Обеспечить существование файлов разделов для каждого пользователя
 function ensureUserSectionFiles(username) {
   const dir = getUserDir?.(username);
-  if (!fs.existsSync?.(dir)) return;
+  if (!fs.existsSync(dir)) return;
   const defaults = {
     visits: { total: 0, last: null, history: [] },
     tasks: { current: [], backlog: [] },
@@ -76,7 +76,7 @@ function ensureUserSectionFiles(username) {
   };
   for (const section of Object.keys?.(defaults)) {
     const file = getUserSectionFile?.(username, section);
-    if (!fs.existsSync?.(file)) writeJsonSafe?.(file, defaults[section]);
+    if (!fs.existsSync(file)) writeJsonSafe(file, defaults[section]);
   }
 }
 
@@ -84,20 +84,20 @@ function ensureUserSectionFiles(username) {
 async function createAccessToModulesFile(username) {
   try {
     const userDir = getUserDir?.(username);
-    const accessFile = path.join?.(userDir, 'accessToModules.json');
+    const accessFile = path.join(userDir, 'accessToModules.json');
     
     // Создаем директорию пользователя если её нет
-    if (!fs.existsSync?.(userDir)) {
-      fs.mkdirSync?.(userDir, { recursive: true });
+    if (!fs.existsSync(userDir)) {
+      fs.mkdirSync(userDir, { recursive: true });
     }
     
     // Получаем список модулей из index.json
-    const modulesIndexPath = path.join?.(__dirname, '../renderer/js/modules/index.json');
+    const modulesIndexPath = path.join(__dirname, '../renderer/js/modules/index.json');
     let moduleIds = [];
     
-    if (fs.existsSync?.(modulesIndexPath)) {
+    if (fs.existsSync(modulesIndexPath)) {
       try {
-        const modulesData = JSON.parse?.(fs.readFileSync?.(modulesIndexPath, 'utf-8'));
+        const modulesData = JSON.parse(fs.readFileSync(modulesIndexPath, 'utf-8'));
         moduleIds = modulesData.modules?.map?.(modulePath => {
           // Извлекаем moduleId из пути к модулю
           const parts = modulePath.split?.('/');
@@ -118,7 +118,7 @@ async function createAccessToModulesFile(username) {
     }
     
     // Записываем файл доступа
-    fs.writeFileSync?.(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
+    fs.writeFileSync(accessFile, JSON.stringify(accessData, null, 2), 'utf-8');
     console.log(`Файл доступа к модулям создан для пользователя: ${username}`);
   } catch (error) {
     console.error(`Ошибка создания файла доступа к модулям для пользователя ${username}:`, error);
@@ -127,13 +127,13 @@ async function createAccessToModulesFile(username) {
 
 // Вспомогательная функция для определения пути к обложке с резервным вариантом
 function resolveCoverPath(username) {
-  const userAssetsDir = path.join?.(__dirname, '../../Server/users', username, 'assets');
+  const userAssetsDir = path.join(__dirname, '../../Server/users', username, 'assets');
   const coverExtensions = ['jpg', 'jpeg', 'png'];
   
   // Проверка наличия пользовательских изображений обложки
   for (const ext of coverExtensions) {
-    const coverPath = path.join?.(userAssetsDir, `cover.${ext}`);
-    if (fs.existsSync?.(coverPath)) {
+    const coverPath = path.join(userAssetsDir, `cover.${ext}`);
+    if (fs.existsSync(coverPath)) {
       return coverPath;
     }
   }
@@ -399,8 +399,8 @@ function registerUserHandlers() {
       
       // Create user directory and files
       const dir = getUserDir?.(username);
-      fs.mkdirSync?.(dir, { recursive: true });
-      fs.mkdirSync?.(path.join?.(dir, 'assets'), { recursive: true });
+      fs.mkdirSync(dir, { recursive: true });
+      fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
       
       // Create access to modules file
       await createAccessToModulesFile?.(username);
@@ -476,20 +476,20 @@ function registerUserHandlers() {
       
       // Также удаляем директорию пользователя для обратной совместимости
       const dir = getUserDir?.(username);
-      if (!fs.existsSync?.(dir)) return { ok: false, error: 'not_found' };
+      if (!fs.existsSync(dir)) return { ok: false, error: 'not_found' };
       
       // рекурсивное удаление директории пользователя
       if (fs.rmSync) {
-        fs.rmSync?.(dir, { recursive: true, force: true });
+        fs.rmSync(dir, { recursive: true, force: true });
       } else {
         // fallback
         const rimraf = (p) => {
-          if (fs.existsSync?.(p)) {
-            for (const entry of fs.readdirSync?.(p)) {
-              const cur = path.join?.(p, entry);
-              if (fs.lstatSync?.(cur).isDirectory?.()) rimraf?.(cur); else fs.unlinkSync?.(cur);
+          if (fs.existsSync(p)) {
+            for (const entry of fs.readdirSync(p)) {
+              const cur = path.join(p, entry);
+              if (fs.lstatSync(cur).isDirectory()) rimraf(cur); else fs.unlinkSync(cur);
             }
-            fs.rmdirSync?.(p);
+            fs.rmdirSync(p);
           }
         };
         rimraf?.(dir);
@@ -516,4 +516,4 @@ module.exports = {
   resolveCoverPath,
   getUserProfileFile,
   registerUserHandlers
-};
+}; 

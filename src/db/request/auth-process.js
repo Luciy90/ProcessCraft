@@ -10,11 +10,11 @@ const { getConnectionPool } = require('../connection');
 function hashPassword(password, salt = null) {
   // Генерация соли, если не предоставлена
   if (!salt) {
-    salt = crypto.randomBytes?.(32).toString?.('hex');
+    salt = crypto.randomBytes(32).toString('hex');
   }
   
   // Хеширование пароля с использованием PBKDF2 с SHA-512
-  const hash = crypto.pbkdf2Sync?.(password, salt, 10000, 64, 'sha512').toString?.('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   
   // Объединение соли и хеша для хранения
   const merged = `${salt}$${hash}`;
@@ -43,7 +43,7 @@ function verifyPassword(password, storedHash) {
     const hash = parts?.[1];
     
     // Хеширование предоставленного пароля с извлеченной солью
-    const hashedPassword = crypto.pbkdf2Sync?.(password, salt, 10000, 64, 'sha512').toString?.('hex');
+    const hashedPassword = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
     
     // Сравнение хешей
     return hashedPassword === hash;
@@ -65,18 +65,17 @@ async function updateUserPassword(username, newPassword) {
     const { hash } = hashPassword(newPassword);
     
     // Получение пула подключений суперадминистратора для привилегированной операции
-    const pool = await getConnectionPool?.('superadmin');
+    const pool = await getConnectionPool('superadmin');
     
     // Обновление хеша пароля в базе данных
-    await pool.request?.()
-      .input?.('passwordHash', sql.VarChar(255), hash)
-      .input?.('username', sql.VarChar(50), username)
-      .query?.(`
+    await pool.request()
+      .input('passwordHash', sql.VarChar(255), hash)
+      .input('username', sql.VarChar(50), username)
+      .query(`
         UPDATE Users 
         SET PasswordHash = @passwordHash, UpdatedAt = GETDATE()
         WHERE UserName = @username
-      `);
-    
+      `);    
     return true;
   } catch (error) {
     console.error('Ошибка обновления пароля пользователя:', error);
@@ -149,12 +148,12 @@ async function createNewUser(userData) {
 async function updateLastLogin(username) {
   try {
     // Получение обычного пула подключений
-    const pool = await getConnectionPool?.('regular');
+    const pool = await getConnectionPool('regular');
     
     // Обновление времени последнего входа
-    await pool.request?.()
-      .input?.('username', sql.VarChar(50), username)
-      .query?.(`
+    await pool.request()
+      .input('username', sql.VarChar(50), username)
+      .query(`
         UPDATE Users 
         SET LastLoginAt = GETDATE()
         WHERE UserName = @username
@@ -176,4 +175,4 @@ module.exports = {
   updateUserPassword,
   createNewUser,
   updateLastLogin
-};
+}; 

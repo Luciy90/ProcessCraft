@@ -8,6 +8,8 @@
 -- 5) Инициализация системных ролей (SuperAdmin, Admin, User)
 -- 5.5) Инициализация первого пользователя 'Admin'
 -- 6) Реализация триггеров защиты системных ролей и переназначения удаляемых ролей
+-- Важно перед выполнением обязательно задайте свой пароль для учетной записи Администратора и пользователя.
+После продублируйте его в .env пред выполнением src\db\setup-db-access.js
 -- =========================================================
 
 
@@ -476,4 +478,58 @@ BEGIN
 END;
 GO
 PRINT N'-- 6.2: Триггер TR_Roles_DeleteReassign создан.';
+GO
+
+-- Триггер: TR_Users_PreventIsSuperAdminChange
+-- Запрещает изменение флага IsSuperAdmin для всех пользователей
+IF OBJECT_ID(N'dbo.TR_Users_PreventIsSuperAdminChange', N'TR') IS NOT NULL
+    DROP TRIGGER dbo.TR_Users_PreventIsSuperAdminChange;
+GO
+
+CREATE TRIGGER dbo.TR_Users_PreventIsSuperAdminChange
+ON dbo.Users
+INSTEAD OF UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Проверяем, пытается ли кто-то изменить IsSuperAdmin
+    IF UPDATE(IsSuperAdmin)
+    BEGIN
+        IF EXISTS (
+            SELECT 1
+            FROM inserted i
+            JOIN deleted d ON i.UserID = d.UserID
+            WHERE i.IsSuperAdmin <> d.IsSuperAdmin
+        )
+        BEGIN
+            RAISERROR(N'Изменение флага IsSuperAdmin запрещено для всех пользователей, включая администраторов.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+    END
+
+    -- Если изменения IsSuperAdmin нет — разрешаем обновление остальных полей
+    UPDATE u
+    SET
+        u.DisplayName = i.DisplayName,
+        u.UserName = i.UserName,
+        u.Email = i.Email,
+        u.Phone = i.Phone,
+        u.Department = i.Department,
+        u.Position = i.Position,
+        u.PasswordHash = i.PasswordHash,
+        u.IsActive = i.IsActive,
+        u.AvatarPath = i.AvatarPath,
+        u.AvatarColorHue = i.AvatarColorHue,
+        u.AvatarColorSaturation = i.AvatarColorSaturation,
+        u.AvatarColorBrightness = i.AvatarColorBrightness,
+        u.CoverPath = i.CoverPath,
+        u.LastLoginAt = i.LastLoginAt,
+        u.UpdatedAt = ISNULL(i.UpdatedAt, GETDATE())
+    FROM dbo.Users u
+    INNER JOIN inserted i ON u.UserID = i.UserID;
+END;
+GO
+PRINT N'-- 6.3: Триггер TR_Users_PreventIsSuperAdminChange создан. Изменение IsSuperAdmin заблокировано.';
 GO

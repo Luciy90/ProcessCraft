@@ -8,7 +8,7 @@ function registerFileHandlers(mainWindow) {
   ipcMain.handle('file:exists', async (event, filePath) => {
     try {
       if (!filePath) return { exists: false };
-      const exists = fs.existsSync?.(filePath);
+      const exists = fs.existsSync(filePath);
       return { exists };
     } catch (error) {
       console.error('Ошибка проверки существования файла:', error);
@@ -35,11 +35,11 @@ function registerFileHandlers(mainWindow) {
   });
 
   // Базовый путь для серверных данных внутри проекта
-  const serverRootPath = path.join?.(__dirname, '../../Server');
+  const serverRootPath = path.join(__dirname, '../../Server');
   ipcMain.handle('get-app-path', () => {
     // Возвращаем путь к локальной папке Server внутри проекта
     return serverRootPath;
   });
 }
 
-module.exports = { registerFileHandlers };
+module.exports = { registerFileHandlers }; 

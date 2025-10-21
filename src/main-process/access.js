@@ -74,12 +74,12 @@ const accessConfigPath = path.join(serverRootPath, 'users', 'access.json');
  */
 function loadAccessConfig() {
   try {
-    if (!fs.existsSync?.(accessConfigPath)) {
+    if (!fs.existsSync(accessConfigPath)) {
       console.error('[AccessControl] Файл конфигурации доступа не найден:', accessConfigPath);
       return null;
     }
     
-    const raw = fs.readFileSync?.(accessConfigPath, 'utf-8');
+    const raw = fs.readFileSync(accessConfigPath, 'utf-8');
     if (!raw || raw.trim()?.length === 0) {
       console.warn('[AccessControl] Файл access.json пуст, вернём дефолтную конфигурацию');
       return {
@@ -150,8 +150,8 @@ function loadAccessConfig() {
  */
 function saveAccessConfig(config) {
   try {
-    fs.mkdirSync?.(path.dirname?.(accessConfigPath), { recursive: true });
-    fs.writeFileSync?.(accessConfigPath, JSON.stringify(config, null, 2), 'utf-8');
+    fs.mkdirSync(path.dirname(accessConfigPath), { recursive: true });
+    fs.writeFileSync(accessConfigPath, JSON.stringify(config, null, 2), 'utf-8');
     console.log('[AccessControl] Конфигурация доступа успешно сохранена');
     return true;
   } catch (error) {
@@ -223,10 +223,10 @@ function updateRoles(config) {
 function findHtmlFiles(dirPath) {
   try {
     const files = [];
-    const items = fs.readdirSync?.(dirPath, { withFileTypes: true });
+    const items = fs.readdirSync(dirPath, { withFileTypes: true });
     
     for (const item of items) {
-      const fullPath = path.join?.(dirPath, item.name);
+      const fullPath = path.join(dirPath, item.name);
       
       if (item.isDirectory?.()) {
         // Рекурсивно ищем в поддиректориях
@@ -394,7 +394,7 @@ function updateAccessConfigWithMarkers() {
 
     // 3. Анализ HTML и построение структуры маркеров
     // Выполнить поиск всех HTML-файлов в каталоге src, в том числе файлов, встроенных в JS
-    const searchRoot = path.join?.(__dirname, '../renderer');
+    const searchRoot = path.join(__dirname, '../renderer');
     const files = findHtmlFiles(searchRoot);
     console.log(`[AccessControl] Найдено файлов для анализа: ${files.length}`);
 
@@ -402,7 +402,7 @@ function updateAccessConfigWithMarkers() {
     const allMarkers = [];
     for (const filePath of files) {
       try {
-        const content = fs.readFileSync?.(filePath, 'utf-8');
+        const content = fs.readFileSync(filePath, 'utf-8');
         const markers = extractAccessMarkers(content);
         allMarkers.push(...markers);
         console.log(`[AccessControl] В файле ${filePath} найдено маркеров: ${markers.length}`);
@@ -540,4 +540,4 @@ module.exports = {
   getUserRoles,
   updateAccessConfigWithMarkers,
   registerAccessControlHandlers
-};
+}; 

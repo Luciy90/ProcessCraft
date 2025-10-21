@@ -19,14 +19,14 @@ const SALT_DIR = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
  */
 function ensureAuthDbFile() {
   try {
-    const exists = fs.existsSync?.(AUTH_DB_FILE);
-    const isEmpty = exists ? fs.statSync?.(AUTH_DB_FILE)?.size === 0 : true;
+    const exists = fs.existsSync(AUTH_DB_FILE);
+    const isEmpty = exists ? fs.statSync(AUTH_DB_FILE).size === 0 : true;
     if (!exists || isEmpty) {
       const placeholder = {
         initializing: true,
         createdAt: new Date().toISOString()
       };
-      fs.writeFileSync?.(AUTH_DB_FILE, JSON.stringify(placeholder, null, 2));
+      fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(placeholder, null, 2));
       console.log('✓ Создан базовый файл auth-db.json');
     }
   } catch (e) {
@@ -43,11 +43,11 @@ function ensureAuthDbFile() {
 function hashData(data, salt = null) {
   // Генерируем соль, если она не предоставлена
   if (!salt) {
-    salt = crypto.randomBytes?.(32).toString?.('hex');
+    salt = crypto.randomBytes(32).toString('hex');
   }
   
   // Хешируем данные с использованием PBKDF2
-  const hash = crypto.pbkdf2Sync?.(data, salt, 10000, 64, 'sha512').toString?.('hex');
+  const hash = crypto.pbkdf2Sync(data, salt, 10000, 64, 'sha512').toString('hex');
   
   return {
     hash,
@@ -63,20 +63,20 @@ function hashData(data, salt = null) {
  */
 function createSaltFile(index, salt) {
   // Убедимся, что директория для солей существует
-  const saltDir = path.resolve?.(process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt'));
-  if (!fs.existsSync?.(saltDir)) {
-    fs.mkdirSync?.(saltDir, { recursive: true });
+  const saltDir = path.resolve(process.env.DB_PATH_SALT || path.join(__dirname, 'salt'));
+  if (!fs.existsSync(saltDir)) {
+    fs.mkdirSync(saltDir, { recursive: true });
   }
   
   const saltFileName = `salt${index}.json`;
-  const saltFilePath = path.join?.(saltDir, saltFileName);
+  const saltFilePath = path.join(saltDir, saltFileName);
   
   const saltData = {
     salt: salt,
     createdAt: new Date().toISOString()
   };
   
-  fs.writeFileSync?.(saltFilePath, JSON.stringify(saltData, null, 2));
+  fs.writeFileSync(saltFilePath, JSON.stringify(saltData, null, 2));
   console.log(`  ✓ Создан файл соли: ${saltFileName} в ${saltDir}`);
   
   return saltFilePath; // Возвращаем полный путь
@@ -89,8 +89,8 @@ function createSaltFile(index, salt) {
  */
 function getSaltFilePath(saltFileName) {
   // Используем DB_PATH_SALT из .env файла если доступен, иначе используем значение по умолчанию
-  const saltDir = process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt');
-  return path.join?.(path.resolve?.(saltDir), saltFileName);
+  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
+  return path.join(path.resolve(saltDir), saltFileName);
 }
 
 /**
@@ -102,7 +102,7 @@ function validateAndReadEnvFile() {
   
   try {
     // Проверяем существование файла
-    if (!fs.existsSync?.(ENV_FILE)) {
+    if (!fs.existsSync(ENV_FILE)) {
       throw new Error('Не найден файл .env');
     }
     
@@ -156,24 +156,24 @@ function validateAndReadEnvFile() {
  * @returns {Object} - Объект с ключом и полным путем к файлу
  */
 function createEncryptionKey() {
-  const saltDir = process.env.DB_PATH_SALT || path.join?.(__dirname, 'salt');
+  const saltDir = process.env.DB_PATH_SALT || path.join(__dirname, 'salt');
   const saltDirAbs = path.resolve?.(saltDir);
-  if (!fs.existsSync?.(saltDirAbs)) {
-    fs.mkdirSync?.(saltDirAbs, { recursive: true });
+  if (!fs.existsSync(saltDirAbs)) {
+    fs.mkdirSync(saltDirAbs, { recursive: true });
   }
   
   // Создаем 32-байтный ключ
-  const keyBytes = crypto.randomBytes?.(32);
-  const keyHex = keyBytes.toString?.('hex');
+  const keyBytes = crypto.randomBytes(32);
+  const keyHex = keyBytes.toString('hex');
   const keyFileName = 'enc_key.json';
-  const keyFilePath = path.join?.(saltDirAbs, keyFileName);
+  const keyFilePath = path.join(saltDirAbs, keyFileName);
   
   const keyData = {
     salt: keyHex,
     createdAt: new Date().toISOString()
   };
   
-  fs.writeFileSync?.(keyFilePath, JSON.stringify(keyData, null, 2));
+  fs.writeFileSync(keyFilePath, JSON.stringify(keyData, null, 2));
   console.log(`  ✓ Ключ шифрования создан: ${keyFileName}`);
   
   return {
@@ -190,18 +190,18 @@ function createEncryptionKey() {
  * @returns {Object} - Зашифрованные данные
  */
 function encryptWithKey(text, key) {
-  const iv = crypto.randomBytes?.(16);
-  const cipher = crypto.createCipheriv?.('aes-256-gcm', key, iv);
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   
-  let encrypted = cipher.update?.(text, 'utf8', 'hex');
-  encrypted += cipher.final?.('hex');
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
   
-  const authTag = cipher.getAuthTag?.();
+  const authTag = cipher.getAuthTag();
   
   return {
     encryptedData: encrypted,
-    iv: iv.toString?.('hex'),
-    authTag: authTag.toString?.('hex')
+    iv: iv.toString('hex'),
+    authTag: authTag.toString('hex')
   };
 }
 
@@ -297,7 +297,7 @@ function setupDatabaseAccess() {
     };
     
     // Сохраняем в файл (перезаписываем, если существует)
-    fs.writeFileSync?.(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
+    fs.writeFileSync(AUTH_DB_FILE, JSON.stringify(authDb, null, 2));
     console.log('✓ Файл auth-db.json успешно создан/обновлен');
     
     // Шаг 6: Вывод информации о созданных файлах
@@ -327,7 +327,7 @@ function readSaltFromFile(saltFile) {
   try {
     // В новой реализации saltFile всегда должен содержать полный путь
     const saltFilePath = saltFile;
-    const saltData = fs.readFileSync?.(saltFilePath, 'utf8');
+    const saltData = fs.readFileSync(saltFilePath, 'utf8');
     const saltObj = JSON.parse?.(saltData);
     return saltObj.salt;
   } catch (error) {
@@ -346,7 +346,7 @@ function readSaltFromFile(saltFile) {
 function verifyDatabaseCredentials(server, database, username, password) {
   try {
     // Читаем auth-db.json
-    const authData = fs.readFileSync?.(AUTH_DB_FILE, 'utf8');
+    const authData = fs.readFileSync(AUTH_DB_FILE, 'utf8');
     const authDb = JSON.parse?.(authData);
     
     // Проверяем сервер
@@ -410,4 +410,4 @@ module.exports = {
   verifyDatabaseCredentials,
   hashData,
   readSaltFromFile
-};
+}; 
