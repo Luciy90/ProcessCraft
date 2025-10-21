@@ -2,6 +2,19 @@ const { ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Импортируем функции для работы с SQL Server
+const { 
+  getUserByUsername, 
+  getAllActiveUsers, 
+  getInactiveUsers 
+} = require('../db/request/auth-choice');
+const { 
+  createNewUser, 
+  updateUserPassword,
+  updateLastLogin
+} = require('../db/request/auth-process');
+const { getConnectionPool } = require('../db/connection');
+
 // Базовый путь для серверных данных внутри проекта
 const serverRootPath = path.join(__dirname, '../../Server');
 const usersRootDir = path.join(serverRootPath, 'users');
@@ -133,25 +146,139 @@ function getUserProfileFile(username) {
   return path.join(getUserDir(username), 'profile.json');
 }
 
+// Функция для обновления профиля пользователя в базе данных
+async function updateUserProfile(username, updates) {
+  try {
+    // Получаем пул подключений суперадминистратора для привилегированной операции
+    const pool = await getConnectionPool('superadmin');
+    
+    // Формируем запрос на обновление в зависимости от переданных данных
+    const fields = [];
+    const values = [];
+    
+    if (updates.displayName !== undefined) {
+      fields.push('DisplayName = @displayName');
+      values.push({ name: 'displayName', type: 'NVarChar', value: updates.displayName, size: 100 });
+    }
+    
+    if (updates.email !== undefined) {
+      fields.push('Email = @email');
+      values.push({ name: 'email', type: 'VarChar', value: updates.email, size: 100 });
+    }
+    
+    if (updates.phone !== undefined) {
+      fields.push('Phone = @phone');
+      values.push({ name: 'phone', type: 'VarChar', value: updates.phone, size: 20 });
+    }
+    
+    if (updates.department !== undefined) {
+      fields.push('Department = @department');
+      values.push({ name: 'department', type: 'NVarChar', value: updates.department, size: 100 });
+    }
+    
+    if (updates.position !== undefined) {
+      fields.push('Position = @position');
+      values.push({ name: 'position', type: 'NVarChar', value: updates.position, size: 100 });
+    }
+    
+    if (updates.avatarPath !== undefined) {
+      fields.push('AvatarPath = @avatarPath');
+      values.push({ name: 'avatarPath', type: 'VarChar', value: updates.avatarPath, size: 255 });
+    }
+    
+    if (updates.coverPath !== undefined) {
+      fields.push('CoverPath = @coverPath');
+      values.push({ name: 'coverPath', type: 'VarChar', value: updates.coverPath, size: 255 });
+    }
+    
+    if (updates.avatarColor !== undefined) {
+      fields.push('AvatarColorHue = @avatarColorHue');
+      values.push({ name: 'avatarColorHue', type: 'Int', value: updates.avatarColor.hue });
+      
+      fields.push('AvatarColorSaturation = @avatarColorSaturation');
+      values.push({ name: 'avatarColorSaturation', type: 'Int', value: updates.avatarColor.saturation });
+      
+      fields.push('AvatarColorBrightness = @avatarColorBrightness');
+      values.push({ name: 'avatarColorBrightness', type: 'Int', value: updates.avatarColor.brightness });
+    }
+    
+    // Если нет полей для обновления, возвращаем успех
+    if (fields.length === 0) {
+      return { ok: true };
+    }
+    
+    // Добавляем обновление времени
+    fields.push('UpdatedAt = GETDATE()');
+    
+    // Формируем SQL запрос
+    const query = `
+      UPDATE Users 
+      SET ${fields.join(', ')}
+      WHERE UserName = @username
+    `;
+    
+    // Добавляем имя пользователя к параметрам
+    values.push({ name: 'username', type: 'VarChar', value: username, size: 50 });
+    
+    // Выполняем запрос
+    const request = pool.request();
+    values.forEach(param => {
+      if (param.type === 'NVarChar') {
+        request.input(param.name, sql[param.type](param.size), param.value);
+      } else if (param.type === 'VarChar') {
+        request.input(param.name, sql[param.type](param.size), param.value);
+      } else {
+        request.input(param.name, sql[param.type], param.value);
+      }
+    });
+    
+    await request.query(query);
+    
+    return { ok: true };
+  } catch (error) {
+    console.error('Ошибка обновления профиля пользователя:', error);
+    return { ok: false, error: String(error) };
+  }
+}
+
+// Функция для мягкого удаления пользователя (установка IsActive = 0)
+async function deactivateUser(username) {
+  try {
+    // Получаем пул подключений суперадминистратора для привилегированной операции
+    const pool = await getConnectionPool('superadmin');
+    
+    // Обновляем флаг IsActive на 0
+    await pool.request()
+      .input('username', sql.VarChar(50), username)
+      .query(`
+        UPDATE Users 
+        SET IsActive = 0, UpdatedAt = GETDATE()
+        WHERE UserName = @username
+      `);
+    
+    return { ok: true };
+  } catch (error) {
+    console.error('Ошибка деактивации пользователя:', error);
+    return { ok: false, error: String(error) };
+  }
+}
+
 // Регистрация IPC обработчиков для работы с пользователями
 function registerUserHandlers() {
   // Список пользователей
   ipcMain.handle('users:list', async () => {
     ensureUsersDir();
     try {
-      const entries = fs.readdirSync(usersRootDir, { withFileTypes: true });
-      const users = entries
-        .filter((e) => e.isDirectory())
-        .map((e) => {
-          ensureUserSectionFiles(e.name);
-          const data = readJsonSafe(path.join(usersRootDir, e.name, 'user.json')) || {};
-          return {
-            username: e.name,
-            displayName: data.displayName || e.name,
-            role: data.role || 'User',
-            avatarPath: data.avatarPath || null
-          };
-        });
+      // Получаем всех активных пользователей из базы данных
+      const usersData = await getAllActiveUsers('regular');
+      
+      const users = usersData.map(user => ({
+        username: user.username,
+        displayName: user.displayName,
+        role: user.isSuperAdmin ? 'SuperAdmin' : 'User',
+        avatarPath: user.avatarPath
+      }));
+      
       return { ok: true, users };
     } catch (e) {
       return { ok: false, error: String(e) };
@@ -161,10 +288,35 @@ function registerUserHandlers() {
   // Получить пользователя
   ipcMain.handle('users:get', async (event, username) => {
     if (!username) return { ok: false, error: 'username required' };
-    const data = readJsonSafe(getUserFile(username));
-    if (!data) return { ok: false, error: 'not_found' };
-    ensureUserSectionFiles(username);
-    return { ok: true, user: data };
+    
+    try {
+      const userData = await getUserByUsername(username, 'regular');
+      if (!userData) return { ok: false, error: 'not_found' };
+      
+      // Ensure user section files exist
+      ensureUserSectionFiles(username);
+      
+      return { 
+        ok: true, 
+        user: {
+          username: userData.username,
+          displayName: userData.displayName,
+          role: userData.isSuperAdmin ? 'SuperAdmin' : 'User',
+          email: userData.email,
+          phone: userData.phone,
+          department: userData.department,
+          position: userData.position,
+          createdAt: userData.createdAt,
+          lastLoginAt: userData.lastLoginAt,
+          avatarPath: userData.avatarPath,
+          coverPath: userData.coverPath,
+          avatarColor: userData.avatarColor,
+          stats: {}
+        }
+      };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
   });
 
   // Универсальные методы получения/сохранения для разделов
@@ -216,31 +368,56 @@ function registerUserHandlers() {
     try {
       const { username, password, displayName, role, email, phone, department, position } = payload || {};
       if (!username || !password) return { ok: false, error: 'username_password_required' };
-      const dir = getUserDir(username);
-      if (fs.existsSync(dir)) return { ok: false, error: 'user_exists' };
+      
+      // Check if user already exists
+      const existingUser = await getUserByUsername(username, 'superadmin');
+      if (existingUser) return { ok: false, error: 'user_exists' };
+      
+      // Create user data object
       const userData = {
         username,
-        password, // ПРИМЕЧАНИЕ: для минимальной версии продукта хранение в открытом виде. Заменить на хэш позже.
+        password,
         displayName: displayName || username,
-        role: role || 'User',
         email: email || '',
         phone: phone || '',
         department: department || '',
         position: position || '',
-        createdAt: new Date().toISOString(),
-        lastLoginAt: null,
-        avatarPath: null,
-        stats: {}
+        isSuperAdmin: role === 'SuperAdmin'
       };
+      
+      // Create new user in database
+      const success = await createNewUser(userData);
+      if (!success) return { ok: false, error: 'creation_failed' };
+      
+      // Create user directory and files
+      const dir = getUserDir(username);
       fs.mkdirSync(dir, { recursive: true });
       fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
-      writeJsonSafe(getUserFile(username), userData);
-      ensureUserSectionFiles(username);
       
-      // Создаем файл доступа к модулям для нового пользователя
+      // Create access to modules file
       await createAccessToModulesFile(username);
       
-      return { ok: true, user: userData };
+      // Get created user data
+      const createdUser = await getUserByUsername(username, 'superadmin');
+      
+      return { 
+        ok: true, 
+        user: {
+          username: createdUser.username,
+          displayName: createdUser.displayName,
+          role: createdUser.isSuperAdmin ? 'SuperAdmin' : 'User',
+          email: createdUser.email,
+          phone: createdUser.phone,
+          department: createdUser.department,
+          position: createdUser.position,
+          createdAt: createdUser.createdAt,
+          lastLoginAt: createdUser.lastLoginAt,
+          avatarPath: createdUser.avatarPath,
+          coverPath: createdUser.coverPath,
+          avatarColor: createdUser.avatarColor,
+          stats: {}
+        }
+      };
     } catch (e) {
       return { ok: false, error: String(e) };
     }
@@ -251,6 +428,12 @@ function registerUserHandlers() {
     try {
       const { username, updates } = payload || {};
       if (!username) return { ok: false, error: 'username_required' };
+      
+      // Update user profile in database
+      const result = await updateUserProfile(username, updates);
+      if (!result.ok) return result;
+      
+      // Also update JSON files for backward compatibility
       const current = readJsonSafe(getUserFile(username));
       if (!current) return { ok: false, error: 'not_found' };
       const next = { ...current, ...updates, updatedAt: new Date().toISOString() };
@@ -265,8 +448,15 @@ function registerUserHandlers() {
   ipcMain.handle('users:delete', async (event, username) => {
     try {
       if (!username) return { ok: false, error: 'username_required' };
+      
+      // Деактивируем пользователя в базе данных (мягкое удаление)
+      const result = await deactivateUser(username);
+      if (!result.ok) return result;
+      
+      // Также удаляем директорию пользователя для обратной совместимости
       const dir = getUserDir(username);
       if (!fs.existsSync(dir)) return { ok: false, error: 'not_found' };
+      
       // рекурсивное удаление директории пользователя
       if (fs.rmSync) {
         fs.rmSync(dir, { recursive: true, force: true });
@@ -283,12 +473,16 @@ function registerUserHandlers() {
         };
         rimraf(dir);
       }
+      
       return { ok: true };
     } catch (e) {
       return { ok: false, error: String(e) };
     }
   });
 }
+
+// Добавляем импорт sql
+const sql = require('mssql');
 
 module.exports = {
   ensureUsersDir,

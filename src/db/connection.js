@@ -112,8 +112,9 @@ const validateConfig = () => {
 // Проверка конфигурации при загрузке
 validateConfig();
 
-// Создание пула подключений с учетными данными обычного пользователя по умолчанию
-let poolPromise;
+// Пулы подключений для разных типов пользователей
+let regularPool = null;
+let adminPool = null;
 
 // Инициализация подключения с учетными данными
 async function initializeConnection(userType = 'regular') {
@@ -129,6 +130,13 @@ async function initializeConnection(userType = 'regular') {
     await pool.request().query('SELECT 1 AS connected');
     console.log('Подключение к базе данных успешно проверено');
     
+    // Сохраняем пул в зависимости от типа пользователя
+    if (userType === 'regular') {
+      regularPool = pool;
+    } else if (userType === 'superadmin') {
+      adminPool = pool;
+    }
+    
     return pool;
   } catch (err) {
     console.error('Ошибка подключения к базе данных:', err);
@@ -136,13 +144,23 @@ async function initializeConnection(userType = 'regular') {
   }
 }
 
-// Инициализация не запускается автоматически, чтобы избежать хранения .env в рантайме
-// Удалено неиспользуемое значение по умолчанию для избежания путаницы
+// Функция для получения соответствующего пула в зависимости от типа подключения
+async function getConnectionPool(connectionType = 'regular') {
+  // Инициализируем пулы, если они не существуют
+  if (connectionType === 'superadmin' && !adminPool) {
+    adminPool = await initializeConnection('superadmin');
+  } else if (connectionType === 'regular' && !regularPool) {
+    regularPool = await initializeConnection('regular');
+  }
+  
+  // Возвращаем соответствующий пул
+  return connectionType === 'superadmin' ? adminPool : regularPool;
+}
 
 // Экспорт пула и библиотеки sql
 module.exports = {
   sql,
-  poolPromise,
   initializeConnection,
-  loadCredentials
+  loadCredentials,
+  getConnectionPool
 };

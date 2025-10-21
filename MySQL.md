@@ -307,17 +307,16 @@ GO
 -- 5.5. Инициализация первого пользователя 'Admin'
 -- =========================================================
 BEGIN
-    -- ВНИМАНИЕ: В реальном приложении здесь должен использоваться хеш, сгенерированный
-    -- функцией хеширования (например, HASHBYTES) от реального пароля.
-    -- Используется заглушечный хеш для демонстрации структуры.
-    DECLARE @AdminPasswordHash VARCHAR(255) = 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7B8C9D0E1F2'; -- Мок-хеш для 'aA3$!Qp9_superAdminStrongPwd'
+    -- ВНИМАНИЕ: В реальном приложении здесь должен использоваться хеш, сгенерированный программой
+    -- Используется стартовый хеш для предоставления первого входа в систему "1111".
+    DECLARE @AdminPasswordHash VARCHAR(255) = '94b2e299c29568b940e6a185eb865e79f249aeab8c49dbc8a463bcd031bb2223$c50cd6533e0a56138900649f8567d872734b83201c432c086c041d43bdba38eff047e5f213af78d8e18a93421321a183a7ed0219d644d6891f2be3d4b6f0e451';
     DECLARE @AdminUserID INT;
     DECLARE @UserAction NVARCHAR(50);
     
     -- 1. Проверка и создание/обновление пользователя 'Admin'
     IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE UserName = N'Admin')
     BEGIN
-        INSERT INTO dbo.Users (DisplayName, UserName, Email, Phone, Department, Position, PasswordHash, IsSuperAdmin, UpdatedAt)
+        INSERT INTO dbo.Users (DisplayName, UserName, Email, Phone, Department, Position, PasswordHash, IsSuperAdmin, AvatarColorHue, AvatarColorSaturation, AvatarColorBrightness, UpdatedAt)
         VALUES (
             N'Управляющий',
             N'Admin',
@@ -327,6 +326,9 @@ BEGIN
             N'Системный администратор',
             @AdminPasswordHash,
             1, -- IsSuperAdmin = 1
+            4,   -- AvatarColorHue
+            80,  -- AvatarColorSaturation
+            80,  -- AvatarColorBrightness
             GETDATE()
         );
         SET @AdminUserID = SCOPE_IDENTITY();
@@ -341,9 +343,18 @@ BEGIN
         SET DisplayName = N'Управляющий',
             Position = N'Системный администратор',
             IsSuperAdmin = 1,
+            AvatarColorHue = 4,
+            AvatarColorSaturation = 80,
+            AvatarColorBrightness = 80,
             UpdatedAt = GETDATE()
         WHERE UserID = @AdminUserID
-        AND (DisplayName <> N'Управляющий' OR Position <> N'Системный администратор' OR IsSuperAdmin <> 1 OR PasswordHash <> @AdminPasswordHash);
+        AND (DisplayName <> N'Управляющий'
+        OR Position <> N'Системный администратор' 
+        OR IsSuperAdmin <> 1
+        OR PasswordHash <> @AdminPasswordHash)
+        OR ISNULL(AvatarColorHue, -1) <> 4
+        OR ISNULL(AvatarColorSaturation, -1) <> 80
+        OR ISNULL(AvatarColorBrightness, -1) <> 80;
         
         IF @@ROWCOUNT > 0
             SET @UserAction = N'обновлен';
