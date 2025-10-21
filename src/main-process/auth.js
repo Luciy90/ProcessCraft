@@ -24,7 +24,7 @@ function registerAuthHandlers() {
       const { username, password } = credentials || {};
       if (!username || !password) return { ok: false, error: 'credentials_required' };
       
-      // Получаем пользователя из базы данных
+      // Получаем пользователя из базы данных с ролями
       const userData = await getUserByUsername(username, 'regular');
       if (!userData) return { ok: false, error: 'not_found' };
       
@@ -49,7 +49,9 @@ function registerAuthHandlers() {
           role: userData.isSuperAdmin ? 'SuperAdmin' : 'User',
           avatarPath: userData.avatarPath,
           coverPath: coverPath,
-          lastLoginAt: userData.lastLoginAt
+          lastLoginAt: userData.lastLoginAt,
+          isSuperAdmin: userData.isSuperAdmin, // Передаем флаг IsSuperAdmin
+          roles: userData.roles // Передаем массив ролей
         }
       };
     } catch (e) {

@@ -112,7 +112,7 @@ const validateConfig = () => {
 // Проверка конфигурации при загрузке
 validateConfig();
 
-// Пулы подключений для разных типов пользователей
+// Connection pools for different user types
 let regularPool = null;
 let adminPool = null;
 
@@ -130,7 +130,7 @@ async function initializeConnection(userType = 'regular') {
     await pool.request().query('SELECT 1 AS connected');
     console.log('Подключение к базе данных успешно проверено');
     
-    // Сохраняем пул в зависимости от типа пользователя
+    // Store the pool based on user type
     if (userType === 'regular') {
       regularPool = pool;
     } else if (userType === 'superadmin') {
@@ -144,16 +144,16 @@ async function initializeConnection(userType = 'regular') {
   }
 }
 
-// Функция для получения соответствующего пула в зависимости от типа подключения
+// Function to get the appropriate pool based on connection type
 async function getConnectionPool(connectionType = 'regular') {
-  // Инициализируем пулы, если они не существуют
+  // Initialize pools if they don't exist
   if (connectionType === 'superadmin' && !adminPool) {
     adminPool = await initializeConnection('superadmin');
   } else if (connectionType === 'regular' && !regularPool) {
     regularPool = await initializeConnection('regular');
   }
   
-  // Возвращаем соответствующий пул
+  // Return the appropriate pool
   return connectionType === 'superadmin' ? adminPool : regularPool;
 }
 

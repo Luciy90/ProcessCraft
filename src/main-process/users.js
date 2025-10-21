@@ -14,6 +14,7 @@ const {
   updateLastLogin
 } = require('../db/request/auth-process');
 const { getConnectionPool } = require('../db/connection');
+const { hasRole } = require('./access'); // Импортируем функцию проверки ролей
 
 // Базовый путь для серверных данных внутри проекта
 const serverRootPath = path.join(__dirname, '../../Server');
@@ -311,7 +312,9 @@ function registerUserHandlers() {
           avatarPath: userData.avatarPath,
           coverPath: userData.coverPath,
           avatarColor: userData.avatarColor,
-          stats: {}
+          stats: {},
+          isSuperAdmin: userData.isSuperAdmin, // Передаем флаг IsSuperAdmin
+          roles: userData.roles // Передаем массив ролей
         }
       };
     } catch (e) {
@@ -366,8 +369,13 @@ function registerUserHandlers() {
   // Создать пользователя
   ipcMain.handle('users:create', async (event, payload) => {
     try {
-      const { username, password, displayName, role, email, phone, department, position } = payload || {};
+      const { username, password, displayName, role, email, phone, department, position, currentUser } = payload || {};
       if (!username || !password) return { ok: false, error: 'username_password_required' };
+      
+      // Проверяем права текущего пользователя на создание пользователей
+      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+        return { ok: false, error: 'insufficient_permissions' };
+      }
       
       // Check if user already exists
       const existingUser = await getUserByUsername(username, 'superadmin');
@@ -415,7 +423,9 @@ function registerUserHandlers() {
           avatarPath: createdUser.avatarPath,
           coverPath: createdUser.coverPath,
           avatarColor: createdUser.avatarColor,
-          stats: {}
+          stats: {},
+          isSuperAdmin: createdUser.isSuperAdmin, // Передаем флаг IsSuperAdmin
+          roles: createdUser.roles // Передаем массив ролей
         }
       };
     } catch (e) {
@@ -426,8 +436,13 @@ function registerUserHandlers() {
   // Сохранить/обновить пользователя
   ipcMain.handle('users:save', async (event, payload) => {
     try {
-      const { username, updates } = payload || {};
+      const { username, updates, currentUser } = payload || {};
       if (!username) return { ok: false, error: 'username_required' };
+      
+      // Проверяем права текущего пользователя на редактирование пользователей
+      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+        return { ok: false, error: 'insufficient_permissions' };
+      }
       
       // Update user profile in database
       const result = await updateUserProfile(username, updates);
@@ -445,9 +460,15 @@ function registerUserHandlers() {
   });
 
   // Удалить пользователя (только для SuperAdmin - проверка на стороне UI)
-  ipcMain.handle('users:delete', async (event, username) => {
+  ipcMain.handle('users:delete', async (event, payload) => {
     try {
+      const { username, currentUser } = payload || {};
       if (!username) return { ok: false, error: 'username_required' };
+      
+      // Проверяем права текущего пользователя на удаление пользователей
+      if (!currentUser || !hasRole(currentUser, 'Admin')) {
+        return { ok: false, error: 'insufficient_permissions' };
+      }
       
       // Деактивируем пользователя в базе данных (мягкое удаление)
       const result = await deactivateUser(username);

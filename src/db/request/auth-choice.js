@@ -11,31 +11,31 @@ async function getUserByUsername(username, connectionType = 'regular') {
     // Получение соответствующего пула подключений
     const pool = await getConnectionPool(connectionType);
     
-    // Запрос для получения данных пользователя с фильтром мягкого удаления
+    // Запрос для получения данных пользователя с фильтром мягкого удаления и ролями
     const result = await pool.request()
       .input('username', sql.VarChar(50), username)
       .query(`
         SELECT 
-          UserID,
-          DisplayName,
-          UserName,
-          Email,
-          Phone,
-          Department,
-          Position,
-          PasswordHash,
-          IsSuperAdmin,
-          IsActive,
-          AvatarPath,
-          AvatarColorHue,
-          AvatarColorSaturation,
-          AvatarColorBrightness,
-          CoverPath,
-          CreatedAt,
-          LastLoginAt,
-          UpdatedAt
-        FROM Users 
-        WHERE UserName = @username AND IsActive = 1
+          u.UserID,
+          u.DisplayName,
+          u.UserName,
+          u.Email,
+          u.Phone,
+          u.Department,
+          u.Position,
+          u.PasswordHash,
+          u.IsSuperAdmin,
+          u.IsActive,
+          u.AvatarPath,
+          u.AvatarColorHue,
+          u.AvatarColorSaturation,
+          u.AvatarColorBrightness,
+          u.CoverPath,
+          u.CreatedAt,
+          u.LastLoginAt,
+          u.UpdatedAt
+        FROM Users u
+        WHERE u.UserName = @username AND u.IsActive = 1
       `);
     
     if (result.recordset.length === 0) {
@@ -43,6 +43,18 @@ async function getUserByUsername(username, connectionType = 'regular') {
     }
     
     const userData = result.recordset[0];
+    
+    // Получение ролей пользователя
+    const rolesResult = await pool.request()
+      .input('userId', sql.Int, userData.UserID)
+      .query(`
+        SELECT r.RoleName
+        FROM UserRoles ur
+        JOIN Roles r ON ur.RoleID = r.RoleID
+        WHERE ur.UserID = @userId
+      `);
+    
+    const roles = rolesResult.recordset.map(role => role.RoleName);
     
     // Преобразование данных цвета аватара обратно в объект
     const user = {
@@ -54,8 +66,8 @@ async function getUserByUsername(username, connectionType = 'regular') {
       department: userData.Department,
       position: userData.Position,
       passwordHash: userData.PasswordHash,
-      isSuperAdmin: userData.IsSuperAdmin === 1,
-      isActive: userData.IsActive === 1,
+      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData.IsActive === true || userData.IsActive === 1,
       avatarPath: userData.AvatarPath,
       avatarColor: {
         hue: userData.AvatarColorHue,
@@ -65,12 +77,34 @@ async function getUserByUsername(username, connectionType = 'regular') {
       coverPath: userData.CoverPath,
       createdAt: userData.CreatedAt,
       lastLoginAt: userData.LastLoginAt,
-      updatedAt: userData.UpdatedAt
+      updatedAt: userData.UpdatedAt,
+      roles: roles // Добавляем массив ролей
     };
     
     return user;
   } catch (error) {
     console.error('Ошибка получения пользователя по имени:', error);
+    throw error;
+  }
+}
+
+/**
+ * Получение соответствующего пула подключений для пользователя
+ * @param {Object} userProfile - Профиль пользователя
+ * @returns {Object} Пул подключений
+ */
+async function getPoolForUser(userProfile) {
+  try {
+    // Строго проверяем флаг IsSuperAdmin для выбора пула
+    if (userProfile && userProfile.isSuperAdmin === true) {
+      // Используем пул AppSuperAdmin для пользователей с флагом IsSuperAdmin
+      return await getConnectionPool('superadmin');
+    } else {
+      // По умолчанию используем пул AppSuperUser
+      return await getConnectionPool('regular');
+    }
+  } catch (error) {
+    console.error('Ошибка получения пула подключений для пользователя:', error);
     throw error;
   }
 }
@@ -119,8 +153,8 @@ async function getAllActiveUsers(connectionType = 'regular') {
       phone: userData.Phone,
       department: userData.Department,
       position: userData.Position,
-      isSuperAdmin: userData.IsSuperAdmin === 1,
-      isActive: userData.IsActive === 1,
+      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData.IsActive === true || userData.IsActive === 1,
       avatarPath: userData.AvatarPath,
       avatarColor: {
         hue: userData.AvatarColorHue,
@@ -189,8 +223,8 @@ async function getInactiveUsers(connectionType = 'superadmin') {
       phone: userData.Phone,
       department: userData.Department,
       position: userData.Position,
-      isSuperAdmin: userData.IsSuperAdmin === 1,
-      isActive: userData.IsActive === 1,
+      isSuperAdmin: userData.IsSuperAdmin === true || userData.IsSuperAdmin === 1, // Исправлено: проверка как булевого, так и числового значения
+      isActive: userData.IsActive === true || userData.IsActive === 1,
       avatarPath: userData.AvatarPath,
       avatarColor: {
         hue: userData.AvatarColorHue,
@@ -215,6 +249,7 @@ const sql = require('mssql');
 
 module.exports = {
   getUserByUsername,
+  getPoolForUser,
   getAllActiveUsers,
   getInactiveUsers
 };

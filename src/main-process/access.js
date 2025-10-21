@@ -2,6 +2,68 @@ const { ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+/**
+ * Проверка наличия у пользователя определенной роли
+ * @param {Object} userProfile - Профиль пользователя
+ * @param {string} roleName - Название роли для проверки
+ * @returns {boolean} Имеет ли пользователь указанную роль
+ */
+function hasRole(userProfile, roleName) {
+  try {
+    // Проверяем, что userProfile существует и имеет массив ролей
+    if (!userProfile || !Array.isArray(userProfile.roles)) {
+      return false;
+    }
+    
+    // Проверяем наличие роли в массиве ролей пользователя
+    return userProfile.roles.includes(roleName);
+  } catch (error) {
+    console.error('Ошибка проверки роли пользователя:', error);
+    return false;
+  }
+}
+
+/**
+ * Проверка наличия у пользователя любой из указанных ролей
+ * @param {Object} userProfile - Профиль пользователя
+ * @param {Array<string>} roleNames - Массив названий ролей для проверки
+ * @returns {boolean} Имеет ли пользователь хотя бы одну из указанных ролей
+ */
+function hasAnyRole(userProfile, roleNames) {
+  try {
+    // Проверяем, что userProfile существует и имеет массив ролей
+    if (!userProfile || !Array.isArray(userProfile.roles) || !Array.isArray(roleNames)) {
+      return false;
+    }
+    
+    // Проверяем наличие хотя бы одной роли из массива
+    return userProfile.roles.some(role => roleNames.includes(role));
+  } catch (error) {
+    console.error('Ошибка проверки ролей пользователя:', error);
+    return false;
+  }
+}
+
+/**
+ * Получение списка всех ролей пользователя
+ * @param {Object} userProfile - Профиль пользователя
+ * @returns {Array<string>} Массив названий ролей пользователя
+ */
+function getUserRoles(userProfile) {
+  try {
+    // Проверяем, что userProfile существует и имеет массив ролей
+    if (!userProfile || !Array.isArray(userProfile.roles)) {
+      return [];
+    }
+    
+    // Возвращаем массив ролей пользователя
+    return [...userProfile.roles]; // Создаем копию массива для безопасности
+  } catch (error) {
+    console.error('Ошибка получения ролей пользователя:', error);
+    return [];
+  }
+}
+
 // Базовый путь для серверных данных внутри проекта
 const serverRootPath = path.join(__dirname, '../../Server');
 const accessConfigPath = path.join(serverRootPath, 'users', 'access.json');
@@ -440,9 +502,42 @@ function registerAccessControlHandlers() {
       return { ok: false, error: error.message, log: errorMsg };
     }
   });
+  
+  // IPC обработчик для проверки ролей пользователя
+  ipcMain.handle('access:hasRole', async (event, payload) => {
+    try {
+      const { userProfile, roleName } = payload || {};
+      
+      // Проверяем наличие роли у пользователя
+      const hasRoleResult = hasRole(userProfile, roleName);
+      
+      return { ok: true, hasRole: hasRoleResult };
+    } catch (error) {
+      console.error('[AccessControl] Ошибка IPC при проверке роли пользователя:', error);
+      return { ok: false, error: error.message };
+    }
+  });
+  
+  // IPC обработчик для проверки любых ролей пользователя
+  ipcMain.handle('access:hasAnyRole', async (event, payload) => {
+    try {
+      const { userProfile, roleNames } = payload || {};
+      
+      // Проверяем наличие хотя бы одной роли у пользователя
+      const hasAnyRoleResult = hasAnyRole(userProfile, roleNames);
+      
+      return { ok: true, hasAnyRole: hasAnyRoleResult };
+    } catch (error) {
+      console.error('[AccessControl] Ошибка IPC при проверке ролей пользователя:', error);
+      return { ok: false, error: error.message };
+    }
+  });
 }
 
 module.exports = {
+  hasRole,
+  hasAnyRole,
+  getUserRoles,
   updateAccessConfigWithMarkers,
   registerAccessControlHandlers
 };
