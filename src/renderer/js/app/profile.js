@@ -12,8 +12,6 @@ class ProfileModule {
     if (!container) return;
 
     const user = window.UserStore?.getCurrentUser();
-    console.log('[Profile] Current user data:', user); // Debug log
-    
     const displayName = user?.displayName || user?.username || 'Пользователь';
     const role = user?.role || 'User';
     const lastLogin = user?.lastLoginAt || '—';
