@@ -6,7 +6,8 @@ const fs = require('fs');
 const { 
   getUserByUsername, 
   getAllActiveUsers, 
-  getInactiveUsers 
+  getInactiveUsers,
+  getAllRoles
 } = require('../db/request/auth-choice');
 const { 
   createNewUser, 
@@ -317,6 +318,16 @@ function registerUserHandlers() {
           roles: userData.roles // Передаем массив ролей
         }
       };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  });
+
+  // Получить список всех ролей из SQL
+  ipcMain.handle('roles:list', async () => {
+    try {
+      const roles = await getAllRoles?.('regular');
+      return { ok: true, roles };
     } catch (e) {
       return { ok: false, error: String(e) };
     }

@@ -48,45 +48,10 @@ export async function initializeAccessControl(app) {
             return false;
         }
         
-        // Если в конфигурации отсутствует секция access или в ней нет ключей для ролей — инициализируем
-        try {
-            // Убедимся, что roles — это массив строк
-            const roles = Array.isArray(config.roles) ? config.roles.filter(r => typeof r === 'string') : [];
-
-            // Нормализуем существующую секцию access — гарантируем объект
-            const existingAccess = (config.access && typeof config.access === 'object') ? Object.assign({}, config.access) : {};
-
-            // Соберём объект с недостающими ролями (только ключи которые отсутствуют)
-            const missing = {};
-            roles.forEach(r => {
-                if (!Object.prototype.hasOwnProperty.call(existingAccess, r)) {
-                    missing[r] = [];
-                }
-            });
-
-            // Если есть недостающие роли — отправим update в main-process и обновим локальную переменную
-            if (Object.keys(missing).length > 0) {
-                const payload = {
-                    access: missing
-                };
-
-                try {
-                    await ipcRenderer.invoke('access:updateAccess', payload);
-                    // Обновим локальную переменную accessConfig — объединяя существующие access с добавленными ролями
-                    accessConfig = Object.assign({}, config, { access: Object.assign({}, existingAccess, missing) });
-                } catch (e) {
-                    console.warn('[AccessControl] Не удалось отправить обновлённую секцию access на main-process:', e);
-                    // Даже если не удалось сохранить на main, всё равно обновим локальную конфигурацию в памяти
-                    accessConfig = Object.assign({}, config, { access: Object.assign({}, existingAccess, missing) });
-                }
-            } else {
-                // Ничего не нужно добавлять — используем существующую конфигурацию
-                accessConfig = config;
-            }
-        } catch (e) {
-            console.warn('[AccessControl] Ошибка при проверке/инициализации секции access:', e);
-            accessConfig = config;
-        }
+        // Конфигурация больше не содержит/инициализирует список ролей. Просто валидируем форму и кешируем
+        const existingAccess = (config.access && typeof config.access === 'object') ? Object.assign({}, config.access) : {};
+        const markers = (config.markers && typeof config.markers === 'object') ? config.markers : {};
+        accessConfig = { access: existingAccess, markers };
         
     // Сохраняем ссылку на приложение
     window.ProcessCraftAppInstance = app;
@@ -133,8 +98,23 @@ export function applyAccessRules(app) {
             return;
         }
         
-        // Получаем разрешенные маркеры для текущей роли пользователя
-        const allowedMarkers = accessConfig.access[currentUser.role] || [];
+        // Получаем разрешенные маркеры для текущего пользователя
+        // Проверяем все роли пользователя, а не только основную роль
+        let allowedMarkers = [];
+        if (currentUser.roles && Array.isArray(currentUser.roles)) {
+            // Для каждой роли пользователя собираем разрешенные маркеры
+            currentUser.roles.forEach(role => {
+                if (accessConfig.access[role]) {
+                    allowedMarkers = [...allowedMarkers, ...accessConfig.access[role]];
+                }
+            });
+            
+            // Удаляем дубликаты
+            allowedMarkers = [...new Set(allowedMarkers)];
+        } else {
+            // Если роли не заданы, используем основную роль пользователя
+            allowedMarkers = accessConfig.access[currentUser.role] || [];
+        }
         
         // Применяем правила доступа к элементам (удаляем элементы без доступа)
         applyAccessToElements(allowedMarkers);
@@ -211,8 +191,23 @@ export function checkAccess(marker) {
             return false;
         }
         
-        // Получаем разрешенные маркеры для текущей роли пользователя
-        const allowedMarkers = accessConfig.access[currentUser.role] || [];
+        // Получаем разрешенные маркеры для текущего пользователя
+        // Проверяем все роли пользователя, а не только основную роль
+        let allowedMarkers = [];
+        if (currentUser.roles && Array.isArray(currentUser.roles)) {
+            // Для каждой роли пользователя собираем разрешенные маркеры
+            currentUser.roles.forEach(role => {
+                if (accessConfig.access[role]) {
+                    allowedMarkers = [...allowedMarkers, ...accessConfig.access[role]];
+                }
+            });
+            
+            // Удаляем дубликаты
+            allowedMarkers = [...new Set(allowedMarkers)];
+        } else {
+            // Если роли не заданы, используем основную роль пользователя
+            allowedMarkers = accessConfig.access[currentUser.role] || [];
+        }
         
         // Проверяем, есть ли маркер в списке разрешенных
         return allowedMarkers.includes(marker);
@@ -426,7 +421,24 @@ function setupDOMChangeObserver(app) {
                                             markerElements.forEach(el => { try { el.remove(); } catch (e) { el.style.display = 'none'; } });
                                         }
                                     } else {
-                                        const allowed = accessConfig.access[currentUser.role] || [];
+                                        // Получаем разрешенные маркеры для текущего пользователя
+                                        // Проверяем все роли пользователя, а не только основную роль
+                                        let allowed = [];
+                                        if (currentUser.roles && Array.isArray(currentUser.roles)) {
+                                            // Для каждой роли пользователя собираем разрешенные маркеры
+                                            currentUser.roles.forEach(role => {
+                                                if (accessConfig.access[role]) {
+                                                    allowed = [...allowed, ...accessConfig.access[role]];
+                                                }
+                                            });
+                                            
+                                            // Удаляем дубликаты
+                                            allowed = [...new Set(allowed)];
+                                        } else {
+                                            // Если роли не заданы, используем основную роль пользователя
+                                            allowed = accessConfig.access[currentUser.role] || [];
+                                        }
+                                        
                                         // Проверяем сам узел
                                         if (node.hasAttribute && node.hasAttribute('data-access-marker')) {
                                             const m = node.getAttribute('data-access-marker');

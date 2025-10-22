@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { getConnectionPool } = require('../connection');
+const sql = require('mssql');
 
 /**
  * Хеширование пароля с использованием PBKDF2 с SHA-512
@@ -165,9 +166,6 @@ async function updateLastLogin(username) {
     return false;
   }
 }
-
-// Добавление импорта sql
-const sql = require('mssql');
 
 module.exports = {
   hashPassword,

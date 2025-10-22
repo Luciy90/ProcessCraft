@@ -83,11 +83,6 @@ function loadAccessConfig() {
     if (!raw || raw.trim()?.length === 0) {
       console.warn('[AccessControl] Файл access.json пуст, вернём дефолтную конфигурацию');
       return {
-        roles: {
-          "SuperAdmin": {},
-          "Admin": {},
-          "User": {}
-        },
         markers: {},
         access: {},
         generated_at: new Date().toISOString()
@@ -102,29 +97,10 @@ function loadAccessConfig() {
       // Логируем небольшую часть содержимого для диагностики
       try { console.error('[AccessControl] access.json excerpt:', raw.slice?.(0, 1000)); } catch (e) {}
       return {
-        roles: {
-          "SuperAdmin": {},
-          "Admin": {},
-          "User": {}
-        },
         markers: {},
         access: {},
         generated_at: new Date().toISOString()
       };
-    }
-    
-    // Валидация конфигурации
-    if (!config.roles || !(Array.isArray(config.roles) || typeof config.roles === 'object')) {
-      throw new Error('AccessFileFormatError: Поле "roles" должно быть массивом или объектом');
-    }
-    
-    // Если roles - это массив, преобразуем его в объект
-    if (Array.isArray(config.roles)) {
-      const rolesObject = {};
-      config.roles.forEach(role => {
-        rolesObject[role] = {};
-      });
-      config.roles = rolesObject;
     }
     
     // markers может быть либо массивом идентификаторов (старый формат), либо объектом (новый формат с описаниями и вложениями)
@@ -160,60 +136,7 @@ function saveAccessConfig(config) {
   }
 }
 
-/**
- * Создание базовой конфигурации доступа
- * @returns {Object} Базовая конфигурация доступа
- */
-function createBaseAccessConfig() {
-  return {
-    roles: {
-      "SuperAdmin": { 
-        "name": "Супер Администратор",
-        "description": "Полные права доступа"
-      },
-      "Admin": {      
-        "name": "Администратор",
-        "description": "Ограниченое управление"
-      },
-      "User": {
-        "name": "Пользователь",
-        "description": "Просмотр данных"
-      }
-    },
-    markers: {},
-    access: {},
-    helper: {
-      "data-access-marker": "задает маркер доступа",
-      "data-access-down": "задает вложенность структуры",
-      "data-access-description": "задает описание маркера"
-    },
-    generated_at: new Date().toISOString()
-  };
-}
-
-/**
- * Актуализация ролей в конфигурации
- * @param {Object} config Конфигурация доступа
- * @returns {Object} Обновленная конфигурация
- */
-function updateRoles(config) {
-  // Обязательные роли
-  const requiredRoles = ["SuperAdmin", "Admin", "User"];
-  
-  // Инициализируем roles как объект, если это массив или отсутствует
-  if (!config.roles || Array.isArray(config.roles)) {
-    config.roles = {};
-  }
-  
-  // Добавляем отсутствующие обязательные роли
-  requiredRoles.forEach(role => {
-    if (!config.roles.hasOwnProperty?.(role)) {
-      config.roles[role] = {};
-    }
-  });
-  
-  return config;
-}
+// createBaseAccessConfig/remove: роли больше не создаются и не управляются через JSON
 
 /**
  * Поиск HTML-файлов в директории
@@ -334,29 +257,10 @@ function buildMarkersHierarchy(foundMarkers) {
  * @returns {Object} Обновленная конфигурация
  */
 function updateAccessStructure(config) {
-  // Инициализируем roles как объект, если это массив или отсутствует
-  if (!config.roles || Array.isArray(config.roles)) {
-    config.roles = {
-      "SuperAdmin": {},
-      "Admin": {},
-      "User": {}
-    };
-  }
-  
-  // Удаляем записи для ролей, которых нет в объекте roles
-  for (const role in config.access) {
-    if (!config.roles.hasOwnProperty?.(role)) {
-      delete config.access[role];
-    }
-  }
-  
-  // Добавляем отсутствующие роли в access
-  for (const role in config.roles) {
-    if (!config.access.hasOwnProperty?.(role)) {
-      config.access[role] = [];
-    }
-  }
-  
+  // Роли управляются в SQL. Здесь лишь гарантируем корректную форму разделов markers/access
+  if (!config || typeof config !== 'object') return { markers: {}, access: {}, generated_at: new Date().toISOString() };
+  if (!config.markers || typeof config.markers !== 'object') config.markers = {};
+  if (!config.access || typeof config.access !== 'object') config.access = {};
   return config;
 }
 
@@ -370,27 +274,14 @@ function updateAccessConfigWithMarkers() {
     // 1. Проверка существования файла Server\users\access.json
     let config;
     if (!fs.existsSync(accessConfigPath)) {
-      // Если файла нет, создать его с базовой структурой
-      config = createBaseAccessConfig();
-      console.log('[AccessControl] Создан новый файл конфигурации доступа с базовой структурой');
+      // Минимальная структура без раздела roles
+      config = { markers: {}, access: {}, generated_at: new Date().toISOString() };
+      console.log('[AccessControl] Создан новый файл конфигурации доступа (без roles)');
     } else {
-      // Загружаем текущую конфигурацию доступа
-      config = loadAccessConfig();
-      if (!config) {
-        // Если не удалось загрузить, создаем новую
-        config = createBaseAccessConfig();
-        console.log('[AccessControl] Не удалось загрузить конфигурацию, создан новый файл');
-      }
-      
-      // Если helper отсутствует, не добавляем его (только при первом создании)
-      if (!config.helper) {
-        delete config.helper; // Удаляем, если был добавлен при загрузке
-      }
+      config = loadAccessConfig() || { markers: {}, access: {} };
     }
 
-    // 2. Актуализация ролей
-    config = updateRoles(config);
-    console.log(`[AccessControl] Актуализированы роли: ${Object.keys(config.roles).join(', ')}`);
+    // 2. Роли не актуализируем здесь — управление ролями в SQL
 
     // 3. Анализ HTML и построение структуры маркеров
     // Выполнить поиск всех HTML-файлов в каталоге src, в том числе файлов, встроенных в JS
@@ -471,19 +362,8 @@ function registerAccessControlHandlers() {
       if (access && typeof access === 'object') {
         // Обновляем права доступа для каждой роли отдельно
         for (const role in access) {
-          if (Array.isArray(access[role]) && config.access.hasOwnProperty?.(role)) {
-            // Заменяем права доступа для этой роли на переданные
+          if (Array.isArray(access[role])) {
             config.access[role] = [...access[role]];
-          }
-        }
-      }
-      
-      // Убедимся, что все роли из объекта roles имеют записи в объекте access с пустыми массивами в качестве значений
-      // Если запись для роли существует, мы не изменяем её. Если записи нет, то добавляем её.
-      if (config.roles && typeof config.roles === 'object' && !Array.isArray(config.roles) && config.access && typeof config.access === 'object') {
-        for (const role in config.roles) {
-          if (!config.access.hasOwnProperty?.(role)) {
-            config.access[role] = [];
           }
         }
       }
@@ -540,4 +420,4 @@ module.exports = {
   getUserRoles,
   updateAccessConfigWithMarkers,
   registerAccessControlHandlers
-}; 
+};

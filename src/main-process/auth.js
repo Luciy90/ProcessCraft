@@ -41,23 +41,44 @@ function registerAuthHandlers() {
         coverPath = resolveCoverPath?.(username);
       }
       
+      // Определяем основную роль пользователя
+      // Если пользователь имеет флаг isSuperAdmin, то его роль - SuperAdmin
+      // В противном случае используем первую роль из массива roles или 'User' по умолчанию
+      let userRole = 'User';
+      if (userData.isSuperAdmin) {
+        userRole = 'SuperAdmin';
+      } else if (userData.roles && userData.roles.length > 0) {
+        userRole = userData.roles[0]; // Используем первую роль из массива
+      }
+      
+      // Создаем объект пользователя для передачи на фронтенд
+      const userObject = {
+        username: userData.username,
+        displayName: userData.displayName,
+        role: userRole, // Основная роль для отображения
+        avatarPath: userData.avatarPath,
+        coverPath: coverPath,
+        lastLoginAt: userData.lastLoginAt,
+        isSuperAdmin: userData.isSuperAdmin, // Флаг суперадмина
+        roles: userData.roles // Все роли пользователя
+      };
+      
+      console.log('[Auth] User login successful:', {
+        username: userObject.username,
+        role: userObject.role,
+        isSuperAdmin: userObject.isSuperAdmin,
+        roles: userObject.roles
+      });
+      
       return {
         ok: true,
-        user: {
-          username: userData.username,
-          displayName: userData.displayName,
-          role: userData.isSuperAdmin ? 'SuperAdmin' : 'User',
-          avatarPath: userData.avatarPath,
-          coverPath: coverPath,
-          lastLoginAt: userData.lastLoginAt,
-          isSuperAdmin: userData.isSuperAdmin, // Передаем флаг IsSuperAdmin
-          roles: userData.roles // Передаем массив ролей
-        }
+        user: userObject
       };
     } catch (e) {
+      console.error('[Auth] Login error:', e);
       return { ok: false, error: String(e) };
     }
   });
 }
 
-module.exports = { registerAuthHandlers }; 
+module.exports = { registerAuthHandlers };

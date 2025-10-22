@@ -175,6 +175,27 @@ async function getAllActiveUsers(connectionType = 'regular') {
 }
 
 /**
+ * Получение списка всех ролей из БД
+ * @param {string} connectionType - Тип подключения ('regular' или 'superadmin')
+ * @returns {Array<string>} Массив названий ролей
+ */
+async function getAllRoles(connectionType = 'regular') {
+  try {
+    const pool = await getConnectionPool(connectionType);
+    const result = await pool.request()
+      .query(`
+        SELECT RoleName
+        FROM Roles
+        ORDER BY RoleName ASC
+      `);
+    return result.recordset?.map(r => r?.RoleName).filter(Boolean) ?? [];
+  } catch (error) {
+    console.error('Ошибка получения списка ролей:', error);
+    throw error;
+  }
+}
+
+/**
  * Получение неактивных пользователей (для административных целей)
  * @param {string} connectionType - Тип подключения для использования ('regular' или 'superadmin')
  * @returns {Array} Массив неактивных пользователей
@@ -251,5 +272,6 @@ module.exports = {
   getUserByUsername,
   getPoolForUser,
   getAllActiveUsers,
-  getInactiveUsers
+  getInactiveUsers,
+  getAllRoles
 };

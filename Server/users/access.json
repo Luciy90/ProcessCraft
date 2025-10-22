@@ -35,17 +35,14 @@
     }
   },
   "access": {
-    "SuperAdmin": [
-      "sidebar-settings-mark",
-      "profile-admin-list-mark",
-      "profile-access-modal-mark"
-    ],
-    "Admin": [
-      "sidebar-settings-mark"
-    ],
-    "User": [
-      "sidebar-settings-mark"
-    ]
+    "SuperAdmin": [],
+    "Admin": [],
+    "User": []
   },
-  "generated_at": "2025-10-21T09:17:39.602Z"
+  "helper": {
+    "data-access-marker": "задает маркер доступа",
+    "data-access-down": "задает вложенность структуры",
+    "data-access-description": "задает описание маркера"
+  },
+  "generated_at": "2025-10-22T09:07:07.130Z"
 }

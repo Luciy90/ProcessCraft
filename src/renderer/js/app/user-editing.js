@@ -7,14 +7,12 @@
  * @param {Object} user Пользователь для редактирования
  */
 export function openEditUserModal(app, user) {
-    // Загрузка ролей динамически из конфигурации доступа
+    // Загрузка ролей динамически из SQL через IPC
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
-            const result = await ipcRenderer.invoke('access:loadConfig');
-            if (result && result.ok && result.config && Array.isArray(result.config.roles)) {
-                return result.config.roles;
-            }
+            const result = await ipcRenderer.invoke('roles:list');
+            if (result && result.ok && Array.isArray(result.roles)) return result.roles;
         } catch (error) {
             console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }
@@ -131,14 +129,12 @@ export function openEditUserModal(app, user) {
 export function openRequestChangesModal(app) {
     const currentUser = window.UserStore?.getCurrentUser();
     
-    // Загрузка ролей динамически из конфигурации доступа
+    // Загрузка ролей динамически из SQL через IPC
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
-            const result = await ipcRenderer.invoke('access:loadConfig');
-            if (result && result.ok && result.config && Array.isArray(result.config.roles)) {
-                return result.config.roles;
-            }
+            const result = await ipcRenderer.invoke('roles:list');
+            if (result && result.ok && Array.isArray(result.roles)) return result.roles;
         } catch (error) {
             console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }
@@ -245,14 +241,12 @@ export function openRequestChangesModal(app) {
  * @param {Object} app Экземпляр приложения
  */
 export function openCreateUserModal(app) {
-    // Загрузка ролей динамически из конфигурации доступа
+    // Загрузка ролей динамически из SQL через IPC
     const loadRoles = async () => {
         try {
             const { ipcRenderer } = require('electron');
-            const result = await ipcRenderer.invoke('access:loadConfig');
-            if (result && result.ok && result.config && Array.isArray(result.config.roles)) {
-                return result.config.roles;
-            }
+            const result = await ipcRenderer.invoke('roles:list');
+            if (result && result.ok && Array.isArray(result.roles)) return result.roles;
         } catch (error) {
             console.error('[UserEditing] Ошибка загрузки ролей:', error);
         }

@@ -10,6 +10,8 @@ import { updateAvatarInDOM } from '../utils/avatarUtils.js';
  */
 export function openProfileModal(app, user) {
     const u = user || window.UserStore?.getCurrentUser();
+    console.log('[UserProfile] User data in modal:', u); // Debug log
+    
     if (!u) { app.openLoginModal(); return; }
     const cfg = window.UI_CONFIG;
     const t = cfg?.texts?.user_management?.profile || {};

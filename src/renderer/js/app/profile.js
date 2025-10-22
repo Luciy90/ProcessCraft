@@ -12,6 +12,8 @@ class ProfileModule {
     if (!container) return;
 
     const user = window.UserStore?.getCurrentUser();
+    console.log('[Profile] Current user data:', user); // Debug log
+    
     const displayName = user?.displayName || user?.username || 'Пользователь';
     const role = user?.role || 'User';
     const lastLogin = user?.lastLoginAt || '—';
@@ -44,6 +46,8 @@ class ProfileModule {
           coverImageSrc = await this.getCoverImagePath(user);
         }
 
+        console.log('[Profile] Role for display:', role); // Debug log
+        
         let out = html
           .replace(/\{\{AVATAR_HTML\}\}/g, avatar)
           .replace(/\{\{DISPLAY_NAME\}\}/g, displayName)
